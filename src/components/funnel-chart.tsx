@@ -15,6 +15,23 @@ interface FunnelChartProps {
     data: FunnelStep[];
 }
 
+function WavySeparator() {
+    return (
+        <div className="absolute top-0 bottom-0 -right-0.5 w-4 text-background" style={{ right: '-1px' }}>
+            <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 20 100"
+                preserveAspectRatio="none"
+                className="fill-current"
+            >
+                <path d="M 20 0 C 0 25, 0 75, 20 100 L 20 0 Z" />
+            </svg>
+        </div>
+    );
+}
+
+
 export function FunnelChart({ data }: FunnelChartProps) {
     if (!data || data.length === 0) {
         return (
@@ -45,19 +62,26 @@ export function FunnelChart({ data }: FunnelChartProps) {
                 </TooltipProvider>
             </CardHeader>
             <CardContent>
-                <div className="flex flex-col md:flex-row w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-lg overflow-hidden text-white">
-                    {data.map((step, index) => (
-                        <div 
-                            key={step.label} 
-                            className={`flex-1 p-4 flex flex-col justify-between items-center text-center ${index < data.length - 1 ? 'border-r border-white/20' : ''}`}
-                        >
-                            <h3 className="text-sm font-semibold uppercase tracking-wider">{step.label}</h3>
-                            <div className="my-4">
-                                <p className="text-4xl font-bold">{step.percentage.toFixed(1)}%</p>
+                 <div className="w-full bg-gradient-to-r from-primary via-orange-400 to-amber-300 rounded-lg text-primary-foreground p-4">
+                    <div className="relative flex flex-col md:flex-row items-stretch justify-between text-center">
+                        {data.map((step, index) => (
+                            <div 
+                                key={step.label} 
+                                className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
+                            >
+                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">{step.label}</h3>
+                                <p className="text-4xl font-bold my-2">{step.percentage.toFixed(1)}%</p>
+                                <p className="text-lg font-medium">{step.value.toLocaleString('pt-BR')}</p>
+                                
+                                {index < data.length - 1 && (
+                                   <div className="hidden md:block absolute top-0 bottom-0 w-px bg-white/20" style={{ right: '0' }} />
+                                )}
+                                 {index < data.length - 1 && (
+                                   <hr className="md:hidden my-4 w-1/2 border-white/20"/>
+                                )}
                             </div>
-                            <p className="text-lg font-medium">{step.value.toLocaleString('pt-BR')}</p>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </CardContent>
         </Card>
