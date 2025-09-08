@@ -467,7 +467,7 @@ export default function DashboardPage() {
 
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="icon" className="relative sm:w-[150px]">
+                            <Button variant="outline" size="icon" className="relative sm:w-auto sm:px-4">
                                 <Filter className="h-4 w-4 sm:mr-2" />
                                 <span className="hidden sm:inline">Filtros</span>
                                 {activeFiltersCount > 0 && 
@@ -563,8 +563,8 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
+            <div className="grid gap-4 lg:grid-cols-7">
+                <Card className="lg:col-span-4">
                     <CardHeader>
                         <CardTitle>Análise de Tendência de Lucro</CardTitle>
                          <p className="text-sm text-muted-foreground">Exibindo lucro para: {chartPeriodLabel}.</p>
@@ -573,62 +573,58 @@ export default function DashboardPage() {
                         <ProfitChart data={profitTrendData} />
                     </CardContent>
                 </Card>
-                <Card className="col-span-4 md:col-span-3">
+                <Card className="lg:col-span-3">
                      <CardHeader>
                         <CardTitle>Análise de Performance</CardTitle>
                         <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="grid grid-cols-1 gap-4">
-                            <div 
-                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                                onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
-                                onMouseLeave={() => setHoveredKpi(null)}
-                            >
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                    <Target className="h-4 w-4 text-muted-foreground" />
-                                    <span>ROAS</span>
-                                </div>
-                                <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
+                        <div 
+                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                            onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
+                            onMouseLeave={() => setHoveredKpi(null)}
+                        >
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <Target className="h-4 w-4 text-muted-foreground" />
+                                <span>ROAS</span>
                             </div>
-
-                             <div 
-                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                                onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
-                                onMouseLeave={() => setHoveredKpi(null)}
-                            >
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                    <span>CPA</span>
-                                </div>
-                                <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
-                            </div>
+                            <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4">
-                           <div 
-                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                                onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
-                                onMouseLeave={() => setHoveredKpi(null)}
-                            >
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                    <span>Taxa de Conversão</span>
-                                </div>
-                                <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
+                         <div 
+                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                            onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
+                            onMouseLeave={() => setHoveredKpi(null)}
+                        >
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                <span>CPA</span>
                             </div>
-                            
-                            <div 
-                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                                onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
-                                onMouseLeave={() => setHoveredKpi(null)}
-                            >
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                    <span>Ticket Médio</span>
-                                </div>
-                                <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
+                            <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
+                        </div>
+
+                       <div 
+                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                            onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
+                            onMouseLeave={() => setHoveredKpi(null)}
+                        >
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <Percent className="h-4 w-4 text-muted-foreground" />
+                                <span>Taxa de Conversão</span>
                             </div>
+                            <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
+                        </div>
+                        
+                        <div 
+                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                            onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
+                            onMouseLeave={() => setHoveredKpi(null)}
+                        >
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                                <span>Ticket Médio</span>
+                            </div>
+                            <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
                         </div>
 
                         <div className="col-span-1 sm:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
@@ -654,3 +650,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
