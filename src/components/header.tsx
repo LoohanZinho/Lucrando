@@ -21,6 +21,9 @@ export function Header() {
                     <MobileNav />
                 </SheetContent>
             </Sheet>
+            <div className="hidden md:block">
+                <h1 className="text-lg font-semibold">Lucrando com Influenciadores</h1>
+            </div>
             <div className="relative ml-auto flex items-center gap-2 md:grow-0">
                 <ThemeToggle />
                 <UserNav />
