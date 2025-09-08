@@ -33,6 +33,11 @@ function WavySeparator() {
 
 
 export function FunnelChart({ data }: FunnelChartProps) {
+    const formatPercentage = (percentage: number) => {
+        if (percentage === 0) return "0%";
+        return `${percentage.toFixed(1)}%`;
+    }
+
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -57,7 +62,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
                                 className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
                             >
                                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">{step.label}</h3>
-                                <p className="text-4xl font-bold my-2">{step.percentage.toFixed(1)}%</p>
+                                <p className="text-4xl font-bold my-2">{formatPercentage(step.percentage)}</p>
                                 <p className="text-lg font-medium">{step.value.toLocaleString('pt-BR')}</p>
                                 
                                 {index < data.length - 1 && (
