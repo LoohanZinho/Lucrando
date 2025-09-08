@@ -47,29 +47,15 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
         // Top path from left to right
         let topPath = `M 0,${yPoints[0].yTop} `;
         for (let i = 0; i < data.length - 1; i++) {
-            const x1 = i * stepWidth;
             const x2 = (i + 1) * stepWidth;
-            
-            const cp1x = x1 + stepWidth / 2;
-            const cp1y = yPoints[i].yTop;
-            const cp2x = x2 - stepWidth / 2;
-            const cp2y = yPoints[i+1].yTop;
-
-            topPath += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${yPoints[i+1].yTop} `;
+            topPath += `L ${x2},${yPoints[i+1].yTop} `;
         }
         
         // Bottom path from right to left
         let bottomPath = `L ${viewBoxWidth},${yPoints[data.length - 1].yBottom} `;
         for (let i = data.length - 1; i > 0; i--) {
-            const x1 = i * stepWidth;
             const x2 = (i - 1) * stepWidth;
-
-            const cp1x = x1 - stepWidth / 2;
-            const cp1y = yPoints[i].yBottom;
-            const cp2x = x2 + stepWidth / 2;
-            const cp2y = yPoints[i-1].yBottom;
-            
-            bottomPath += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${yPoints[i-1].yBottom} `;
+             bottomPath += `L ${x2},${yPoints[i-1].yBottom} `;
         }
         bottomPath += `Z`;
         
