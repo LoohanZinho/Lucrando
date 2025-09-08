@@ -1,5 +1,6 @@
 
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -15,27 +16,40 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Combobox } from "@/components/ui/combobox";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
     description: z.string().optional(),
     link: z.string().url("Link inválido").optional().or(z.literal('')),
     influencerId: z.string().min(1, "Selecione um influenciador"),
-    partnerId: z.string().min(1, "Selecione um sócio"),
+    hasPartner: z.boolean().default(false),
+    partnerId: z.string().optional(),
+    partnerShareType: z.enum(['percentage', 'fixed']).optional(),
+    partnerShareValue: z.coerce.number().min(0, "Valor da comissão não pode ser negativo").optional(),
     investment: z.coerce.number().min(0, "Investimento não pode ser negativo").optional(),
     revenue: z.coerce.number().min(0, "Receita não pode ser negativa").optional(),
     views: z.coerce.number().int("Views deve ser um número inteiro").min(0).optional(),
     clicks: z.coerce.number().int("Cliques deve ser um número inteiro").min(0).optional(),
     pageVisits: z.coerce.number().int("Visitas deve ser um número inteiro").min(0).optional(),
     sales: z.coerce.number().int("Vendas deve ser um número inteiro").min(0).optional(),
+}).refine(data => {
+    if (data.hasPartner) {
+        return !!data.partnerId && !!data.partnerShareType && data.partnerShareValue !== undefined;
+    }
+    return true;
+}, {
+    message: "Se um sócio for adicionado, todos os campos de sócio são obrigatórios.",
+    path: ['partnerId'] // You can choose a more appropriate path
 });
 
 type PostFormData = z.infer<typeof postSchema>;
@@ -53,7 +67,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             description: "",
             link: "",
             influencerId: "",
+            hasPartner: false,
             partnerId: "",
+            partnerShareType: 'percentage',
+            partnerShareValue: undefined,
             investment: undefined,
             revenue: undefined,
             views: undefined,
@@ -62,11 +79,17 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             sales: undefined,
         }
     });
+    
+    const hasPartner = useWatch({
+        control: form.control,
+        name: 'hasPartner'
+    });
 
     useEffect(() => {
         if (postToEdit) {
             form.reset({
                  ...postToEdit,
+                hasPartner: !!postToEdit.partnerId,
                 investment: postToEdit.investment,
                 revenue: postToEdit.revenue,
                 views: postToEdit.views,
@@ -80,7 +103,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                 description: "",
                 link: "",
                 influencerId: "",
+                hasPartner: false,
                 partnerId: "",
+                partnerShareType: 'percentage',
+                partnerShareValue: undefined,
                 investment: undefined,
                 revenue: undefined,
                 views: undefined,
@@ -96,18 +122,27 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
         if (!user) return;
         setIsSubmitting(true);
         try {
-            const postData = {
+            const postData: Partial<Post> = {
                 ...values,
                 userId: user.uid,
                 createdAt: isEditMode ? postToEdit?.createdAt : Timestamp.now()
             };
+
+            if (!values.hasPartner) {
+                postData.partnerId = undefined;
+                postData.partnerShareType = undefined;
+                postData.partnerShareValue = undefined;
+            }
+            // @ts-ignore
+            delete postData.hasPartner;
+
 
             if (isEditMode && postToEdit) {
                 const postRef = doc(db, `users/${user.uid}/posts`, postToEdit.id);
                 await updateDoc(postRef, postData);
                 toast({ title: "Sucesso!", description: "Post atualizado." });
             } else {
-                await addDoc(collection(db, `users/${user.uid}/posts`), postData);
+                await addDoc(collection(db, `users/${user.uid}/posts`), postData as DocumentData);
                 toast({ title: "Sucesso!", description: "Novo post adicionado." });
             }
             onSuccess();
@@ -130,21 +165,14 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="title" render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="md:col-span-2">
                             <FormLabel>Título</FormLabel>
                             <FormControl><Input placeholder="Ex: Post Promocional" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
-                    <FormField control={form.control} name="link" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Link</FormLabel>
-                            <FormControl><Input placeholder="https://..." {...field} value={field.value ?? ''} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="influencerId" render={({ field }) => (
-                        <FormItem className="flex flex-col">
+                     <FormField control={form.control} name="influencerId" render={({ field }) => (
+                        <FormItem className="flex flex-col md:col-span-2">
                             <FormLabel>Influenciador</FormLabel>
                             <FormControl>
                                 <Combobox
@@ -157,20 +185,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                             <FormMessage />
                         </FormItem>
                     )} />
-                     <FormField control={form.control} name="partnerId" render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Sócio</FormLabel>
-                            <FormControl>
-                                <Combobox
-                                    options={partnerOptions}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    placeholder="Selecione o sócio"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
                     <FormField control={form.control} name="description" render={({ field }) => (
                         <FormItem className="md:col-span-2">
                             <FormLabel>Descrição</FormLabel>
@@ -178,49 +192,146 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                             <FormMessage />
                         </FormItem>
                     )} />
-                     <FormField control={form.control} name="investment" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Investimento (R$)</FormLabel>
-                            <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                     <FormField control={form.control} name="revenue" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Receita (R$)</FormLabel>
-                            <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="views" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Views (Stories)</FormLabel>
-                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="clicks" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Cliques (Link)</FormLabel>
-                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                     <FormField control={form.control} name="pageVisits" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Visitas na Página</FormLabel>
-                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                     <FormField control={form.control} name="sales" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Conversões (Vendas)</FormLabel>
-                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                     <FormField control={form.control} name="link" render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                            <FormLabel>Link de Divulgação</FormLabel>
+                            <FormControl><Input placeholder="https://..." {...field} value={field.value ?? ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                 </div>
+                 <div className="space-y-4 p-4 border rounded-lg">
+                    <h3 className="text-lg font-medium">Métricas</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <FormField control={form.control} name="investment" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Investimento (R$)</FormLabel>
+                                <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="revenue" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Receita (R$)</FormLabel>
+                                <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="views" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Views (Stories)</FormLabel>
+                                <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="clicks" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Cliques (Link)</FormLabel>
+                                <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="pageVisits" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Visitas na Página</FormLabel>
+                                <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="sales" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Conversões (Vendas)</FormLabel>
+                                <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+                 </div>
+                
+                 <div className="space-y-4 p-4 border rounded-lg">
+                     <FormField
+                        control={form.control}
+                        name="hasPartner"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between">
+                               <div className="space-y-0.5">
+                                    <FormLabel className="text-base">Adicionar Sócio?</FormLabel>
+                                    <FormDescription>
+                                        Marque se este post tiver a participação de um sócio.
+                                    </FormDescription>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                        />
+                    {hasPartner && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                             <FormField control={form.control} name="partnerId" render={({ field }) => (
+                                <FormItem className="flex flex-col md:col-span-2">
+                                    <FormLabel>Sócio</FormLabel>
+                                    <FormControl>
+                                        <Combobox
+                                            options={partnerOptions}
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Selecione o sócio"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            
+                             <FormField
+                                control={form.control}
+                                name="partnerShareType"
+                                render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                    <FormLabel>Tipo de Comissão</FormLabel>
+                                    <FormControl>
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-col space-y-1"
+                                    >
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                                <RadioGroupItem value="percentage" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                                Porcentagem (%)
+                                            </FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                                <RadioGroupItem value="fixed" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                                Valor Fixo (R$)
+                                            </FormLabel>
+                                        </FormItem>
+                                    </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+
+                            <FormField control={form.control} name="partnerShareValue" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Valor da Comissão</FormLabel>
+                                    <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+                    )}
+                 </div>
+
                 <div className="flex gap-2 justify-end pt-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
                     <Button type="submit" disabled={isSubmitting}>
@@ -313,7 +424,7 @@ export function PostsManager() {
     }
     
     const getInfluencerName = (id: string) => influencers.find(i => i.id === id)?.name || 'N/A';
-    const getPartnerName = (id: string) => partners.find(p => p.id === id)?.name || 'N/A';
+    const getPartnerName = (id?: string) => partners.find(p => p.id === id)?.name || 'Nenhum';
 
     const formatCurrency = (value?: number) => {
         if (value === undefined || value === null) return "R$ 0,00";

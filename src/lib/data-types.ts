@@ -22,7 +22,9 @@ export interface Post {
     description?: string;
     link?: string;
     influencerId: string;
-    partnerId: string;
+    partnerId?: string;
+    partnerShareType?: 'percentage' | 'fixed';
+    partnerShareValue?: number;
     investment?: number;
     revenue?: number;
     views?: number;
