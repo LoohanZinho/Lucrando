@@ -6,10 +6,10 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Trash2, Loader2, Edit, MoreHorizontal } from "lucide-react";
+import { PlusCircle, Loader2, MoreHorizontal } from "lucide-react";
 import { type Post, type Influencer, type Partner } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -315,17 +315,11 @@ export function PostsManager() {
     return (
         <>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Gerenciar Posts</CardTitle>
-                        <CardDescription>
-                            Adicione e gerencie as publicações da sua campanha.
-                        </CardDescription>
-                    </div>
-                     <Button onClick={handleAddNew}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nova Postagem
-                    </Button>
+                <CardHeader>
+                    <CardTitle>Gerenciar Posts</CardTitle>
+                    <CardDescription>
+                        Adicione e gerencie as publicações da sua campanha.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -373,7 +367,7 @@ export function PostsManager() {
                                                 <DropdownMenuItem onSelect={() => handleEdit(post)}>Editar</DropdownMenuItem>
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" className="w-full justify-start font-normal h-8 px-2 text-red-600 hover:text-red-700">Excluir</Button>
+                                                        <Button variant="ghost" className="w-full justify-start cursor-pointer font-normal h-8 px-2 text-sm relative flex select-none items-center rounded-sm transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">Excluir</Button>
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
@@ -427,6 +421,3 @@ export function PostsManager() {
         </>
     )
 }
-
-
-    

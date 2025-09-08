@@ -8,7 +8,7 @@ import { UserPlus, Trash2, Loader2, Edit } from "lucide-react";
 import { type Partner } from "@/lib/data-types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, DocumentData } from "firebase/firestore/lite";
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";

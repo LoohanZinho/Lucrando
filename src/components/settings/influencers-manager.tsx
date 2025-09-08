@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -9,7 +10,7 @@ import { UserPlus, Trash2, Loader2, Edit, Users, Eye } from "lucide-react";
 import { type Influencer } from "@/lib/data-types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, DocumentData } from "firebase/firestore/lite";
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -87,14 +88,11 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
     const handleInstagramChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
         let value = e.target.value;
         value = value.toLowerCase();
-        if (value.startsWith('@')) {
-            const username = value.substring(1).replace(/[^a-z0-9._]/g, '');
-            value = '@' + username;
-        } else {
-            value = value.replace(/[^a-z0-9._]/g, '');
-        }
+        value = value.replace(/[^a-z0-9._]/g, '');
         if (value.length > 0 && !value.startsWith('@')) {
             value = '@' + value;
+        } else if (value.startsWith('@')) {
+            value = '@' + value.substring(1);
         }
         if (e.nativeEvent instanceof InputEvent && e.nativeEvent.inputType === 'deleteContentBackward' && field.value === '@') {
             value = '';
