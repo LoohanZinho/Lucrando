@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Loader2, MoreHorizontal } from "lucide-react";
+import { PlusCircle, Loader2, MoreHorizontal, Eye } from "lucide-react";
 import { type Post, type Influencer, type Partner } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PostDetailsDialog } from "./post-details-dialog";
 
 
 const postSchema = z.object({
@@ -365,6 +366,7 @@ export function PostsManager() {
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<Post | null>(null);
+    const [viewingPost, setViewingPost] = useState<Post | null>(null);
 
     const fetchData = useCallback(async () => {
         if (!user) return;
@@ -422,6 +424,10 @@ export function PostsManager() {
         setEditingPost(post);
         setIsSheetOpen(true);
     }
+
+    const handleViewDetails = (post: Post) => {
+        setViewingPost(post);
+    }
     
     const handleAddNew = () => {
         setEditingPost(null);
@@ -441,6 +447,8 @@ export function PostsManager() {
     };
 
     const getPartnerName = (id?: string) => partners.find(p => p.id === id)?.name || 'Nenhum';
+    const getInfluencer = (id: string) => influencers.find(i => i.id === id);
+    const getPartner = (id?: string) => partners.find(p => p.id === id);
 
     const formatCurrency = (value?: number) => {
         if (value === undefined || value === null) return "R$ 0,00";
@@ -500,10 +508,14 @@ export function PostsManager() {
                                     <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
                                     <TableCell className="hidden md:table-cell text-right">{formatNumber(post.sales)}</TableCell>
                                     <TableCell>
-                                        <div className="flex justify-end">
+                                        <div className="flex justify-end items-center gap-1">
+                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleViewDetails(post)}>
+                                                <Eye className="h-4 w-4" />
+                                                <span className="sr-only">Ver Detalhes</span>
+                                            </Button>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8">
                                                         <MoreHorizontal className="h-4 w-4" />
                                                         <span className="sr-only">Toggle menu</span>
                                                     </Button>
@@ -565,8 +577,16 @@ export function PostsManager() {
                     />
                 </SheetContent>
             </Sheet>
+
+            {viewingPost && (
+                <PostDetailsDialog
+                    post={viewingPost}
+                    influencer={getInfluencer(viewingPost.influencerId)}
+                    partner={getPartner(viewingPost.partnerId)}
+                    open={!!viewingPost}
+                    onOpenChange={(isOpen) => !isOpen && setViewingPost(null)}
+                />
+            )}
         </>
     )
 }
-
-    
