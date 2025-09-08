@@ -122,24 +122,23 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
         if (!user) return;
         setIsSubmitting(true);
         try {
-            const postData: Partial<Post> = {
+            const postData: Partial<Post> & { hasPartner?: boolean } = {
                 ...values,
                 userId: user.uid,
                 createdAt: isEditMode ? postToEdit?.createdAt : Timestamp.now()
             };
 
             if (!values.hasPartner) {
-                postData.partnerId = undefined;
-                postData.partnerShareType = undefined;
-                postData.partnerShareValue = undefined;
+                delete postData.partnerId;
+                delete postData.partnerShareType;
+                delete postData.partnerShareValue;
             }
-            // @ts-ignore
             delete postData.hasPartner;
 
 
             if (isEditMode && postToEdit) {
                 const postRef = doc(db, `users/${user.uid}/posts`, postToEdit.id);
-                await updateDoc(postRef, postData);
+                await updateDoc(postRef, postData as DocumentData);
                 toast({ title: "Sucesso!", description: "Post atualizado." });
             } else {
                 await addDoc(collection(db, `users/${user.uid}/posts`), postData as DocumentData);
@@ -564,3 +563,5 @@ export function PostsManager() {
         </>
     )
 }
+
+    
