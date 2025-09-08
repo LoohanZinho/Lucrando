@@ -22,6 +22,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
@@ -130,29 +132,27 @@ function MultiSelectFilter({ title, options, selected, onSelectedChange }: { tit
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[300px] p-0" align="start">
-                <Command>
-                    <CommandInput placeholder={`Buscar ${title.toLowerCase()}...`} />
-                    <CommandList>
-                        <CommandEmpty>Nenhum resultado.</CommandEmpty>
-                        <CommandGroup>
-                            {options.map(option => (
-                                <CommandItem
-                                    key={option.value}
-                                    onSelect={() => handleSelect(option.value)}
-                                    className="cursor-pointer"
-                                >
-                                    <div className={cn(
-                                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                        selected.includes(option.value) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
-                                    )}>
-                                       <PlusCircle className="h-4 w-4" />
-                                    </div>
-                                    <span>{option.label}</span>
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
+                 <ScrollArea className="max-h-60">
+                    <div className="p-2 space-y-1">
+                        {options.length === 0 && <p className="text-sm text-muted-foreground text-center p-2">Nenhuma opção.</p>}
+                        {options.map(option => (
+                           <div
+                                key={option.value}
+                                onClick={() => handleSelect(option.value)}
+                                className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent cursor-pointer"
+                           >
+                               <Checkbox
+                                   id={`select-${option.value}`}
+                                   checked={selected.includes(option.value)}
+                                   onCheckedChange={() => handleSelect(option.value)}
+                               />
+                               <label htmlFor={`select-${option.value}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                                   {option.label}
+                               </label>
+                           </div>
+                        ))}
+                    </div>
+                 </ScrollArea>
             </PopoverContent>
         </Popover>
     )
@@ -654,5 +654,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    
