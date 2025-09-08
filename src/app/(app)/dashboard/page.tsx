@@ -133,7 +133,15 @@ export default function DashboardPage() {
         }, { views: 0, clicks: 0, pageVisits: 0, sales: 0 });
 
         const baseValue = totalMetrics.views;
-        if (baseValue === 0) return [];
+        
+        if (baseValue === 0) {
+            return [
+                { label: "Views nos Stories", value: 0, percentage: 0 },
+                { label: "Cliques no Link", value: 0, percentage: 0 },
+                { label: "Visitas na Página", value: 0, percentage: 0 },
+                { label: "Conversões", value: 0, percentage: 0 },
+            ];
+        }
 
         return [
             { label: "Views nos Stories", value: totalMetrics.views, percentage: 100 },

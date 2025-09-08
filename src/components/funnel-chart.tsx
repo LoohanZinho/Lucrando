@@ -33,19 +33,6 @@ function WavySeparator() {
 
 
 export function FunnelChart({ data }: FunnelChartProps) {
-    if (!data || data.length === 0) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Funil de Conversão</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center h-48">
-                    <p className="text-muted-foreground">Dados insuficientes para exibir o funil.</p>
-                </CardContent>
-            </Card>
-        );
-    }
-
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
