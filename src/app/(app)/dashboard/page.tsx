@@ -436,7 +436,7 @@ export default function DashboardPage() {
                             <Button
                                 id="date"
                                 variant={"outline"}
-                                className={cn("w-[200px] justify-start text-left font-normal", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
+                                className={cn("w-full justify-start text-left font-normal sm:w-[200px]", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
@@ -467,9 +467,9 @@ export default function DashboardPage() {
 
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-[150px] relative">
-                                <Filter className="mr-2 h-4 w-4" />
-                                Filtros
+                            <Button variant="outline" size="icon" className="relative sm:w-[150px]">
+                                <Filter className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Filtros</span>
                                 {activeFiltersCount > 0 && 
                                     <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
                                         {activeFiltersCount}
