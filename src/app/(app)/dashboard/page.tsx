@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle } from "lucide-react";
+import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { ProfitChart } from "@/components/profit-chart";
 import { useAuth } from '@/contexts/auth-context';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore/lite';
@@ -14,56 +14,84 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Calendar } from '@/components/ui/calendar';
 
-type Period = "this_month" | "last_month" | "last_3_months" | "this_year" | "all_time";
+type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
 
-const getPeriodLabel = (period: Period) => {
+const getPeriodLabel = (period: Period, customDateRange?: DateRange) => {
     switch (period) {
+        case 'today': return 'Hoje';
+        case 'yesterday': return 'Ontem';
+        case 'last_7_days': return 'Últimos 7 dias';
         case 'this_month': return 'Este Mês';
-        case 'last_month': return 'Mês Passado';
-        case 'last_3_months': return 'Últimos 3 Meses';
-        case 'this_year': return 'Este Ano';
         case 'all_time': return 'Todo o período';
+        case 'custom':
+            if (customDateRange?.from && customDateRange?.to) {
+                if (format(customDateRange.from, 'PPP', { locale: ptBR }) === format(customDateRange.to, 'PPP', { locale: ptBR })) {
+                    return format(customDateRange.from, 'PPP', { locale: ptBR });
+                }
+                return `${format(customDateRange.from, 'PPP', { locale: ptBR })} - ${format(customDateRange.to, 'PPP', { locale: ptBR })}`;
+            }
+            return 'Período Customizado';
         default: return '';
     }
 }
 
-const getPeriodDates = (period: Period): { current: DateRange, previous: DateRange } => {
+const getPeriodDates = (period: Period, customDateRange?: DateRange): { current: DateRange, previous: DateRange } => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     let currentStart, currentEnd, previousStart, previousEnd;
 
     switch (period) {
+        case 'today':
+            currentStart = today;
+            currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+            previousStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+            previousEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 23, 59, 59, 999);
+            break;
+        case 'yesterday':
+            currentStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+            currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 23, 59, 59, 999);
+            previousStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2);
+            previousEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2, 23, 59, 59, 999);
+            break;
+        case 'last_7_days':
+            currentStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+            currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+            const diff7 = (currentEnd.getTime() - currentStart.getTime());
+            previousStart = new Date(currentStart.getTime() - diff7 - 1);
+            previousEnd = new Date(currentStart.getTime() - 1);
+            break;
         case 'this_month':
             currentStart = new Date(today.getFullYear(), today.getMonth(), 1);
             currentEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
             previousStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
             previousEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
             break;
-        case 'last_month':
-            currentStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-            currentEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
-            previousStart = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-            previousEnd = new Date(today.getFullYear(), today.getMonth() - 1, 0, 23, 59, 59, 999);
-            break;
-        case 'last_3_months':
-            currentStart = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-            currentEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
-            previousStart = new Date(today.getFullYear(), today.getMonth() - 5, 1);
-            previousEnd = new Date(today.getFullYear(), today.getMonth() - 2, 0, 23, 59, 59, 999);
-            break;
-        case 'this_year':
-            currentStart = new Date(today.getFullYear(), 0, 1);
-            currentEnd = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
-            previousStart = new Date(today.getFullYear() - 1, 0, 1);
-            previousEnd = new Date(today.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+        case 'custom':
+            if (customDateRange?.from && customDateRange?.to) {
+                currentStart = customDateRange.from;
+                currentEnd = new Date(customDateRange.to.getFullYear(), customDateRange.to.getMonth(), customDateRange.to.getDate(), 23, 59, 59, 999);
+                const diff = currentEnd.getTime() - currentStart.getTime();
+                previousStart = new Date(currentStart.getTime() - diff - 1);
+                previousEnd = new Date(currentStart.getTime() -1);
+            } else {
+                 currentStart = today;
+                 currentEnd = today;
+                 previousStart = today;
+                 previousEnd = today;
+            }
             break;
         case 'all_time':
         default:
             currentStart = new Date(0); // Epoch
-            currentEnd = today;
+            currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
             previousStart = new Date(0); // No previous period for all time
             previousEnd = new Date(0);
             break;
@@ -82,6 +110,7 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [greeting, setGreeting] = useState("Olá");
     const [selectedPeriod, setSelectedPeriod] = useState<Period>('this_month');
+    const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -124,7 +153,7 @@ export default function DashboardPage() {
     }, [user]);
     
     const { periodPosts, previousPeriodPosts, allTimePosts } = useMemo(() => {
-        const { current, previous } = getPeriodDates(selectedPeriod);
+        const { current, previous } = getPeriodDates(selectedPeriod, customDateRange);
         
         const filterPostsByDate = (posts: Post[], range: DateRange) => {
              if (!range.from || !range.to) return [];
@@ -143,7 +172,7 @@ export default function DashboardPage() {
             allTimePosts: posts, // For charts that always show all data
         }
 
-    }, [posts, selectedPeriod]);
+    }, [posts, selectedPeriod, customDateRange]);
 
     const calculateMetrics = (postList: Post[]) => {
         return postList.reduce((acc, post) => {
@@ -249,6 +278,15 @@ export default function DashboardPage() {
       return user.displayName || user.email?.split('@')[0] || "Usuário";
     }, [user]);
 
+    const handlePeriodChange = (value: Period) => {
+        if (value !== 'custom') {
+            setCustomDateRange(undefined);
+            setSelectedPeriod(value);
+        } else {
+             setSelectedPeriod('custom');
+        }
+    }
+
 
     if (loading) {
         return <div className="p-8">Carregando dashboard...</div>
@@ -266,18 +304,46 @@ export default function DashboardPage() {
                     </p>
                 </div>
                  <div className="flex items-center space-x-2">
-                    <Select value={selectedPeriod} onValueChange={(value) => setSelectedPeriod(value as Period)}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Selecione o período" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="this_month">Este Mês</SelectItem>
-                            <SelectItem value="last_month">Mês Passado</SelectItem>
-                            <SelectItem value="last_3_months">Últimos 3 Meses</SelectItem>
-                            <SelectItem value="this_year">Este Ano</SelectItem>
-                            <SelectItem value="all_time">Todo o período</SelectItem>
-                        </SelectContent>
-                    </Select>
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-[260px] justify-start text-left font-normal",
+                                !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <span>{getPeriodLabel(selectedPeriod, customDateRange)}</span>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <div className="flex">
+                                <div className="flex flex-col space-y-1 p-2 border-r">
+                                    <Button variant={selectedPeriod === 'today' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('today')}>Hoje</Button>
+                                    <Button variant={selectedPeriod === 'yesterday' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('yesterday')}>Ontem</Button>
+                                    <Button variant={selectedPeriod === 'last_7_days' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('last_7_days')}>Últimos 7 dias</Button>
+                                    <Button variant={selectedPeriod === 'this_month' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('this_month')}>Este mês</Button>
+                                    <Button variant={selectedPeriod === 'all_time' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('all_time')}>Máximo</Button>
+                                </div>
+                                <Calendar
+                                    initialFocus
+                                    mode="range"
+                                    defaultMonth={customDateRange?.from}
+                                    selected={customDateRange}
+                                    onSelect={(range) => {
+                                        setCustomDateRange(range);
+                                        if (range) {
+                                            setSelectedPeriod('custom');
+                                        }
+                                    }}
+                                    numberOfMonths={2}
+                                    locale={ptBR}
+                                />
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                     <Link href="/posts?new=true">
                         <Button>
                             <PlusCircle className="mr-2 h-4 w-4" />
@@ -289,7 +355,7 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Receita ({getPeriodLabel(selectedPeriod)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">Receita ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -301,7 +367,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Despesas ({getPeriodLabel(selectedPeriod)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">Despesas ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -313,7 +379,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Lucro ({getPeriodLabel(selectedPeriod)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">Lucro ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -325,7 +391,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">ROI ({getPeriodLabel(selectedPeriod)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">ROI ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -348,7 +414,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card className="col-span-4 md:col-span-3">
                      <CardHeader>
-                        <CardTitle>Análise de Performance ({getPeriodLabel(selectedPeriod)})</CardTitle>
+                        <CardTitle>Análise de Performance ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
                         <p className="text-sm text-muted-foreground">Métricas chave de performance da campanha.</p>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 gap-4">
@@ -389,5 +455,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    

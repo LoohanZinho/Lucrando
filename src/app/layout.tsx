@@ -4,6 +4,10 @@ import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
 import { Toaster } from '@/components/ui/toaster';
 import { LoaderProvider, Loader } from '@/contexts/loader-context';
+import { ptBR } from 'date-fns/locale';
+import { setDefaultOptions } from 'date-fns';
+
+setDefaultOptions({ locale: ptBR });
 
 const inter = Inter({ subsets: ['latin'] });
 
