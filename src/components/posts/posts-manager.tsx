@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -315,7 +316,7 @@ export function PostsManager() {
                     </div>
                     <Button onClick={handleAddNew}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Adicionar Post
+                        Nova Postagem
                     </Button>
                 </CardHeader>
                 <CardContent>
@@ -418,3 +419,6 @@ export function PostsManager() {
         </>
     )
 }
+
+
+    
