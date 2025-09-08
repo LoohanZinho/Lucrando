@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState, useMemo } from 'react';
@@ -16,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subDays, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 
@@ -152,8 +153,15 @@ export default function DashboardPage() {
         fetchPosts();
     }, [user]);
     
-    const { periodPosts, previousPeriodPosts, allTimePosts } = useMemo(() => {
+    const { periodPosts, previousPeriodPosts, chartPosts, chartPeriodLabel } = useMemo(() => {
+        // Regular period for KPIs
         const { current, previous } = getPeriodDates(selectedPeriod, customDateRange);
+
+        // Special period for charts when "Today" is selected
+        const isToday = selectedPeriod === 'today';
+        const chartPeriod = isToday ? 'last_7_days' : selectedPeriod;
+        const chartCustomRange = isToday ? undefined : customDateRange;
+        const { current: chartDateRange } = getPeriodDates(chartPeriod, chartCustomRange);
         
         const filterPostsByDate = (posts: Post[], range: DateRange) => {
              if (!range.from || !range.to) return [];
@@ -165,11 +173,13 @@ export default function DashboardPage() {
         
         const periodData = selectedPeriod === 'all_time' ? posts : filterPostsByDate(posts, current);
         const previousPeriodData = selectedPeriod === 'all_time' ? [] : filterPostsByDate(posts, previous);
+        const chartData = selectedPeriod === 'all_time' ? posts : filterPostsByDate(posts, chartDateRange);
 
         return {
             periodPosts: periodData,
             previousPeriodPosts: previousPeriodData,
-            allTimePosts: posts, // For charts that always show all data
+            chartPosts: chartData,
+            chartPeriodLabel: getPeriodLabel(chartPeriod, chartCustomRange)
         }
 
     }, [posts, selectedPeriod, customDateRange]);
@@ -211,36 +221,47 @@ export default function DashboardPage() {
     const averageTicket = currentMetrics.sales > 0 ? currentMetrics.revenue / currentMetrics.sales : 0;
 
     const profitTrendData = useMemo(() => {
-        const monthlyProfit: { [key: string]: number } = {};
+        const isLongPeriod = !['today', 'yesterday', 'last_7_days'].includes(selectedPeriod) || (selectedPeriod === 'custom' && customDateRange && (customDateRange.to!.getTime() - customDateRange.from!.getTime()) > 7 * 24 * 60 * 60 * 1000);
+        
+        const dataMap: { [key: string]: number } = {};
 
-        // 1. Group profits by month/year
-        allTimePosts.forEach(post => {
+        // 1. Group profits by day or month
+        chartPosts.forEach(post => {
             const date = new Date(post.createdAt);
-            const monthKey = format(date, 'yyyy-MM'); // Use 'yyyy-MM' to uniquely identify month and year
+            const key = isLongPeriod ? format(date, 'yyyy-MM') : format(date, 'yyyy-MM-dd');
             const profit = (post.revenue || 0) - (post.investment || 0);
-            monthlyProfit[monthKey] = (monthlyProfit[monthKey] || 0) + profit;
+            dataMap[key] = (dataMap[key] || 0) + profit;
         });
 
-        const data = [];
-        const today = new Date();
+        const { current: chartDateRange } = getPeriodDates(selectedPeriod === 'today' ? 'last_7_days' : selectedPeriod, customDateRange);
 
-        // 2. Generate data for the last 12 months, including months with no data
-        for (let i = 11; i >= 0; i--) {
-            const date = subMonths(today, i);
-            const monthKey = format(date, 'yyyy-MM');
-            
-            data.push({
-                month: format(date, 'MMM/yy', { locale: ptBR }), // Format as 'Jan/23'
-                profit: monthlyProfit[monthKey] || 0, // Use 0 if no profit for that month
-            });
+        if (isLongPeriod) {
+            const data = [];
+            const today = new Date();
+             for (let i = 11; i >= 0; i--) {
+                const date = subMonths(today, i);
+                const monthKey = format(date, 'yyyy-MM');
+                data.push({
+                    month: format(date, 'MMM/yy', { locale: ptBR }),
+                    profit: dataMap[monthKey] || 0,
+                });
+            }
+            return data;
+        } else {
+             if (!chartDateRange.from || !chartDateRange.to) return [];
+             const days = eachDayOfInterval({ start: chartDateRange.from, end: chartDateRange.to });
+             return days.map(day => {
+                const dayKey = format(day, 'yyyy-MM-dd');
+                return {
+                    month: format(day, 'dd/MM'),
+                    profit: dataMap[dayKey] || 0
+                }
+             })
         }
-
-        return data;
-
-    }, [allTimePosts]);
+    }, [chartPosts, selectedPeriod, customDateRange]);
     
     const funnelData = useMemo(() => {
-        const totalMetrics = periodPosts.reduce((acc, post) => {
+        const totalMetrics = chartPosts.reduce((acc, post) => {
             acc.views += post.views || 0;
             acc.clicks += post.clicks || 0;
             acc.pageVisits += post.pageVisits || 0;
@@ -265,7 +286,7 @@ export default function DashboardPage() {
             { label: "Visitas na Página", value: totalMetrics.pageVisits, percentage: (totalMetrics.pageVisits / baseValue) * 100 },
             { label: "Conversões", value: totalMetrics.sales, percentage: (totalMetrics.sales / baseValue) * 100 },
         ];
-    }, [periodPosts]);
+    }, [chartPosts]);
 
 
     const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -413,7 +434,7 @@ export default function DashboardPage() {
                 <Card className="col-span-4">
                     <CardHeader>
                         <CardTitle>Análise de Tendência de Lucro</CardTitle>
-                         <p className="text-sm text-muted-foreground">Lucro mensal nos últimos 12 meses.</p>
+                         <p className="text-sm text-muted-foreground">Exibindo lucro para: {chartPeriodLabel}.</p>
                     </CardHeader>
                     <CardContent className="pl-2">
                         <ProfitChart data={profitTrendData} />
@@ -421,8 +442,8 @@ export default function DashboardPage() {
                 </Card>
                 <Card className="col-span-4 md:col-span-3">
                      <CardHeader>
-                        <CardTitle>Análise de Performance ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
-                        <p className="text-sm text-muted-foreground">Métricas chave de performance da campanha.</p>
+                        <CardTitle>Análise de Performance</CardTitle>
+                        <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 gap-4">
                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4">
@@ -457,10 +478,8 @@ export default function DashboardPage() {
                 </Card>
             </div>
              <div className="grid gap-4">
-                <FunnelChart data={funnelData} />
+                <FunnelChart data={funnelData} title={`Funil de Conversão (${chartPeriodLabel})`} />
             </div>
         </div>
     )
 }
-
-    

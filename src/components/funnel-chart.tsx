@@ -13,9 +13,10 @@ type FunnelStep = {
 
 interface FunnelChartProps {
     data: FunnelStep[];
+    title: string;
 }
 
-export function FunnelChart({ data }: FunnelChartProps) {
+export function FunnelChart({ data, title }: FunnelChartProps) {
     const formatPercentage = (percentage: number) => {
         if (percentage === 0) return "0%";
         return `${percentage.toFixed(1)}%`;
@@ -81,7 +82,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Funil de Conversão</CardTitle>
+                <CardTitle>{title}</CardTitle>
                  <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
