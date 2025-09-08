@@ -129,7 +129,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 pageVisits: postToEdit.pageVisits ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 partnerShareValue: postToEdit.partnerShareValue ?? undefined,
-                productSelection: 'existing',
+                productSelection: 'existing', // Start with existing product
                 productId: postToEdit.productId,
             });
         } else {
@@ -164,7 +164,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
 
             let finalProductId = values.productId;
 
-            if (values.productSelection === 'new') {
+            if (values.productSelection === 'new' && !isEditMode) {
                 const newProductData = {
                     name: values.newProductName!,
                     description: values.newProductDescription || "",
@@ -244,7 +244,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                     onValueChange={field.onChange}
                                     value={field.value}
                                     className="flex gap-4"
-                                    disabled={isEditMode}
                                 >
                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                         <FormControl>
@@ -256,7 +255,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                     </FormItem>
                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                         <FormControl>
-                                            <RadioGroupItem value="new" />
+                                            <RadioGroupItem value="new" disabled={isEditMode} />
                                         </FormControl>
                                         <FormLabel className="font-normal">
                                             Novo Produto
@@ -272,7 +271,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={isEditMode}>
+                                    <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                         <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Selecione o produto" />
@@ -290,7 +289,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                 </FormItem>
                             )} />
                         )}
-                        {productSelection === 'new' && (
+                        {productSelection === 'new' && !isEditMode && (
                             <div className="space-y-4 pt-4 border-t">
                                 <FormField control={form.control} name="newProductName" render={({ field }) => (
                                     <FormItem>
