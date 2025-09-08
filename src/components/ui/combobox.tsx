@@ -94,8 +94,9 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    const newValue = currentValue === value ? "" : currentValue
-                    onChange(newValue)
+                    const selectedOption = options.find(opt => opt.value.toLowerCase() === currentValue.toLowerCase());
+                    const newValue = selectedOption?.value === value ? "" : selectedOption?.value || "";
+                    onChange(newValue);
                     setOpen(false)
                     setSearchTerm("");
                   }}
