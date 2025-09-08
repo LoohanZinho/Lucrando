@@ -24,7 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Combobox } from "@/components/ui/combobox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
@@ -173,14 +173,20 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                      <FormField control={form.control} name="influencerId" render={({ field }) => (
                         <FormItem className="flex flex-col md:col-span-2">
                             <FormLabel>Influenciador</FormLabel>
-                             <Combobox
-                                options={influencerOptions}
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder="Selecione o influenciador"
-                                searchPlaceholder="Pesquisar influenciador..."
-                                notFoundMessage="Nenhum influenciador encontrado."
-                            />
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o influenciador" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {influencerOptions.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -273,14 +279,20 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                              <FormField control={form.control} name="partnerId" render={({ field }) => (
                                 <FormItem className="flex flex-col md:col-span-2">
                                     <FormLabel>Sócio</FormLabel>
-                                    <Combobox
-                                        options={partnerOptions}
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        placeholder="Selecione o sócio"
-                                        searchPlaceholder="Pesquisar sócio..."
-                                        notFoundMessage="Nenhum sócio encontrado."
-                                    />
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione o sócio" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        {partnerOptions.map(option => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                            </SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )} />
