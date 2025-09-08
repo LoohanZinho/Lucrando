@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -272,6 +273,13 @@ export function PostsManager() {
 
     useEffect(() => {
         fetchData();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('new') === 'true') {
+            handleAddNew();
+             // Clean up URL
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
     }, [fetchData]);
 
     const handleDelete = async (postId: string) => {
@@ -314,7 +322,7 @@ export function PostsManager() {
                             Adicione e gerencie as publicações da sua campanha.
                         </CardDescription>
                     </div>
-                    <Button onClick={handleAddNew}>
+                     <Button onClick={handleAddNew}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nova Postagem
                     </Button>

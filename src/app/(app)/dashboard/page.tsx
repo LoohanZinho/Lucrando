@@ -1,14 +1,17 @@
+
 "use client";
 
 import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, ArrowUpRight } from "lucide-react";
+import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle } from "lucide-react";
 import { ProfitChart } from "@/components/profit-chart";
 import { useAuth } from '@/contexts/auth-context';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
 import { type Post } from '@/lib/data-types';
 import { FunnelChart } from '@/components/funnel-chart';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function DashboardPage() {
     const { user } = useAuth();
@@ -173,13 +176,21 @@ export default function DashboardPage() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <div className="space-y-2 mb-6">
-                <h2 className="text-3xl font-bold tracking-tight">
-                    {greeting}, <span className="text-primary">{userName}!</span>
-                </h2>
-                <p className="text-muted-foreground">
-                    Seja bem-vindo ao LCI! Visão geral do desempenho de suas campanhas.
-                </p>
+             <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        {greeting}, <span className="text-primary">{userName}!</span>
+                    </h2>
+                    <p className="text-muted-foreground">
+                        Seja bem-vindo ao LCI! Visão geral do desempenho de suas campanhas.
+                    </p>
+                </div>
+                 <Link href="/posts">
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nova Postagem
+                    </Button>
+                </Link>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
