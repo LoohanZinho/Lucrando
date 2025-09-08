@@ -45,37 +45,24 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
         });
 
         let path = `M 0,${yPoints[0].yTop} `;
+        const arcRadiusX = stepWidth * 0.75;
 
         // Draw top curve
         for (let i = 0; i < data.length - 1; i++) {
-            const x1 = i * stepWidth;
-            const y1 = yPoints[i].yTop;
             const x2 = (i + 1) * stepWidth;
             const y2 = yPoints[i+1].yTop;
-            
-            const cx1 = x1 + stepWidth / 2;
-            const cy1 = y1;
-            const cx2 = x2 - stepWidth / 2;
-            const cy2 = y2;
-            
-            path += `C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2} `;
+            const arcRadiusY = Math.abs(y2 - yPoints[i].yTop) || 10;
+            path += `A ${arcRadiusX},${arcRadiusY} 0 0 1 ${x2},${y2} `;
         }
         
         path += `L ${viewBoxWidth},${yPoints[data.length - 1].yBottom} `;
 
         // Draw bottom curve
         for (let i = data.length - 1; i > 0; i--) {
-            const x1 = i * stepWidth;
-            const y1 = yPoints[i].yBottom;
             const x2 = (i - 1) * stepWidth;
             const y2 = yPoints[i-1].yBottom;
-            
-            const cx1 = x1 - stepWidth / 2;
-            const cy1 = y1;
-            const cx2 = x2 + stepWidth / 2;
-            const cy2 = y2;
-
-            path += `C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2} `;
+            const arcRadiusY = Math.abs(y2 - yPoints[i].yBottom) || 10;
+            path += `A ${arcRadiusX},${arcRadiusY} 0 0 1 ${x2},${y2} `;
         }
 
         path += `Z`;
