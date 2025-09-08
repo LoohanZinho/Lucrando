@@ -47,7 +47,7 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
           className={cn("w-full justify-between font-normal", className)}
         >
           {value
-            ? options.find((option) => option.value === value)?.label ?? value
+            ? options.find((option) => option.value === value)?.label
             : placeholder || "Selecione uma opção..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -63,11 +63,10 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    const newValue = option.value === value ? "" : option.value;
-                    onChange(newValue);
-                    setOpen(false);
+                  value={option.value} // Use option.value for the command item value
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === value ? "" : currentValue)
+                    setOpen(false)
                   }}
                   className="flex justify-between items-center"
                 >
