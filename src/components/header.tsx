@@ -1,6 +1,6 @@
 
 "use client"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { PanelLeft } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
@@ -18,6 +18,9 @@ export function Header() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="sm:max-w-xs">
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Navegação</SheetTitle>
+                    </SheetHeader>
                     <MobileNav />
                 </SheetContent>
             </Sheet>
