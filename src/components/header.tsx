@@ -10,20 +10,6 @@ import { ThemeToggle } from "./theme-toggle";
 export function Header() {
     return (
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button size="icon" variant="outline" className="sm:hidden">
-                        <PanelLeft className="h-5 w-5" />
-                        <span className="sr-only">Toggle Menu</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="sm:max-w-xs">
-                    <SheetHeader>
-                        <SheetTitle className="sr-only">Navegação</SheetTitle>
-                    </SheetHeader>
-                    <MobileNav />
-                </SheetContent>
-            </Sheet>
             <div className="hidden md:block">
                 <h1 className="text-lg font-semibold">Lucrando com Influenciadores</h1>
             </div>
