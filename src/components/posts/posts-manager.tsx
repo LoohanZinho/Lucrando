@@ -174,7 +174,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                      <FormField control={form.control} name="influencerId" render={({ field }) => (
                         <FormItem className="flex flex-col md:col-span-2">
                             <FormLabel>Influenciador</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                             <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione o influenciador" />
@@ -212,42 +212,42 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                         <FormField control={form.control} name="investment" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Investimento (R$)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 1500.00" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 1500.00" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="revenue" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Receita (R$)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 5000.00" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 5000.00" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                          <FormField control={form.control} name="views" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Views (Stories)</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 25000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormControl><Input type="number" placeholder="Ex: 25000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="clicks" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Cliques (Link)</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 1200" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormControl><Input type="number" placeholder="Ex: 1200" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                          <FormField control={form.control} name="pageVisits" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Visitas na Página</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 800" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormControl><Input type="number" placeholder="Ex: 800" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
                          <FormField control={form.control} name="sales" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Conversões (Vendas)</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 50" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormControl><Input type="number" placeholder="Ex: 50" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -280,7 +280,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                              <FormField control={form.control} name="partnerId" render={({ field }) => (
                                 <FormItem className="flex flex-col md:col-span-2">
                                     <FormLabel>Sócio</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                         <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Selecione o sócio" />
@@ -307,7 +307,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                                     <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
-                                        defaultValue={field.value}
+                                        value={field.value ?? 'percentage'}
                                         className="flex flex-col space-y-1"
                                     >
                                         <FormItem className="flex items-center space-x-3 space-y-0">
@@ -336,7 +336,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                             <FormField control={form.control} name="partnerShareValue" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Valor da Comissão</FormLabel>
-                                    <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                    <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
