@@ -22,7 +22,9 @@ export interface Post {
     partnerId: string;
     investment?: number;
     revenue?: number;
+    views?: number;
     clicks?: number;
+    pageVisits?: number;
     sales?: number;
     createdAt: Date | Timestamp;
     userId: string;

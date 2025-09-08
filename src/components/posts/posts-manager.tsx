@@ -30,7 +30,9 @@ const postSchema = z.object({
     partnerId: z.string().min(1, "Selecione um sócio"),
     investment: z.coerce.number().min(0, "Investimento não pode ser negativo").optional(),
     revenue: z.coerce.number().min(0, "Receita não pode ser negativa").optional(),
+    views: z.coerce.number().int("Views deve ser um número inteiro").min(0).optional(),
     clicks: z.coerce.number().int("Cliques deve ser um número inteiro").min(0).optional(),
+    pageVisits: z.coerce.number().int("Visitas deve ser um número inteiro").min(0).optional(),
     sales: z.coerce.number().int("Vendas deve ser um número inteiro").min(0).optional(),
 });
 
@@ -52,7 +54,9 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             partnerId: "",
             investment: 0,
             revenue: 0,
+            views: 0,
             clicks: 0,
+            pageVisits: 0,
             sales: 0,
         }
     });
@@ -61,7 +65,9 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
         if (postToEdit) {
             form.reset({
                  ...postToEdit,
+                views: postToEdit.views ?? 0,
                 clicks: postToEdit.clicks ?? 0,
+                pageVisits: postToEdit.pageVisits ?? 0,
                 sales: postToEdit.sales ?? 0,
                 revenue: postToEdit.revenue ?? 0,
                 investment: postToEdit.investment ?? 0,
@@ -75,7 +81,9 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                 partnerId: "",
                 investment: 0,
                 revenue: 0,
+                views: 0,
                 clicks: 0,
+                pageVisits: 0,
                 sales: 0,
             });
         }
@@ -165,30 +173,44 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                             <FormMessage />
                         </FormItem>
                     )} />
-                    <FormField control={form.control} name="investment" render={({ field }) => (
+                     <FormField control={form.control} name="investment" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Investimento (R$)</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                      <FormField control={form.control} name="revenue" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Receita (R$)</FormLabel>
+                            <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="views" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Views (Stories)</FormLabel>
                             <FormControl><Input type="number" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                     <FormField control={form.control} name="clicks" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Cliques</FormLabel>
+                            <FormLabel>Cliques (Link)</FormLabel>
+                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                     <FormField control={form.control} name="pageVisits" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Visitas na Página</FormLabel>
                             <FormControl><Input type="number" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                      <FormField control={form.control} name="sales" render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Vendas</FormLabel>
+                            <FormLabel>Conversões (Vendas)</FormLabel>
                             <FormControl><Input type="number" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
@@ -305,7 +327,6 @@ export function PostsManager() {
                                 <TableHead className="hidden md:table-cell">Sócio</TableHead>
                                 <TableHead className="hidden lg:table-cell">Investimento</TableHead>
                                 <TableHead className="hidden lg:table-cell">Receita</TableHead>
-                                <TableHead className="hidden lg:table-cell">Cliques</TableHead>
                                 <TableHead className="hidden lg:table-cell">Vendas</TableHead>
                                 <TableHead><span className="sr-only">Ações</span></TableHead>
                             </TableRow>
@@ -319,7 +340,6 @@ export function PostsManager() {
                                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
                                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
                                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
                                     <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                                 </TableRow>
                             ))}
@@ -330,7 +350,6 @@ export function PostsManager() {
                                     <TableCell className="hidden md:table-cell">{getPartnerName(post.partnerId)}</TableCell>
                                     <TableCell className="hidden lg:table-cell">R$ {post.investment?.toFixed(2) ?? '0.00'}</TableCell>
                                     <TableCell className="hidden lg:table-cell">R$ {post.revenue?.toFixed(2) ?? '0.00'}</TableCell>
-                                    <TableCell className="hidden lg:table-cell">{post.clicks ?? 0}</TableCell>
                                     <TableCell className="hidden lg:table-cell">{post.sales ?? 0}</TableCell>
                                     <TableCell>
                                         <DropdownMenu>
@@ -369,7 +388,7 @@ export function PostsManager() {
                             ))}
                              {!loading && posts.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-4">
+                                    <TableCell colSpan={7} className="text-center py-4">
                                         Nenhum post adicionado.
                                     </TableCell>
                                 </TableRow>
@@ -380,7 +399,7 @@ export function PostsManager() {
             </Card>
 
              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent className="sm:max-w-lg">
+                <SheetContent className="sm:max-w-2xl w-full overflow-y-auto">
                     <SheetHeader>
                         <SheetTitle>{editingPost ? 'Editar Post' : 'Adicionar Novo Post'}</SheetTitle>
                         <SheetDescription>

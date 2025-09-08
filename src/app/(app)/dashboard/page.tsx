@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
 import { type Post } from '@/lib/data-types';
+import { FunnelChart } from '@/components/funnel-chart';
 
 export default function DashboardPage() {
     const { user } = useAuth();
@@ -70,8 +71,10 @@ export default function DashboardPage() {
             acc.investment += post.investment || 0;
             acc.sales += post.sales || 0;
             acc.clicks += post.clicks || 0;
+            acc.views += post.views || 0;
+            acc.pageVisits += post.pageVisits || 0;
             return acc;
-        }, { revenue: 0, investment: 0, profit: 0, sales: 0, clicks: 0 });
+        }, { revenue: 0, investment: 0, profit: 0, sales: 0, clicks: 0, views: 0, pageVisits: 0 });
     };
 
     const currentMetrics = calculateMetrics(currentMonthPosts);
@@ -118,8 +121,28 @@ export default function DashboardPage() {
                 profit: monthlyProfit[monthKey],
             };
         });
-
     }, [posts]);
+    
+    const funnelData = useMemo(() => {
+        const totalMetrics = posts.reduce((acc, post) => {
+            acc.views += post.views || 0;
+            acc.clicks += post.clicks || 0;
+            acc.pageVisits += post.pageVisits || 0;
+            acc.sales += post.sales || 0;
+            return acc;
+        }, { views: 0, clicks: 0, pageVisits: 0, sales: 0 });
+
+        const baseValue = totalMetrics.views;
+        if (baseValue === 0) return [];
+
+        return [
+            { label: "Views nos Stories", value: totalMetrics.views, percentage: 100 },
+            { label: "Cliques no Link", value: totalMetrics.clicks, percentage: (totalMetrics.clicks / baseValue) * 100 },
+            { label: "Visitas na Página", value: totalMetrics.pageVisits, percentage: (totalMetrics.pageVisits / baseValue) * 100 },
+            { label: "Conversões", value: totalMetrics.sales, percentage: (totalMetrics.sales / baseValue) * 100 },
+        ];
+    }, [posts]);
+
 
     const formatCurrency = (value: number) => `R$${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
@@ -246,6 +269,9 @@ export default function DashboardPage() {
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+             <div className="grid gap-4">
+                <FunnelChart data={funnelData} />
             </div>
         </div>
     )
