@@ -90,12 +90,13 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             form.reset({
                  ...postToEdit,
                 hasPartner: !!postToEdit.partnerId,
-                investment: postToEdit.investment,
-                revenue: postToEdit.revenue,
-                views: postToEdit.views,
-                clicks: postToEdit.clicks,
-                pageVisits: postToEdit.pageVisits,
-                sales: postToEdit.sales,
+                investment: postToEdit.investment ?? undefined,
+                revenue: postToEdit.revenue ?? undefined,
+                views: postToEdit.views ?? undefined,
+                clicks: postToEdit.clicks ?? undefined,
+                pageVisits: postToEdit.pageVisits ?? undefined,
+                sales: postToEdit.sales ?? undefined,
+                partnerShareValue: postToEdit.partnerShareValue ?? undefined,
             });
         } else {
             form.reset({
@@ -125,13 +126,13 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             const postData: Partial<Post> & { hasPartner?: boolean } = {
                 ...values,
                 userId: user.uid,
-                createdAt: isEditMode ? postToEdit?.createdAt : Timestamp.now()
+                createdAt: isEditMode && postToEdit?.createdAt ? postToEdit.createdAt : Timestamp.now()
             };
 
             if (!values.hasPartner) {
-                delete postData.partnerId;
-                delete postData.partnerShareType;
-                delete postData.partnerShareValue;
+                postData.partnerId = undefined;
+                postData.partnerShareType = undefined;
+                postData.partnerShareValue = undefined;
             }
             delete postData.hasPartner;
 
@@ -434,7 +435,12 @@ export function PostsManager() {
         fetchData();
     }
     
-    const getInfluencerName = (id: string) => influencers.find(i => i.id === id)?.name || 'N/A';
+    const getInfluencerDisplay = (id: string) => {
+        const influencer = influencers.find(i => i.id === id);
+        if (!influencer) return 'N/A';
+        return `${influencer.name} ${influencer.instagram ? `(${influencer.instagram})` : ''}`;
+    };
+
     const getPartnerName = (id?: string) => partners.find(p => p.id === id)?.name || 'Nenhum';
 
     const formatCurrency = (value?: number) => {
@@ -489,7 +495,7 @@ export function PostsManager() {
                             {!loading && posts.map(post => (
                                 <TableRow key={post.id}>
                                     <TableCell className="font-medium">{post.title}</TableCell>
-                                    <TableCell className="hidden md:table-cell">{getInfluencerName(post.influencerId)}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{getInfluencerDisplay(post.influencerId)}</TableCell>
                                     <TableCell className="hidden md:table-cell">{getPartnerName(post.partnerId)}</TableCell>
                                     <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
                                     <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
@@ -563,5 +569,3 @@ export function PostsManager() {
         </>
     )
 }
-
-    
