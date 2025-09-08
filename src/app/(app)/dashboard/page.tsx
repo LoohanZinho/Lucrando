@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 
@@ -211,25 +211,32 @@ export default function DashboardPage() {
     const averageTicket = currentMetrics.sales > 0 ? currentMetrics.revenue / currentMetrics.sales : 0;
 
     const profitTrendData = useMemo(() => {
-        const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
         const monthlyProfit: { [key: string]: number } = {};
 
+        // 1. Group profits by month/year
         allTimePosts.forEach(post => {
             const date = new Date(post.createdAt);
-            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            const monthKey = format(date, 'yyyy-MM'); // Use 'yyyy-MM' to uniquely identify month and year
             const profit = (post.revenue || 0) - (post.investment || 0);
             monthlyProfit[monthKey] = (monthlyProfit[monthKey] || 0) + profit;
         });
 
-        const sortedMonths = Object.keys(monthlyProfit).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        const data = [];
+        const today = new Date();
 
-        return sortedMonths.map(monthKey => {
-            const [year, monthIndex] = monthKey.split('-');
-            return {
-                month: months[parseInt(monthIndex, 10)],
-                profit: monthlyProfit[monthKey],
-            };
-        });
+        // 2. Generate data for the last 12 months, including months with no data
+        for (let i = 11; i >= 0; i--) {
+            const date = subMonths(today, i);
+            const monthKey = format(date, 'yyyy-MM');
+            
+            data.push({
+                month: format(date, 'MMM/yy', { locale: ptBR }), // Format as 'Jan/23'
+                profit: monthlyProfit[monthKey] || 0, // Use 0 if no profit for that month
+            });
+        }
+
+        return data;
+
     }, [allTimePosts]);
     
     const funnelData = useMemo(() => {
@@ -406,7 +413,7 @@ export default function DashboardPage() {
                 <Card className="col-span-4">
                     <CardHeader>
                         <CardTitle>Análise de Tendência de Lucro</CardTitle>
-                         <p className="text-sm text-muted-foreground">Lucro mensal ao longo do ano.</p>
+                         <p className="text-sm text-muted-foreground">Lucro mensal nos últimos 12 meses.</p>
                     </CardHeader>
                     <CardContent className="pl-2">
                         <ProfitChart data={profitTrendData} />
@@ -455,3 +462,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
