@@ -24,6 +24,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
+type KpiInfo = {
+  title: string;
+  description: string;
+  formula: string;
+} | null;
+
 
 const getPeriodLabel = (period: Period, customDateRange?: DateRange) => {
     switch (period) {
@@ -113,6 +119,32 @@ export default function DashboardPage() {
     const [greeting, setGreeting] = useState("Olá");
     const [selectedPeriod, setSelectedPeriod] = useState<Period>('this_month');
     const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
+    const [hoveredKpi, setHoveredKpi] = useState<KpiInfo>(null);
+
+
+    const kpiDetails = {
+        roas: {
+            title: "Return on Ad Spend (ROAS)",
+            description: "Retorno sobre o Investimento em Anúncios. Mostra quanto você lucrou para cada real investido.",
+            formula: "Fórmula: (Receita / Investimento)"
+        },
+        conversion: {
+            title: "Taxa de Conversão",
+            description: "Percentual de cliques que resultaram em uma venda.",
+            formula: "Fórmula: (Vendas / Cliques) * 100"
+        },
+        cpa: {
+            title: "Custo Por Aquisição (CPA)",
+            description: "O custo médio para adquirir um cliente (realizar uma venda).",
+            formula: "Fórmula: (Investimento / Vendas)"
+        },
+        ticket: {
+            title: "Ticket Médio",
+            description: "O valor médio gasto por cliente em cada compra.",
+            formula: "Fórmula: (Receita / Vendas)"
+        }
+    };
+
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -446,74 +478,73 @@ export default function DashboardPage() {
                         <CardTitle>Análise de Performance</CardTitle>
                         <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
                     </CardHeader>
-                    <CardContent>
-                       <TooltipProvider>
-                            <div className="grid grid-cols-2 gap-4">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
-                                            <div className="flex items-center gap-2 text-sm font-medium">
-                                                <Target className="h-4 w-4 text-muted-foreground" />
-                                                <span>ROAS</span>
-                                            </div>
-                                            <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="font-bold mb-1">Return on Ad Spend (ROAS)</p>
-                                        <p>Retorno sobre o Investimento em Anúncios. <br/> Mostra quanto você lucrou para cada real investido. <br/> Fórmula: (Receita / Investimento)</p>
-                                    </TooltipContent>
-                                </Tooltip>
-
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
-                                            <div className="flex items-center gap-2 text-sm font-medium">
-                                                <Percent className="h-4 w-4 text-muted-foreground" />
-                                                <span>Taxa de Conversão</span>
-                                            </div>
-                                            <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                         <p className="font-bold mb-1">Taxa de Conversão</p>
-                                         <p>Percentual de cliques que resultaram em uma venda. <br/> Fórmula: (Vendas / Cliques) * 100</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                                
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
-                                            <div className="flex items-center gap-2 text-sm font-medium">
-                                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                                <span>CPA</span>
-                                            </div>
-                                            <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                         <p className="font-bold mb-1">Custo Por Aquisição (CPA)</p>
-                                         <p>O custo médio para adquirir um cliente (realizar uma venda). <br/> Fórmula: (Investimento / Vendas)</p>
-                                    </TooltipContent>
-                                </Tooltip>
-
-                                <Tooltip>
-                                     <TooltipTrigger asChild>
-                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
-                                            <div className="flex items-center gap-2 text-sm font-medium">
-                                                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                                <span>Ticket Médio</span>
-                                            </div>
-                                            <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                         <p className="font-bold mb-1">Ticket Médio</p>
-                                         <p>O valor médio gasto por cliente em cada compra. <br/> Fórmula: (Receita / Vendas)</p>
-                                    </TooltipContent>
-                                </Tooltip>
+                    <CardContent className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
+                            <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <Target className="h-4 w-4 text-muted-foreground" />
+                                    <span>ROAS</span>
+                                </div>
+                                <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
                             </div>
-                       </TooltipProvider>
+
+                             <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                    <span>CPA</span>
+                                </div>
+                                <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                           <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <Percent className="h-4 w-4 text-muted-foreground" />
+                                    <span>Taxa de Conversão</span>
+                                </div>
+                                <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
+                            </div>
+                            
+                            <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                                    <span>Ticket Médio</span>
+                                </div>
+                                <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
+                            </div>
+                        </div>
+
+                        <div className="col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
+                            {hoveredKpi ? (
+                                <>
+                                    <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
+                                    <p className="text-sm text-muted-foreground">{hoveredKpi.description}</p>
+                                    <p className="text-sm text-muted-foreground mt-2 font-mono text-xs">{hoveredKpi.formula}</p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center">
+                                    Passe o mouse sobre um KPI para ver a descrição.
+                                </p>
+                            )}
+                        </div>
+
                     </CardContent>
                 </Card>
             </div>
