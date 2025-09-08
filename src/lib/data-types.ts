@@ -1,9 +1,12 @@
+
 import { Timestamp } from "firebase/firestore/lite";
 
 export interface Influencer {
     id: string;
     name: string;
     instagram?: string;
+    followers?: number;
+    storyViews?: number;
     userId: string;
 }
 
@@ -29,3 +32,5 @@ export interface Post {
     createdAt: Date | Timestamp;
     userId: string;
 }
+
+    

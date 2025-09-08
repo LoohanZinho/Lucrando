@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Trash2, Loader2, Edit } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, Users, Eye } from "lucide-react";
 import { type Influencer } from "@/lib/data-types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
@@ -22,6 +23,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 const influencerSchema = z.object({
     name: z.string().min(2, "Nome é obrigatório"),
     instagram: z.string().optional(),
+    followers: z.coerce.number().int("Deve ser um número inteiro").min(0, "Deve ser um número positivo").optional(),
+    storyViews: z.coerce.number().int("Deve ser um número inteiro").min(0, "Deve ser um número positivo").optional(),
 });
 type InfluencerFormData = z.infer<typeof influencerSchema>;
 
@@ -35,15 +38,21 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
         resolver: zodResolver(influencerSchema),
         defaultValues: {
             name: "",
-            instagram: ""
+            instagram: "",
+            followers: 0,
+            storyViews: 0,
         }
     });
 
     useEffect(() => {
         if (influencerToEdit) {
-            form.reset(influencerToEdit);
+            form.reset({
+                ...influencerToEdit,
+                followers: influencerToEdit.followers ?? 0,
+                storyViews: influencerToEdit.storyViews ?? 0,
+            });
         } else {
-            form.reset({ name: "", instagram: "" });
+            form.reset({ name: "", instagram: "", followers: 0, storyViews: 0 });
         }
     }, [influencerToEdit, form]);
 
@@ -72,7 +81,7 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
+                 <FormField control={form.control} name="name" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Nome do Influenciador</FormLabel>
                         <FormControl><Input placeholder="Ex: Maria Souza" {...field} /></FormControl>
@@ -83,6 +92,20 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
                     <FormItem>
                         <FormLabel>Instagram</FormLabel>
                         <FormControl><Input placeholder="@username" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                 <FormField control={form.control} name="followers" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Seguidores</FormLabel>
+                        <FormControl><Input type="number" placeholder="Ex: 150000" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                 <FormField control={form.control} name="storyViews" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Média de Views nos Stories</FormLabel>
+                        <FormControl><Input type="number" placeholder="Ex: 15000" {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
@@ -153,6 +176,13 @@ export function InfluencersManager() {
         setEditingInfluencer(null);
         fetchInfluencers();
     }
+    
+    const formatNumber = (num?: number) => {
+        if (num === undefined || num === null) return 'N/A';
+        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+        if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+        return num.toString();
+    }
 
 
     return (
@@ -188,14 +218,24 @@ export function InfluencersManager() {
                             </div>
                         ))}
                         {!loading && influencers.map(influencer => (
-                            <div key={influencer.id} className="flex items-center justify-between p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                                <div className="flex items-center gap-4">
+                            <div key={influencer.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
                                      <Avatar>
                                         <AvatarFallback>{influencer.name.substring(0,2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
-                                    <div>
-                                        <p className="font-medium">{influencer.name}</p>
-                                        <p className="text-sm text-muted-foreground">{influencer.instagram}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium truncate">{influencer.name}</p>
+                                        <p className="text-sm text-muted-foreground truncate">{influencer.instagram || 'Sem Instagram'}</p>
+                                    </div>
+                                </div>
+                                 <div className="hidden md:flex items-center gap-6 mx-4">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Users className="h-4 w-4" />
+                                        <span>{formatNumber(influencer.followers)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Eye className="h-4 w-4" />
+                                         <span>{formatNumber(influencer.storyViews)}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -253,3 +293,5 @@ export function InfluencersManager() {
         </>
     )
 }
+
+    
