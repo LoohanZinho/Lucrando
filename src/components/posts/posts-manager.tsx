@@ -1,6 +1,5 @@
 
 
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -20,12 +19,12 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Combobox } from "@/components/ui/combobox";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
@@ -174,14 +173,18 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                      <FormField control={form.control} name="influencerId" render={({ field }) => (
                         <FormItem className="flex flex-col md:col-span-2">
                             <FormLabel>Influenciador</FormLabel>
-                            <FormControl>
-                                <Combobox
-                                    options={influencerOptions}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    placeholder="Selecione o influenciador"
-                                />
-                            </FormControl>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o influenciador" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {influencerOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -274,14 +277,18 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                              <FormField control={form.control} name="partnerId" render={({ field }) => (
                                 <FormItem className="flex flex-col md:col-span-2">
                                     <FormLabel>Sócio</FormLabel>
-                                    <FormControl>
-                                        <Combobox
-                                            options={partnerOptions}
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            placeholder="Selecione o sócio"
-                                        />
-                                    </FormControl>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione o sócio" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {partnerOptions.map(option => (
+                                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )} />
