@@ -38,7 +38,7 @@ export default function AppLayout({
       <Sidebar />
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <Header />
-        <main className="flex-1 items-start gap-4 p-4 sm:px-6 md:gap-8 pb-20 sm:pb-4">
+        <main className="flex-1 items-start gap-4 sm:px-6 md:gap-8 pb-20 sm:pb-4">
             {children}
         </main>
       </div>

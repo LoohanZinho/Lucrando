@@ -131,7 +131,7 @@ function MultiSelectFilter({ title, options, selected, onSelectedChange }: { tit
                     {selected.length > 0 && <Badge variant="secondary" className="ml-2">{selected.length}</Badge>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0" align="start">
+            <PopoverContent className="w-[320px] p-0" align="start">
                  <ScrollArea className="max-h-60">
                     <div className="p-2 space-y-1">
                         {options.length === 0 && <p className="text-sm text-muted-foreground text-center p-2">Nenhuma opção.</p>}
@@ -420,233 +420,235 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="flex-1 space-y-4 pt-6">
-             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-                <div className="space-y-2">
-                    <h2 className="text-3xl font-bold tracking-tight">
-                        {greeting}, <span className="text-primary">{userName}!</span>
-                    </h2>
-                    <p className="text-muted-foreground">
-                        Visão geral do desempenho de suas campanhas.
-                    </p>
-                </div>
-                 <div className="flex w-full sm:w-auto items-center space-x-2">
-                     <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                id="date"
-                                variant={"outline"}
-                                className={cn("w-full justify-start text-left font-normal sm:w-[200px]", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                            <div className="flex flex-col sm:flex-row">
-                                <div className="flex flex-col space-y-1 p-2 border-b sm:border-b-0 sm:border-r">
-                                    <Button variant={selectedPeriod === 'today' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('today')}>Hoje</Button>
-                                    <Button variant={selectedPeriod === 'yesterday' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('yesterday')}>Ontem</Button>
-                                    <Button variant={selectedPeriod === 'last_7_days' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('last_7_days')}>Últimos 7 dias</Button>
-                                    <Button variant={selectedPeriod === 'this_month' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('this_month')}>Este mês</Button>
-                                    <Button variant={selectedPeriod === 'all_time' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('all_time')}>Máximo</Button>
+        <ScrollArea className="h-full">
+            <div className="flex-1 space-y-4 p-4 md:p-6 pt-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    <div className="space-y-2">
+                        <h2 className="text-3xl font-bold tracking-tight">
+                            {greeting}, <span className="text-primary">{userName}!</span>
+                        </h2>
+                        <p className="text-muted-foreground">
+                            Visão geral do desempenho de suas campanhas.
+                        </p>
+                    </div>
+                    <div className="flex w-full sm:w-auto items-center space-x-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id="date"
+                                    variant={"outline"}
+                                    className={cn("w-full justify-start text-left font-normal sm:w-[200px]", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                                <div className="flex flex-col sm:flex-row">
+                                    <div className="flex flex-col space-y-1 p-2 border-b sm:border-b-0 sm:border-r">
+                                        <Button variant={selectedPeriod === 'today' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('today')}>Hoje</Button>
+                                        <Button variant={selectedPeriod === 'yesterday' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('yesterday')}>Ontem</Button>
+                                        <Button variant={selectedPeriod === 'last_7_days' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('last_7_days')}>Últimos 7 dias</Button>
+                                        <Button variant={selectedPeriod === 'this_month' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('this_month')}>Este mês</Button>
+                                        <Button variant={selectedPeriod === 'all_time' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('all_time')}>Máximo</Button>
+                                    </div>
+                                    <Calendar
+                                        initialFocus mode="range" defaultMonth={customDateRange?.from}
+                                        selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
+                                        numberOfMonths={2} locale={ptBR} className="hidden sm:block"
+                                    />
+                                    <Calendar
+                                        initialFocus mode="range" defaultMonth={customDateRange?.from}
+                                        selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
+                                        numberOfMonths={1} locale={ptBR} className="block sm:hidden"
+                                    />
                                 </div>
-                                <Calendar
-                                    initialFocus mode="range" defaultMonth={customDateRange?.from}
-                                    selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
-                                    numberOfMonths={2} locale={ptBR} className="hidden sm:block"
-                                />
-                                <Calendar
-                                    initialFocus mode="range" defaultMonth={customDateRange?.from}
-                                    selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
-                                    numberOfMonths={1} locale={ptBR} className="block sm:hidden"
-                                />
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+                            </PopoverContent>
+                        </Popover>
 
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="outline" className="relative w-full sm:w-auto">
-                                <Filter className="mr-2 h-4 w-4" />
-                                <span>Filtros</span>
-                                {activeFiltersCount > 0 && 
-                                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                                        {activeFiltersCount}
-                                    </span>
-                                }
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="relative w-full sm:w-auto">
+                                    <Filter className="mr-2 h-4 w-4" />
+                                    <span>Filtros</span>
+                                    {activeFiltersCount > 0 && 
+                                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                                            {activeFiltersCount}
+                                        </span>
+                                    }
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-[320px]">
+                                <h3 className="text-lg font-medium mb-4">Filtros Avançados</h3>
+                                <div className="space-y-4">
+                                    <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
+                                    <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
+                                    <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+
+                        <Link href="/posts?new=true">
+                            <Button className="w-full sm:w-auto">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Nova Postagem
                             </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-[320px]">
-                            <h3 className="text-lg font-medium mb-4">Filtros Avançados</h3>
-                            <div className="space-y-4">
-                                <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
-                                <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
-                                <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+                        </Link>
+                    </div>
+                </div>
 
-                    <Link href="/posts?new=true">
-                        <Button className="w-full sm:w-auto">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Nova Postagem
-                        </Button>
-                    </Link>
+                {activeFiltersCount > 0 && (
+                    <Card className="mb-4">
+                        <CardContent className="p-4">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-sm font-medium">Filtros Ativos:</span>
+                                {selectedInfluencers.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('influencer', id)}</Badge>)}
+                                {selectedProducts.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('product', id)}</Badge>)}
+                                {selectedPosts.map(id => <Badge key={id} variant="secondary" className="max-w-[150px] truncate">{getFilterBadgeLabel('post', id)}</Badge>)}
+                                <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={clearAllFilters}>
+                                    <X className="h-4 w-4" />
+                                    <span className="sr-only">Limpar Filtros</span>
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Receita</CardTitle>
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(currentMetrics.revenue)}</div>
+                            <p className="text-xs text-muted-foreground h-4">
+                            {formatPercentageChange(revenueChange)} {selectedPeriod !== 'all_time' && comparisonText}
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Despesas</CardTitle>
+                            <Wallet className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(currentMetrics.investment)}</div>
+                            <p className="text-xs text-muted-foreground h-4">
+                                {formatPercentageChange(expensesChange)} {selectedPeriod !== 'all_time' && comparisonText}
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Lucro</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(currentMetrics.profit)}</div>
+                            <p className="text-xs text-muted-foreground h-4">
+                                {formatPercentageChange(profitChange)} {selectedPeriod !== 'all_time' && comparisonText}
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                            <Activity className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatPercentage(roi)}</div>
+                            <p className="text-xs text-muted-foreground h-4">
+                                {formatPercentageChange(roiChange)} {selectedPeriod !== 'all_time' && comparisonText}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="grid gap-4 lg:grid-cols-7">
+                    <Card className="lg:col-span-4">
+                        <CardHeader>
+                            <CardTitle>Análise de Tendência de Lucro</CardTitle>
+                            <p className="text-sm text-muted-foreground">Exibindo lucro para: {chartPeriodLabel}.</p>
+                        </CardHeader>
+                        <CardContent className="pl-2">
+                            <ProfitChart data={profitTrendData} />
+                        </CardContent>
+                    </Card>
+                    <Card className="lg:col-span-3">
+                        <CardHeader>
+                            <CardTitle>Análise de Performance</CardTitle>
+                            <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <Target className="h-4 w-4 text-muted-foreground" />
+                                    <span>ROAS</span>
+                                </div>
+                                <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
+                            </div>
+
+                            <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                    <span>CPA</span>
+                                </div>
+                                <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
+                            </div>
+
+                        <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <Percent className="h-4 w-4 text-muted-foreground" />
+                                    <span>Taxa de Conversão</span>
+                                </div>
+                                <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
+                            </div>
+                            
+                            <div 
+                                className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                                onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
+                                onMouseLeave={() => setHoveredKpi(null)}
+                            >
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                                    <span>Ticket Médio</span>
+                                </div>
+                                <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
+                            </div>
+
+                            <div className="col-span-1 sm:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
+                                {hoveredKpi ? (
+                                    <>
+                                        <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
+                                        <p className="text-sm text-muted-foreground">{hoveredKpi.description}</p>
+                                        <p className="text-sm text-muted-foreground mt-2 font-mono text-xs">{hoveredKpi.formula}</p>
+                                    </>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center">
+                                        Passe o mouse sobre um KPI para ver a descrição.
+                                    </p>
+                                )}
+                            </div>
+
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="grid gap-4">
+                    <FunnelChart data={funnelData} title={`Funil de Conversão (${chartPeriodLabel})`} />
                 </div>
             </div>
-
-            {activeFiltersCount > 0 && (
-                <Card className="mb-4">
-                    <CardContent className="p-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-medium">Filtros Ativos:</span>
-                            {selectedInfluencers.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('influencer', id)}</Badge>)}
-                            {selectedProducts.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('product', id)}</Badge>)}
-                            {selectedPosts.map(id => <Badge key={id} variant="secondary" className="max-w-[150px] truncate">{getFilterBadgeLabel('post', id)}</Badge>)}
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={clearAllFilters}>
-                                <X className="h-4 w-4" />
-                                <span className="sr-only">Limpar Filtros</span>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Receita</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMetrics.revenue)}</div>
-                        <p className="text-xs text-muted-foreground h-4">
-                           {formatPercentageChange(revenueChange)} {selectedPeriod !== 'all_time' && comparisonText}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Despesas</CardTitle>
-                        <Wallet className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMetrics.investment)}</div>
-                        <p className="text-xs text-muted-foreground h-4">
-                            {formatPercentageChange(expensesChange)} {selectedPeriod !== 'all_time' && comparisonText}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Lucro</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMetrics.profit)}</div>
-                        <p className="text-xs text-muted-foreground h-4">
-                            {formatPercentageChange(profitChange)} {selectedPeriod !== 'all_time' && comparisonText}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">ROI</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatPercentage(roi)}</div>
-                         <p className="text-xs text-muted-foreground h-4">
-                            {formatPercentageChange(roiChange)} {selectedPeriod !== 'all_time' && comparisonText}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-7">
-                <Card className="lg:col-span-4">
-                    <CardHeader>
-                        <CardTitle>Análise de Tendência de Lucro</CardTitle>
-                         <p className="text-sm text-muted-foreground">Exibindo lucro para: {chartPeriodLabel}.</p>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        <ProfitChart data={profitTrendData} />
-                    </CardContent>
-                </Card>
-                <Card className="lg:col-span-3">
-                     <CardHeader>
-                        <CardTitle>Análise de Performance</CardTitle>
-                        <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Target className="h-4 w-4 text-muted-foreground" />
-                                <span>ROAS</span>
-                            </div>
-                            <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
-                        </div>
-
-                         <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                <span>CPA</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
-                        </div>
-
-                       <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Percent className="h-4 w-4 text-muted-foreground" />
-                                <span>Taxa de Conversão</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
-                        </div>
-                        
-                        <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                <span>Ticket Médio</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
-                        </div>
-
-                        <div className="col-span-1 sm:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
-                            {hoveredKpi ? (
-                                <>
-                                    <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
-                                    <p className="text-sm text-muted-foreground">{hoveredKpi.description}</p>
-                                    <p className="text-sm text-muted-foreground mt-2 font-mono text-xs">{hoveredKpi.formula}</p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-muted-foreground text-center">
-                                    Passe o mouse sobre um KPI para ver a descrição.
-                                </p>
-                            )}
-                        </div>
-
-                    </CardContent>
-                </Card>
-            </div>
-             <div className="grid gap-4">
-                <FunnelChart data={funnelData} title={`Funil de Conversão (${chartPeriodLabel})`} />
-            </div>
-        </div>
+        </ScrollArea>
     )
 }
