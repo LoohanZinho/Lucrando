@@ -3,23 +3,25 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle, Calendar as CalendarIcon, Info } from "lucide-react";
+import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle, Calendar as CalendarIcon, Info, Filter, X } from "lucide-react";
 import { ProfitChart } from "@/components/profit-chart";
 import { useAuth } from '@/contexts/auth-context';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
-import { type Post } from '@/lib/data-types';
+import { type Post, type Influencer, type Product } from '@/lib/data-types';
 import { FunnelChart } from '@/components/funnel-chart';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format, subDays, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
@@ -28,7 +30,6 @@ type KpiInfo = {
   description: string;
   formula: string;
 } | null;
-
 
 const getPeriodLabel = (period: Period, customDateRange?: DateRange) => {
     switch (period) {
@@ -110,16 +111,68 @@ const getPeriodDates = (period: Period, customDateRange?: DateRange): { current:
     };
 };
 
+function MultiSelectFilter({ title, options, selected, onSelectedChange }: { title: string, options: { value: string, label: string }[], selected: string[], onSelectedChange: (selected: string[]) => void }) {
+    const [open, setOpen] = useState(false);
+
+    const handleSelect = (value: string) => {
+        const newSelected = selected.includes(value)
+            ? selected.filter(s => s !== value)
+            : [...selected, value];
+        onSelectedChange(newSelected);
+    }
+    
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                    {title}
+                    {selected.length > 0 && <Badge variant="secondary" className="ml-2">{selected.length}</Badge>}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0" align="start">
+                <Command>
+                    <CommandInput placeholder={`Buscar ${title.toLowerCase()}...`} />
+                    <CommandList>
+                        <CommandEmpty>Nenhum resultado.</CommandEmpty>
+                        <CommandGroup>
+                            {options.map(option => (
+                                <CommandItem
+                                    key={option.value}
+                                    onSelect={() => handleSelect(option.value)}
+                                    className="cursor-pointer"
+                                >
+                                    <div className={cn(
+                                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                        selected.includes(option.value) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
+                                    )}>
+                                       <PlusCircle className="h-4 w-4" />
+                                    </div>
+                                    <span>{option.label}</span>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
 
 export default function DashboardPage() {
     const { user } = useAuth();
-    const [posts, setPosts] = useState<Post[]>([]);
+    const [allPosts, setAllPosts] = useState<Post[]>([]);
+    const [allInfluencers, setAllInfluencers] = useState<Influencer[]>([]);
+    const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [greeting, setGreeting] = useState("Olá");
     const [selectedPeriod, setSelectedPeriod] = useState<Period>('this_month');
     const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
     const [hoveredKpi, setHoveredKpi] = useState<KpiInfo>(null);
 
+    // Advanced Filters State
+    const [selectedInfluencers, setSelectedInfluencers] = useState<string[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+    const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
 
     const kpiDetails = {
         roas: {
@@ -144,52 +197,63 @@ export default function DashboardPage() {
         }
     };
 
-
     useEffect(() => {
         const hour = new Date().getHours();
-        if (hour < 12) {
-            setGreeting("Bom dia");
-        } else if (hour < 18) {
-            setGreeting("Boa tarde");
-        } else {
-            setGreeting("Boa noite");
-        }
+        if (hour < 12) setGreeting("Bom dia");
+        else if (hour < 18) setGreeting("Boa tarde");
+        else setGreeting("Boa noite");
     }, []);
-
 
     useEffect(() => {
         if (!user) return;
 
-        const fetchPosts = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
                 const postsCol = collection(db, `users/${user.uid}/posts`);
-                const q = query(postsCol);
-                const querySnapshot = await getDocs(q);
-                const fetchedPosts = querySnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        ...data,
-                        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
-                    } as Post;
-                });
-                setPosts(fetchedPosts);
+                const influencersCol = collection(db, `users/${user.uid}/influencers`);
+                const productsCol = collection(db, `users/${user.uid}/products`);
+                
+                const [postsSnapshot, influencersSnapshot, productsSnapshot] = await Promise.all([
+                    getDocs(query(postsCol)),
+                    getDocs(query(influencersCol)),
+                    getDocs(query(productsCol)),
+                ]);
+
+                const fetchedPosts = postsSnapshot.docs.map(doc => ({
+                    id: doc.id, ...doc.data(),
+                    createdAt: doc.data().createdAt instanceof Timestamp ? doc.data().createdAt.toDate() : new Date(),
+                } as Post));
+                
+                const fetchedInfluencers = influencersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Influencer));
+                const fetchedProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+
+                setAllPosts(fetchedPosts);
+                setAllInfluencers(fetchedInfluencers);
+                setAllProducts(fetchedProducts);
+
             } catch (error) {
-                console.error("Error fetching posts for dashboard: ", error);
+                console.error("Error fetching dashboard data: ", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchPosts();
+        fetchData();
     }, [user]);
     
     const { periodPosts, previousPeriodPosts, chartPosts, chartPeriodLabel } = useMemo(() => {
-        // Regular period for KPIs
+        // Apply advanced filters first
+        const filteredByAdvanced = allPosts.filter(p => {
+            const influencerMatch = selectedInfluencers.length === 0 || selectedInfluencers.includes(p.influencerId);
+            const productMatch = selectedProducts.length === 0 || selectedProducts.includes(p.productId);
+            const postMatch = selectedPosts.length === 0 || selectedPosts.includes(p.id);
+            return influencerMatch && productMatch && postMatch;
+        });
+
+        // Then, apply date filters
         const { current, previous } = getPeriodDates(selectedPeriod, customDateRange);
 
-        // Special period for charts when "Today" is selected
         const isToday = selectedPeriod === 'today';
         const chartPeriod = isToday ? 'last_7_days' : selectedPeriod;
         const chartCustomRange = isToday ? undefined : customDateRange;
@@ -203,9 +267,9 @@ export default function DashboardPage() {
             });
         }
         
-        const periodData = selectedPeriod === 'all_time' ? posts : filterPostsByDate(posts, current);
-        const previousPeriodData = selectedPeriod === 'all_time' ? [] : filterPostsByDate(posts, previous);
-        const chartData = selectedPeriod === 'all_time' ? posts : filterPostsByDate(posts, chartDateRange);
+        const periodData = selectedPeriod === 'all_time' ? filteredByAdvanced : filterPostsByDate(filteredByAdvanced, current);
+        const previousPeriodData = selectedPeriod === 'all_time' ? [] : filterPostsByDate(filteredByAdvanced, previous);
+        const chartData = selectedPeriod === 'all_time' ? filteredByAdvanced : filterPostsByDate(filteredByAdvanced, chartDateRange);
 
         return {
             periodPosts: periodData,
@@ -214,7 +278,7 @@ export default function DashboardPage() {
             chartPeriodLabel: getPeriodLabel(chartPeriod, chartCustomRange)
         }
 
-    }, [posts, selectedPeriod, customDateRange]);
+    }, [allPosts, selectedPeriod, customDateRange, selectedInfluencers, selectedProducts, selectedPosts]);
 
     const calculateMetrics = (postList: Post[]) => {
         return postList.reduce((acc, post) => {
@@ -257,7 +321,6 @@ export default function DashboardPage() {
         
         const dataMap: { [key: string]: number } = {};
 
-        // 1. Group profits by day or month
         chartPosts.forEach(post => {
             const date = new Date(post.createdAt);
             const key = isLongPeriod ? format(date, 'yyyy-MM') : format(date, 'yyyy-MM-dd');
@@ -267,29 +330,25 @@ export default function DashboardPage() {
 
         const { current: chartDateRange } = getPeriodDates(selectedPeriod === 'today' ? 'last_7_days' : selectedPeriod, customDateRange);
 
+        const filledData = [];
         if (isLongPeriod) {
-            const data = [];
             const today = new Date();
              for (let i = 11; i >= 0; i--) {
-                const date = subMonths(today, i);
+                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
                 const monthKey = format(date, 'yyyy-MM');
-                data.push({
-                    month: format(date, 'MMM/yy', { locale: ptBR }),
-                    profit: dataMap[monthKey] || 0,
-                });
+                filledData.push({ month: format(date, 'MMM/yy', { locale: ptBR }), profit: dataMap[monthKey] || 0 });
             }
-            return data;
         } else {
-             if (!chartDateRange.from || !chartDateRange.to) return [];
-             const days = eachDayOfInterval({ start: chartDateRange.from, end: chartDateRange.to });
-             return days.map(day => {
-                const dayKey = format(day, 'yyyy-MM-dd');
-                return {
-                    month: format(day, 'dd/MM'),
-                    profit: dataMap[dayKey] || 0
+             if (chartDateRange.from && chartDateRange.to) {
+                let day = new Date(chartDateRange.from);
+                while(day <= chartDateRange.to) {
+                    const dayKey = format(day, 'yyyy-MM-dd');
+                    filledData.push({ month: format(day, 'dd/MM'), profit: dataMap[dayKey] || 0 });
+                    day.setDate(day.getDate() + 1);
                 }
-             })
+             }
         }
+        return filledData;
     }, [chartPosts, selectedPeriod, customDateRange]);
     
     const funnelData = useMemo(() => {
@@ -311,7 +370,6 @@ export default function DashboardPage() {
                 { label: "Conversões", value: 0, percentage: 0 },
             ];
         }
-
         return [
             { label: "Views nos Stories", value: totalMetrics.views, percentage: 100 },
             { label: "Cliques no Link", value: totalMetrics.clicks, percentage: (totalMetrics.clicks / baseValue) * 100 },
@@ -319,7 +377,6 @@ export default function DashboardPage() {
             { label: "Conversões", value: totalMetrics.sales, percentage: (totalMetrics.sales / baseValue) * 100 },
         ];
     }, [chartPosts]);
-
 
     const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
@@ -332,21 +389,31 @@ export default function DashboardPage() {
     }
     const comparisonText = selectedPeriod !== 'all_time' ? "do período anterior" : "desde o início";
 
-
-    const userName = useMemo(() => {
-      if (!user) return "";
-      return user.displayName || user.email?.split('@')[0] || "Usuário";
-    }, [user]);
+    const userName = useMemo(() => user?.displayName || user?.email?.split('@')[0] || "Usuário", [user]);
 
     const handlePeriodChange = (value: Period) => {
-        if (value !== 'custom') {
-            setCustomDateRange(undefined);
-            setSelectedPeriod(value);
-        } else {
-             setSelectedPeriod('custom');
-        }
+        if (value !== 'custom') setCustomDateRange(undefined);
+        setSelectedPeriod(value);
+    }
+    
+    const influencerOptions = useMemo(() => allInfluencers.map(i => ({ value: i.id, label: i.name })), [allInfluencers]);
+    const productOptions = useMemo(() => allProducts.map(p => ({ value: p.id, label: p.name })), [allProducts]);
+    const postOptions = useMemo(() => allPosts.map(p => ({ value: p.id, label: p.title })), [allPosts]);
+
+    const clearAllFilters = () => {
+        setSelectedInfluencers([]);
+        setSelectedProducts([]);
+        setSelectedPosts([]);
     }
 
+    const activeFiltersCount = selectedInfluencers.length + selectedProducts.length + selectedPosts.length;
+
+    const getFilterBadgeLabel = (type: 'influencer' | 'product' | 'post', id: string) => {
+        if (type === 'influencer') return allInfluencers.find(i => i.id === id)?.name;
+        if (type === 'product') return allProducts.find(p => p.id === id)?.name;
+        if (type === 'post') return allPosts.find(p => p.id === id)?.title;
+        return '';
+    }
 
     if (loading) {
         return <div className="p-8">Carregando dashboard...</div>
@@ -360,7 +427,7 @@ export default function DashboardPage() {
                         {greeting}, <span className="text-primary">{userName}!</span>
                     </h2>
                     <p className="text-muted-foreground">
-                        Seja bem-vindo ao LCI! Visão geral do desempenho de suas campanhas.
+                        Visão geral do desempenho de suas campanhas.
                     </p>
                 </div>
                  <div className="flex w-full sm:w-auto items-center space-x-2">
@@ -369,10 +436,7 @@ export default function DashboardPage() {
                             <Button
                                 id="date"
                                 variant={"outline"}
-                                className={cn(
-                                "w-full sm:w-[260px] justify-start text-left font-normal",
-                                !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground"
-                                )}
+                                className={cn("w-[200px] justify-start text-left font-normal", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
@@ -388,38 +452,41 @@ export default function DashboardPage() {
                                     <Button variant={selectedPeriod === 'all_time' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('all_time')}>Máximo</Button>
                                 </div>
                                 <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={customDateRange?.from}
-                                    selected={customDateRange}
-                                    onSelect={(range) => {
-                                        setCustomDateRange(range);
-                                        if (range) {
-                                            setSelectedPeriod('custom');
-                                        }
-                                    }}
-                                    numberOfMonths={2}
-                                    locale={ptBR}
-                                    className="hidden sm:block"
+                                    initialFocus mode="range" defaultMonth={customDateRange?.from}
+                                    selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
+                                    numberOfMonths={2} locale={ptBR} className="hidden sm:block"
                                 />
                                 <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={customDateRange?.from}
-                                    selected={customDateRange}
-                                    onSelect={(range) => {
-                                        setCustomDateRange(range);
-                                        if (range) {
-                                            setSelectedPeriod('custom');
-                                        }
-                                    }}
-                                    numberOfMonths={1}
-                                    locale={ptBR}
-                                    className="block sm:hidden"
+                                    initialFocus mode="range" defaultMonth={customDateRange?.from}
+                                    selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
+                                    numberOfMonths={1} locale={ptBR} className="block sm:hidden"
                                 />
                             </div>
                         </PopoverContent>
                     </Popover>
+
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-[150px] relative">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Filtros
+                                {activeFiltersCount > 0 && 
+                                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                                        {activeFiltersCount}
+                                    </span>
+                                }
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-[320px]">
+                            <h3 className="text-lg font-medium mb-4">Filtros Avançados</h3>
+                            <div className="space-y-4">
+                                <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
+                                <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
+                                <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+
                     <Link href="/posts?new=true">
                         <Button className="w-full sm:w-auto">
                             <PlusCircle className="mr-2 h-4 w-4" />
@@ -428,6 +495,24 @@ export default function DashboardPage() {
                     </Link>
                 </div>
             </div>
+
+            {activeFiltersCount > 0 && (
+                <Card className="mb-4">
+                    <CardContent className="p-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium">Filtros Ativos:</span>
+                            {selectedInfluencers.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('influencer', id)}</Badge>)}
+                            {selectedProducts.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('product', id)}</Badge>)}
+                            {selectedPosts.map(id => <Badge key={id} variant="secondary" className="max-w-[150px] truncate">{getFilterBadgeLabel('post', id)}</Badge>)}
+                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={clearAllFilters}>
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Limpar Filtros</span>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
