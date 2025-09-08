@@ -36,6 +36,11 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
     e.stopPropagation(); // Prevent the item from being selected when deleting
     onDelete?.(value);
   }
+
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue === value ? "" : optionValue);
+    setOpen(false);
+  }
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -63,12 +68,7 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value} // Crucial: This value is used for selection
-                  onSelect={(currentValue) => {
-                    // currentValue will be option.value because we set it above
-                    onChange(currentValue === value ? "" : currentValue)
-                    setOpen(false)
-                  }}
+                  onSelect={() => handleSelect(option.value)}
                   className="flex justify-between items-center"
                 >
                   <div className="flex items-center">
