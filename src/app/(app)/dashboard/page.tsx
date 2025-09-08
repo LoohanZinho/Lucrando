@@ -362,7 +362,7 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Receita ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">Receita</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -374,7 +374,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Despesas ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">Despesas</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -386,7 +386,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Lucro ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">Lucro</CardTitle>
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -398,7 +398,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">ROI ({getPeriodLabel(selectedPeriod, customDateRange)})</CardTitle>
+                        <CardTitle className="text-sm font-medium">ROI</CardTitle>
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
