@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { z } from "zod";
-import { useForm, useWatch, Controller } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +25,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useNumberMask } from "@/hooks/use-number-mask";
 
 
 const postSchema = z.object({
@@ -161,10 +160,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
     }));
     const partnerOptions = partners.map(p => ({ label: p.name, value: p.id }));
 
-    const currencyMask = useNumberMask({ style: 'currency', currency: 'BRL' });
-    const numberMask = useNumberMask();
-    const partnerValueMask = form.watch('partnerShareType') === 'percentage' ? useNumberMask({ suffix: ' %' }) : currencyMask;
-
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
@@ -214,102 +209,48 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                  <div className="space-y-4 p-4 border rounded-lg">
                     <h3 className="text-lg font-medium">Métricas</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <Controller
-                            control={form.control}
-                            name="investment"
-                            render={({ field, fieldState }) => (
-                                <FormItem>
-                                    <FormLabel>Investimento (R$)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            {...currencyMask.getInputProps(field.value, field.onChange)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage>{fieldState.error?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-                         <Controller
-                            control={form.control}
-                            name="revenue"
-                            render={({ field, fieldState }) => (
-                                <FormItem>
-                                    <FormLabel>Receita (R$)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            {...currencyMask.getInputProps(field.value, field.onChange)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage>{fieldState.error?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-                        <Controller
-                            control={form.control}
-                            name="views"
-                            render={({ field, fieldState }) => (
-                                <FormItem>
-                                    <FormLabel>Views (Stories)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            {...numberMask.getInputProps(field.value, field.onChange)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage>{fieldState.error?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-                        <Controller
-                            control={form.control}
-                            name="clicks"
-                            render={({ field, fieldState }) => (
-                                <FormItem>
-                                    <FormLabel>Cliques (Link)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            {...numberMask.getInputProps(field.value, field.onChange)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage>{fieldState.error?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-                         <Controller
-                            control={form.control}
-                            name="pageVisits"
-                            render={({ field, fieldState }) => (
-                                <FormItem>
-                                    <FormLabel>Visitas na Página</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            {...numberMask.getInputProps(field.value, field.onChange)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage>{fieldState.error?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-                         <Controller
-                            control={form.control}
-                            name="sales"
-                            render={({ field, fieldState }) => (
-                                <FormItem>
-                                    <FormLabel>Conversões (Vendas)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            {...numberMask.getInputProps(field.value, field.onChange)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage>{fieldState.error?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
+                        <FormField control={form.control} name="investment" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Investimento (R$)</FormLabel>
+                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 1500.00" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="revenue" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Receita (R$)</FormLabel>
+                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 5000.00" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="views" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Views (Stories)</FormLabel>
+                                <FormControl><Input type="number" placeholder="Ex: 25000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="clicks" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Cliques (Link)</FormLabel>
+                                <FormControl><Input type="number" placeholder="Ex: 1200" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="pageVisits" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Visitas na Página</FormLabel>
+                                <FormControl><Input type="number" placeholder="Ex: 800" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="sales" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Conversões (Vendas)</FormLabel>
+                                <FormControl><Input type="number" placeholder="Ex: 50" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
                     </div>
                  </div>
                 
@@ -392,22 +333,13 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                                 )}
                             />
 
-                           <Controller
-                                control={form.control}
-                                name="partnerShareValue"
-                                render={({ field, fieldState }) => (
-                                    <FormItem>
-                                        <FormLabel>Valor da Comissão</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                {...partnerValueMask.getInputProps(field.value, field.onChange)}
-                                            />
-                                        </FormControl>
-                                        <FormMessage>{fieldState.error?.message}</FormMessage>
-                                    </FormItem>
-                                )}
-                            />
+                            <FormField control={form.control} name="partnerShareValue" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Valor da Comissão</FormLabel>
+                                    <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
                         </div>
                     )}
                  </div>
