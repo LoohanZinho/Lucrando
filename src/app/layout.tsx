@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth-context';
 import { LoaderProvider, GlobalLoader } from '@/contexts/loader-context';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'LCI Lucrando com Influenciadores',
@@ -22,13 +23,15 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <LoaderProvider>
-          <AuthProvider>
-            {children}
-            <Toaster />
-            <GlobalLoader />
-          </AuthProvider>
-        </LoaderProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <LoaderProvider>
+            <AuthProvider>
+              {children}
+              <Toaster />
+              <GlobalLoader />
+            </AuthProvider>
+          </LoaderProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

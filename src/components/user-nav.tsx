@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { LoaderLink } from "../loader-link";
+import { LoaderLink } from "./loader-link";
 import { useLoader } from "@/contexts/loader-context";
 import { useRouter } from "next/navigation";
 

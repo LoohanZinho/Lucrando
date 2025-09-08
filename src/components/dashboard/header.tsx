@@ -1,5 +1,5 @@
 import { PeriodFilter } from "./period-filter";
-import { UserNav } from "./user-nav";
+import { UserNav } from "../user-nav";
 
 export function DashboardHeader() {
   return (
