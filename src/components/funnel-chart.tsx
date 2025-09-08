@@ -37,46 +37,52 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
              return `M 0,${yTop} L ${viewBoxWidth},${yTop} L ${viewBoxWidth},${yBottom} L 0,${yBottom} Z`;
         };
 
-        const yPoints = data.map(step => {
+        const points = data.map((step, index) => {
             const stepHeight = viewBoxHeight * (step.percentage / 100 || 0);
             const yTop = Math.max(10, (viewBoxHeight - stepHeight) / 2);
             const yBottom = Math.min(viewBoxHeight - 10, yTop + stepHeight);
-            return { yTop, yBottom };
+            const x = index * stepWidth;
+            return { x, yTop, yBottom };
         });
 
-        let path = `M 0,${yPoints[0].yTop} `;
-        
-        // Draw top curve with Bezier
-        for (let i = 0; i < data.length - 1; i++) {
-            const x1 = i * stepWidth;
-            const y1 = yPoints[i].yTop;
-            const x2 = (i + 1) * stepWidth;
-            const y2 = yPoints[i + 1].yTop;
-            const cx1 = x1 + stepWidth / 2;
-            const cy1 = y1;
-            const cx2 = x2 - stepWidth / 2;
-            const cy2 = y2;
-            path += `L ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2} `;
-        }
-        
-        path += `L ${viewBoxWidth},${yPoints[data.length - 1].yBottom} `;
+        // Add the end point of the funnel
+        points.push({ x: viewBoxWidth, yTop: points[points.length - 1].yTop, yBottom: points[points.length - 1].yBottom });
 
-        // Draw bottom curve with Bezier
-        for (let i = data.length - 1; i > 0; i--) {
-            const x1 = i * stepWidth;
-            const y1 = yPoints[i].yBottom;
-            const x2 = (i - 1) * stepWidth;
-            const y2 = yPoints[i - 1].yBottom;
-            const cx1 = x1 - stepWidth / 2;
-            const cy1 = y1;
-            const cx2 = x2 + stepWidth / 2;
-            const cy2 = y2;
-            path += `L ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2} `;
+        const pathSegments = [];
+
+        // Start path at the top-left of the first step
+        pathSegments.push(`M ${points[0].x},${points[0].yTop}`);
+
+        // Draw top curve segments
+        for (let i = 0; i < points.length - 1; i++) {
+            const p1 = points[i];
+            const p2 = points[i+1];
+            // Control points are placed at the corners to create the S-curve
+            const cp1x = (p1.x + p2.x) / 2;
+            const cp1y = p1.yTop;
+            const cp2x = (p1.x + p2.x) / 2;
+            const cp2y = p2.yTop;
+            pathSegments.push(`C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.yTop}`);
         }
 
-        path += `Z`;
+        // Line to the bottom-right corner of the last step
+        pathSegments.push(`L ${points[points.length-1].x},${points[points.length-1].yBottom}`);
+
+        // Draw bottom curve segments in reverse
+        for (let i = points.length - 1; i > 0; i--) {
+            const p1 = points[i];
+            const p2 = points[i-1];
+            const cp1x = (p1.x + p2.x) / 2;
+            const cp1y = p1.yBottom;
+            const cp2x = (p1.x + p2.x) / 2;
+            const cp2y = p2.yBottom;
+             pathSegments.push(`C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.yBottom}`);
+        }
+
+        // Close the path
+        pathSegments.push('Z');
         
-        return path;
+        return pathSegments.join(' ');
     }
 
     const finalPath = generatePath();
