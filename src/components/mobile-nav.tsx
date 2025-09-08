@@ -2,7 +2,7 @@
 "use client"
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Home, Users, User, Send, Package } from 'lucide-react';
+import { BarChart3, Home, Users, Handshake, Send, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function MobileNav() {
@@ -12,7 +12,7 @@ export function MobileNav() {
         { href: '/dashboard', label: 'Dashboard', icon: Home },
         { href: '/posts', label: 'Posts', icon: Send },
         { href: '/influencers', label: 'Influenciadores', icon: Users },
-        { href: '/partners', label: 'Sócios', icon: User },
+        { href: '/partners', label: 'Sócios', icon: Handshake },
         { href: '/products', label: 'Produtos', icon: Package },
     ];
 
@@ -23,7 +23,7 @@ export function MobileNav() {
                 <span className="sr-only">LCI</span>
             </Link>
             {navLinks.map(({ href, label, icon: Icon }) => (
-                <Link key={href} href={href} className={cn("flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground", { 'text-foreground': pathname === href })}>
+                <Link key={href} href={href} className={cn("flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground", { 'text-foreground': pathname.startsWith(href) })}>
                     <Icon className="h-5 w-5" />
                     {label}
                 </Link>

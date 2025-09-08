@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BarChart3, Home, Users, User, Send, Settings, Package } from 'lucide-react';
+import { BarChart3, Home, Users, Handshake, Send, Settings, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
@@ -13,7 +13,7 @@ export function Sidebar() {
         { href: '/dashboard', label: 'Dashboard', icon: Home },
         { href: '/posts', label: 'Posts', icon: Send },
         { href: '/influencers', label: 'Influenciadores', icon: Users },
-        { href: '/partners', label: 'Sócios', icon: User },
+        { href: '/partners', label: 'Sócios', icon: Handshake },
         { href: '/products', label: 'Produtos', icon: Package },
     ];
 
@@ -28,7 +28,7 @@ export function Sidebar() {
                     {navLinks.map(({ href, label, icon: Icon }) => (
                         <Tooltip key={href}>
                             <TooltipTrigger asChild>
-                                <Link href={href} className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8", { "bg-accent text-accent-foreground": pathname === href })}>
+                                <Link href={href} className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8", { "bg-accent text-accent-foreground": pathname.startsWith(href) })}>
                                     <Icon className="h-5 w-5" />
                                     <span className="sr-only">{label}</span>
                                 </Link>
