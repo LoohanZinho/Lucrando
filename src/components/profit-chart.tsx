@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
@@ -41,7 +42,6 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
           cursor={true}
           content={<ChartTooltipContent
             indicator="dot"
-            labelKey="profit"
             labelFormatter={(value, payload) => {
               const data = payload?.[0]?.payload;
               return data?.month;
@@ -50,7 +50,7 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
               <>
                 <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: "hsl(var(--chart-1))"}} />
-                    <span className="capitalize">{name}</span>
+                    <span className="capitalize">Lucro</span>
                     <span className="font-bold text-foreground ml-auto">
                         {typeof value === 'number' ? `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
                     </span>
