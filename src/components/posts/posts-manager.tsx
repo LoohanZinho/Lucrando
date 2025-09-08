@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PostDetailsDialog } from "./post-details-dialog";
+import { Separator } from "../ui/separator";
 
 
 const postSchema = z.object({
@@ -576,30 +577,22 @@ export function PostsManager() {
                          ))}
                         {!loading && posts.map(post => (
                              <Card key={post.id}>
-                                <CardContent className="p-4">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="font-semibold text-lg">{post.title}</h3>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2">
-                                                    <MoreHorizontal className="h-4 w-4" />
+                                <CardContent className="p-0">
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-start mb-2 gap-4">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-lg">{post.title}</h3>
+                                                <p className="text-sm text-muted-foreground">{getInfluencerDisplay(post.influencerId)}</p>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(post)}>
+                                                    <Pencil className="h-4 w-4" />
                                                 </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                 <DropdownMenuItem onSelect={() => handleViewDetails(post)}>
-                                                    <Eye className="mr-2 h-4 w-4" />
-                                                    Ver Detalhes
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => handleEdit(post)}>
-                                                    <Pencil className="mr-2 h-4 w-4" />
-                                                    Editar
-                                                </DropdownMenuItem>
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
-                                                         <button className="w-full text-left relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">
-                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                            Excluir
-                                                         </button>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
@@ -616,10 +609,16 @@ export function PostsManager() {
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>
                                                 </AlertDialog>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">{getInfluencerDisplay(post.influencerId)}</p>
+                                    <Separator />
+                                    <div className="p-4">
+                                        <Button variant="ghost" className="w-full justify-center" onClick={() => handleViewDetails(post)}>
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            Ver Detalhes
+                                        </Button>
+                                    </div>
                                 </CardContent>
                              </Card>
                         ))}
