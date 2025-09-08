@@ -1,5 +1,11 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/contexts/auth-context';
+import { Toaster } from '@/components/ui/toaster';
+import { LoaderProvider, Loader } from '@/contexts/loader-context';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'LCI Lucrando com Influenciadores',
@@ -13,13 +19,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
-        {children}
+      <body className={inter.className}>
+        <LoaderProvider>
+            <AuthProvider>
+                {children}
+                <Toaster />
+                <Loader />
+            </AuthProvider>
+        </LoaderProvider>
       </body>
     </html>
   );
