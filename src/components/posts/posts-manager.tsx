@@ -119,7 +119,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
         }
     }
 
-    const influencerOptions = influencers.map(i => ({ label: i.name, value: i.id }));
+    const influencerOptions = influencers.map(i => ({ 
+        label: `${i.name} ${i.instagram ? `(${i.instagram})` : ''}`, 
+        value: i.id 
+    }));
     const partnerOptions = partners.map(p => ({ label: p.name, value: p.id }));
 
     return (
