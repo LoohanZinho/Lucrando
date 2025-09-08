@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InfluencerHistoryDialog } from "./influencer-history-dialog";
 
 const influencerSchema = z.object({
     name: z.string().min(2, "Nome é obrigatório"),
@@ -85,24 +86,16 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
     
     const handleInstagramChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
         let value = e.target.value;
-
-        // Ensure it's lowercase
         value = value.toLowerCase();
-        
-        // Allow only letters, numbers, periods, and underscores after the @
         if (value.startsWith('@')) {
             const username = value.substring(1).replace(/[^a-z0-9._]/g, '');
             value = '@' + username;
         } else {
-            // Handles case where user might have deleted the @
             value = value.replace(/[^a-z0-9._]/g, '');
         }
-
         if (value.length > 0 && !value.startsWith('@')) {
             value = '@' + value;
         }
-
-        // Handle backspace when only '@' is left
         if (e.nativeEvent instanceof InputEvent && e.nativeEvent.inputType === 'deleteContentBackward' && field.value === '@') {
             value = '';
         }
@@ -167,6 +160,7 @@ export function InfluencersManager() {
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [editingInfluencer, setEditingInfluencer] = useState<Influencer | null>(null);
+    const [viewingHistory, setViewingHistory] = useState<Influencer | null>(null);
 
     const fetchInfluencers = useCallback(async () => {
         if (!user) return;
@@ -203,6 +197,10 @@ export function InfluencersManager() {
     const handleEdit = (influencer: Influencer) => {
         setEditingInfluencer(influencer);
         setIsSheetOpen(true);
+    }
+
+    const handleViewHistory = (influencer: Influencer) => {
+        setViewingHistory(influencer);
     }
     
     const handleAddNew = () => {
@@ -253,6 +251,7 @@ export function InfluencersManager() {
                                 <div className="flex gap-2">
                                    <Skeleton className="h-8 w-8 rounded-md" />
                                    <Skeleton className="h-8 w-8 rounded-md" />
+                                   <Skeleton className="h-8 w-8 rounded-md" />
                                 </div>
                             </div>
                         ))}
@@ -278,6 +277,9 @@ export function InfluencersManager() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleViewHistory(influencer)}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(influencer)}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
@@ -329,8 +331,14 @@ export function InfluencersManager() {
                     />
                 </SheetContent>
             </Sheet>
+
+            {viewingHistory && (
+                <InfluencerHistoryDialog
+                    influencer={viewingHistory}
+                    open={!!viewingHistory}
+                    onOpenChange={(isOpen) => !isOpen && setViewingHistory(null)}
+                />
+            )}
         </>
     )
 }
-
-    
