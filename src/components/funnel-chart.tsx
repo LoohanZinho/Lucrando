@@ -95,11 +95,11 @@ export function FunnelChart({ data }: FunnelChartProps) {
                         <defs>
                             <linearGradient id="funnelGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
-                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.7} />
+                                <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.7} />
                             </linearGradient>
                              <linearGradient id="funnelGradientDark" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
-                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.7} />
+                                <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.7} />
                             </linearGradient>
                         </defs>
                         <path d={finalPath} fill="url(#funnelGradient)" className="dark:fill-[url(#funnelGradientDark)]"/>
@@ -118,7 +118,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
                                 className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
                             >
                                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-muted-foreground">{step.label}</h3>
-                                <p className="text-4xl font-bold my-2 text-white" style={{ textShadow: '0 0 8px hsl(var(--primary)), 0 0 5px hsl(var(--primary))' }}>{formatPercentage(step.percentage)}</p>
+                                <p className="text-4xl font-bold my-2 text-white" style={{ textShadow: '0 0 5px hsla(0, 0%, 100%, 0.7), 0 0 10px hsla(0, 0%, 100%, 0.5)' }}>{formatPercentage(step.percentage)}</p>
                                 <p className="text-lg font-medium text-muted-foreground">{formatNumber(step.value)}</p>
                             </div>
                         ))}
