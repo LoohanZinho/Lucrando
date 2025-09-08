@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Send, Users, User } from 'lucide-react';
+import { Home, Send, Users, User, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomNav() {
@@ -14,18 +14,19 @@ export function BottomNav() {
         { href: '/posts', label: 'Posts', icon: Send },
         { href: '/influencers', label: 'Influencers', icon: Users },
         { href: '/partners', label: 'Sócios', icon: User },
+        { href: '/products', label: 'Produtos', icon: Package },
     ];
 
     return (
         <div className="sm:hidden fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border">
-            <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+            <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
                 {navLinks.map(({ href, label, icon: Icon }) => (
                     <Link 
                         key={href} 
                         href={href} 
                         className={cn(
                             "inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group",
-                            pathname === href ? 'text-primary' : 'text-muted-foreground'
+                            pathname.startsWith(href) ? 'text-primary' : 'text-muted-foreground'
                         )}
                     >
                         <Icon className="w-5 h-5 mb-1" />

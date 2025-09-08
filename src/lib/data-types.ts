@@ -16,12 +16,20 @@ export interface Partner {
     userId: string;
 }
 
+export interface Product {
+    id: string;
+    name: string;
+    description?: string;
+    userId: string;
+}
+
 export interface Post {
     id: string;
     title: string;
     description?: string;
     link?: string;
     influencerId: string;
+    productId: string;
     partnerId?: string;
     partnerShareType?: 'percentage' | 'fixed';
     partnerShareValue?: number;

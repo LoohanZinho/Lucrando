@@ -2,7 +2,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { type Post, type Influencer, type Partner } from "@/lib/data-types";
+import { type Post, type Influencer, type Partner, type Product } from "@/lib/data-types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -10,6 +10,7 @@ interface PostDetailsDialogProps {
   post: Post;
   influencer?: Influencer;
   partner?: Partner;
+  product?: Product;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -21,7 +22,7 @@ const DetailItem = ({ label, value, className }: { label: string, value: React.R
     </div>
 )
 
-export function PostDetailsDialog({ post, influencer, partner, open, onOpenChange }: PostDetailsDialogProps) {
+export function PostDetailsDialog({ post, influencer, partner, product, open, onOpenChange }: PostDetailsDialogProps) {
 
   const formatCurrency = (value?: number) => {
     if (value === undefined || value === null) return "R$ 0,00";
@@ -68,8 +69,9 @@ export function PostDetailsDialog({ post, influencer, partner, open, onOpenChang
             )}
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <DetailItem label="Produto" value={product?.name} />
                 <DetailItem label="Influenciador" value={influencer?.name} />
-                 <DetailItem label="Instagram" value={influencer?.instagram} />
+                <DetailItem label="Instagram" value={influencer?.instagram} />
             </div>
 
             <hr/>

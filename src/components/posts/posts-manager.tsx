@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Loader2, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
-import { type Post, type Influencer, type Partner } from "@/lib/data-types";
+import { type Post, type Influencer, type Partner, type Product } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
@@ -33,6 +33,7 @@ const postSchema = z.object({
     description: z.string().optional(),
     link: z.string().url("Link inválido").optional().or(z.literal('')),
     influencerId: z.string().min(1, "Selecione um influenciador"),
+    productId: z.string().min(1, "Selecione um produto"),
     hasPartner: z.boolean().default(false),
     partnerId: z.string().optional(),
     partnerShareType: z.enum(['percentage', 'fixed']).optional(),
@@ -55,7 +56,7 @@ const postSchema = z.object({
 
 type PostFormData = z.infer<typeof postSchema>;
 
-function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { onSuccess: () => void, postToEdit?: Post | null, onCancel: () => void, influencers: Influencer[], partners: Partner[] }) {
+function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, products }: { onSuccess: () => void, postToEdit?: Post | null, onCancel: () => void, influencers: Influencer[], partners: Partner[], products: Product[] }) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,6 +69,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             description: "",
             link: "",
             influencerId: "",
+            productId: "",
             hasPartner: false,
             partnerId: "",
             partnerShareType: 'percentage',
@@ -105,6 +107,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                 description: "",
                 link: "",
                 influencerId: "",
+                productId: "",
                 hasPartner: false,
                 partnerId: "",
                 partnerShareType: 'percentage',
@@ -160,6 +163,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
         value: i.id
     }));
     const partnerOptions = partners.map(p => ({ label: p.name, value: p.id }));
+    const productOptions = products.map(p => ({ label: p.name, value: p.id }));
 
     return (
         <Form {...form}>
@@ -172,8 +176,28 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                             <FormMessage />
                         </FormItem>
                     )} />
+                     <FormField control={form.control} name="productId" render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Produto Divulgado</FormLabel>
+                             <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o produto" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {productOptions.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                      <FormField control={form.control} name="influencerId" render={({ field }) => (
-                        <FormItem className="flex flex-col md:col-span-2">
+                        <FormItem className="flex flex-col">
                             <FormLabel>Influenciador</FormLabel>
                              <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                 <FormControl>
@@ -364,6 +388,7 @@ export function PostsManager() {
     const [posts, setPosts] = useState<Post[]>([]);
     const [influencers, setInfluencers] = useState<Influencer[]>([]);
     const [partners, setPartners] = useState<Partner[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -376,20 +401,24 @@ export function PostsManager() {
             const postsCol = collection(db, `users/${user.uid}/posts`);
             const influencersCol = collection(db, `users/${user.uid}/influencers`);
             const partnersCol = collection(db, `users/${user.uid}/partners`);
+            const productsCol = collection(db, `users/${user.uid}/products`);
 
-            const [postsSnapshot, influencersSnapshot, partnersSnapshot] = await Promise.all([
+            const [postsSnapshot, influencersSnapshot, partnersSnapshot, productsSnapshot] = await Promise.all([
                 getDocs(query(postsCol, orderBy("createdAt", "desc"))),
                 getDocs(query(influencersCol, orderBy("name", "asc"))),
-                getDocs(query(partnersCol, orderBy("name", "asc")))
+                getDocs(query(partnersCol, orderBy("name", "asc"))),
+                getDocs(query(productsCol, orderBy("name", "asc"))),
             ]);
 
             const fetchedPosts = postsSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt.toDate() } as Post));
             const fetchedInfluencers = influencersSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Influencer));
             const fetchedPartners = partnersSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Partner));
+            const fetchedProducts = productsSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Product));
             
             setPosts(fetchedPosts);
             setInfluencers(fetchedInfluencers);
             setPartners(fetchedPartners);
+            setProducts(fetchedProducts);
 
         } catch (error) {
             console.error("Error fetching data: ", error);
@@ -450,6 +479,7 @@ export function PostsManager() {
     const getPartnerName = (id?: string) => partners.find(p => p.id === id)?.name || 'Nenhum';
     const getInfluencer = (id: string) => influencers.find(i => i.id === id);
     const getPartner = (id?: string) => partners.find(p => p.id === id);
+    const getProduct = (id: string) => products.find(p => p.id === id);
 
     const formatCurrency = (value?: number) => {
         if (value === undefined || value === null) return "R$ 0,00";
@@ -482,8 +512,8 @@ export function PostsManager() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Título</TableHead>
+                                    <TableHead>Produto</TableHead>
                                     <TableHead className="hidden md:table-cell">Influenciador</TableHead>
-                                    <TableHead className="hidden lg:table-cell">Sócio</TableHead>
                                     <TableHead className="hidden lg:table-cell text-right">Investimento</TableHead>
                                     <TableHead className="hidden lg:table-cell text-right">Receita</TableHead>
                                     <TableHead className="hidden md:table-cell text-right">Vendas</TableHead>
@@ -494,8 +524,8 @@ export function PostsManager() {
                                 {loading && [...Array(5)].map((_, i) => (
                                     <TableRow key={i}>
                                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                         <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                                         <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
                                         <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
                                         <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
@@ -505,8 +535,8 @@ export function PostsManager() {
                                 {!loading && posts.map(post => (
                                     <TableRow key={post.id}>
                                         <TableCell className="font-medium">{post.title}</TableCell>
+                                        <TableCell>{getProduct(post.productId)?.name || 'N/A'}</TableCell>
                                         <TableCell className="hidden md:table-cell">{getInfluencerDisplay(post.influencerId)}</TableCell>
-                                        <TableCell className="hidden lg:table-cell">{getPartnerName(post.partnerId)}</TableCell>
                                         <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
                                         <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
                                         <TableCell className="hidden md:table-cell text-right">{formatNumber(post.sales)}</TableCell>
@@ -583,6 +613,7 @@ export function PostsManager() {
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-lg">{post.title}</h3>
                                                 <p className="text-sm text-muted-foreground">{getInfluencerDisplay(post.influencerId)}</p>
+                                                <p className="text-sm text-muted-foreground">Produto: {getProduct(post.productId)?.name || 'N/A'}</p>
                                             </div>
                                             <div className="flex items-center">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(post)}>
@@ -645,6 +676,7 @@ export function PostsManager() {
                         onCancel={() => setIsSheetOpen(false)}
                         influencers={influencers}
                         partners={partners}
+                        products={products}
                     />
                 </SheetContent>
             </Sheet>
@@ -654,6 +686,7 @@ export function PostsManager() {
                     post={viewingPost}
                     influencer={getInfluencer(viewingPost.influencerId)}
                     partner={getPartner(viewingPost.partnerId)}
+                    product={getProduct(viewingPost.productId)}
                     open={!!viewingPost}
                     onOpenChange={(isOpen) => !isOpen && setViewingPost(null)}
                 />
