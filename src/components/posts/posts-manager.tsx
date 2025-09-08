@@ -120,7 +120,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
     useEffect(() => {
         if (postToEdit) {
             form.reset({
-                 ...postToEdit,
+                ...postToEdit,
                 hasPartner: !!postToEdit.partnerId,
                 investment: postToEdit.investment ?? undefined,
                 revenue: postToEdit.revenue ?? undefined,
@@ -129,7 +129,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 pageVisits: postToEdit.pageVisits ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 partnerShareValue: postToEdit.partnerShareValue ?? undefined,
-                productSelection: 'existing', // Start with existing product
+                productSelection: 'existing', // Always start with existing product in edit mode
                 productId: postToEdit.productId,
             });
         } else {
@@ -164,6 +164,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
 
             let finalProductId = values.productId;
 
+            // Only allow creating a new product if not in edit mode
             if (values.productSelection === 'new' && !isEditMode) {
                 const newProductData = {
                     name: values.newProductName!,
@@ -653,42 +654,37 @@ export function PostsManager() {
                                         <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
                                         <TableCell className="hidden md:table-cell text-right">{formatNumber(post.sales)}</TableCell>
                                         <TableCell>
-                                            <div className="flex justify-end items-center gap-1">
+                                            <div className="flex justify-end items-center gap-2">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleViewDetails(post)}>
                                                     <Eye className="h-4 w-4" />
                                                     <span className="sr-only">Ver Detalhes</span>
                                                 </Button>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                            <span className="sr-only">Toggle menu</span>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(post)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                    <span className="sr-only">Editar</span>
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/70 hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4" />
+                                                            <span className="sr-only">Excluir</span>
                                                         </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                        <DropdownMenuItem onSelect={() => handleEdit(post)}>Editar</DropdownMenuItem>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <button className="w-full text-left relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">Excluir</button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Tem certeza que deseja excluir o post <strong>{post.title}</strong>? Esta ação não pode ser desfeita.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDelete(post.id)} className="bg-destructive hover:bg-destructive/90">
-                                                                        Excluir
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Tem certeza que deseja excluir o post <strong>{post.title}</strong>? Esta ação não pode ser desfeita.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(post.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                Excluir
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
                                         </TableCell>
                                     </TableRow>
