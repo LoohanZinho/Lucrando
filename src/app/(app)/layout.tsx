@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Sidebar } from '@/components/sidebar';
-import { Header } from '@/components/header';
 import { useLoader } from '@/contexts/loader-context';
 import { BottomNav } from '@/components/bottom-nav';
 
@@ -37,7 +36,6 @@ export default function AppLayout({
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <Sidebar />
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <Header />
         <main className="flex-1 items-start gap-4 p-4 sm:px-6 md:gap-8 pb-20 sm:pb-4">
             {children}
         </main>
