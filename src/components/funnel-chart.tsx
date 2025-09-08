@@ -115,15 +115,15 @@ export function FunnelChart({ data }: FunnelChartProps) {
                              return null;
                          })}
                     </svg>
-                    <div className="absolute inset-0 flex flex-col md:flex-row items-stretch justify-between text-center bg-gradient-to-r from-chart-3 to-chart-1 bg-clip-text text-transparent">
+                    <div className="absolute inset-0 flex flex-col md:flex-row items-stretch justify-between text-center">
                         {data.map((step, index) => (
                              <div 
                                 key={step.label} 
                                 className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
                             >
-                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">{step.label}</h3>
-                                <p className="text-4xl font-bold my-2">{formatPercentage(step.percentage)}</p>
-                                <p className="text-lg font-medium">{formatNumber(step.value)}</p>
+                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-muted-foreground">{step.label}</h3>
+                                <p className="text-4xl font-bold my-2 text-muted-foreground">{formatPercentage(step.percentage)}</p>
+                                <p className="text-lg font-medium text-muted-foreground">{formatNumber(step.value)}</p>
                             </div>
                         ))}
                     </div>
