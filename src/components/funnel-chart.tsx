@@ -117,9 +117,9 @@ export function FunnelChart({ data }: FunnelChartProps) {
                                 key={step.label} 
                                 className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
                             >
-                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-foreground">{step.label}</h3>
-                                <p className="text-4xl font-bold my-2 text-primary">{formatPercentage(step.percentage)}</p>
-                                <p className="text-lg font-medium text-muted-foreground">{formatNumber(step.value)}</p>
+                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-white" style={{ textShadow: '0 0 5px hsl(var(--primary)), 0 0 2px hsl(var(--primary))' }}>{step.label}</h3>
+                                <p className="text-4xl font-bold my-2 text-white" style={{ textShadow: '0 0 8px hsl(var(--primary)), 0 0 5px hsl(var(--primary))' }}>{formatPercentage(step.percentage)}</p>
+                                <p className="text-lg font-medium text-white/90" style={{ textShadow: '0 0 5px hsl(var(--primary)), 0 0 2px hsl(var(--primary))' }}>{formatNumber(step.value)}</p>
                             </div>
                         ))}
                     </div>
