@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -29,16 +30,18 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: "border bg-background text-foreground",
+        default:
+          "border bg-background/80 text-foreground backdrop-blur-sm",
         destructive:
-          "destructive group border-destructive bg-destructive text-destructive-foreground",
+          "destructive group border-destructive bg-destructive/80 text-destructive-foreground backdrop-blur-sm",
       },
     },
     defaultVariants: {
       variant: "default",
     },
   }
-)
+);
+
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,

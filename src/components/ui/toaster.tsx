@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useToast } from "@/hooks/use-toast"
@@ -26,6 +27,9 @@ export function Toaster() {
             </div>
             {action}
             <ToastClose />
+             <div className="absolute bottom-0 left-0 h-1 w-full bg-foreground/10 overflow-hidden">
+              <div className="h-full bg-primary animate-toast-progress origin-left" />
+            </div>
           </Toast>
         )
       })}
