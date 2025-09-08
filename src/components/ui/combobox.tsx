@@ -63,7 +63,7 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label} // Important: Use label for filtering in Command
+                  value={option.label}
                   onSelect={() => {
                     const newValue = option.value === value ? "" : option.value;
                     onChange(newValue);
