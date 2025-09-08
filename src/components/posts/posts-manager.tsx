@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Loader2, MoreHorizontal, Eye } from "lucide-react";
+import { PlusCircle, Loader2, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import { type Post, type Influencer, type Partner } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
@@ -475,88 +475,160 @@ export function PostsManager() {
                     </Button>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Título</TableHead>
-                                <TableHead className="hidden md:table-cell">Influenciador</TableHead>
-                                <TableHead className="hidden lg:table-cell">Sócio</TableHead>
-                                <TableHead className="hidden lg:table-cell text-right">Investimento</TableHead>
-                                <TableHead className="hidden lg:table-cell text-right">Receita</TableHead>
-                                <TableHead className="hidden md:table-cell text-right">Vendas</TableHead>
-                                <TableHead><span className="sr-only">Ações</span></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading && [...Array(5)].map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-                                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
-                                    <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
-                                </TableRow>
-                            ))}
-                            {!loading && posts.map(post => (
-                                <TableRow key={post.id}>
-                                    <TableCell className="font-medium">{post.title}</TableCell>
-                                    <TableCell className="hidden md:table-cell">{getInfluencerDisplay(post.influencerId)}</TableCell>
-                                    <TableCell className="hidden lg:table-cell">{getPartnerName(post.partnerId)}</TableCell>
-                                    <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
-                                    <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
-                                    <TableCell className="hidden md:table-cell text-right">{formatNumber(post.sales)}</TableCell>
-                                    <TableCell>
-                                        <div className="flex justify-end items-center gap-1">
-                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleViewDetails(post)}>
-                                                <Eye className="h-4 w-4" />
-                                                <span className="sr-only">Ver Detalhes</span>
-                                            </Button>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                    <DropdownMenuItem onSelect={() => handleEdit(post)}>Editar</DropdownMenuItem>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <button className="w-full text-left relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">Excluir</button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Tem certeza que deseja excluir o post <strong>{post.title}</strong>? Esta ação não pode ser desfeita.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => handleDelete(post.id)} className="bg-destructive hover:bg-destructive/90">
-                                                                    Excluir
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                             {!loading && posts.length === 0 && (
+                    {/* Desktop View */}
+                    <div className="hidden md:block">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-4">
-                                        Nenhum post adicionado.
-                                    </TableCell>
+                                    <TableHead>Título</TableHead>
+                                    <TableHead className="hidden md:table-cell">Influenciador</TableHead>
+                                    <TableHead className="hidden lg:table-cell">Sócio</TableHead>
+                                    <TableHead className="hidden lg:table-cell text-right">Investimento</TableHead>
+                                    <TableHead className="hidden lg:table-cell text-right">Receita</TableHead>
+                                    <TableHead className="hidden md:table-cell text-right">Vendas</TableHead>
+                                    <TableHead><span className="sr-only">Ações</span></TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {loading && [...Array(5)].map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                                        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
+                                        <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                                {!loading && posts.map(post => (
+                                    <TableRow key={post.id}>
+                                        <TableCell className="font-medium">{post.title}</TableCell>
+                                        <TableCell className="hidden md:table-cell">{getInfluencerDisplay(post.influencerId)}</TableCell>
+                                        <TableCell className="hidden lg:table-cell">{getPartnerName(post.partnerId)}</TableCell>
+                                        <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
+                                        <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-right">{formatNumber(post.sales)}</TableCell>
+                                        <TableCell>
+                                            <div className="flex justify-end items-center gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleViewDetails(post)}>
+                                                    <Eye className="h-4 w-4" />
+                                                    <span className="sr-only">Ver Detalhes</span>
+                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                                        <DropdownMenuItem onSelect={() => handleEdit(post)}>Editar</DropdownMenuItem>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <button className="w-full text-left relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">Excluir</button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        Tem certeza que deseja excluir o post <strong>{post.title}</strong>? Esta ação não pode ser desfeita.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDelete(post.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                        Excluir
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {!loading && posts.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center py-4">
+                                            Nenhum post adicionado.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden space-y-4">
+                         {loading && [...Array(3)].map((_, i) => (
+                             <Card key={i} className="p-4">
+                                 <div className="flex justify-between items-start">
+                                     <div className="space-y-2">
+                                        <Skeleton className="h-5 w-32" />
+                                        <Skeleton className="h-4 w-40" />
+                                     </div>
+                                      <Skeleton className="h-8 w-8" />
+                                 </div>
+                             </Card>
+                         ))}
+                        {!loading && posts.map(post => (
+                             <Card key={post.id}>
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="font-semibold text-lg">{post.title}</h3>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                 <DropdownMenuItem onSelect={() => handleViewDetails(post)}>
+                                                    <Eye className="mr-2 h-4 w-4" />
+                                                    Ver Detalhes
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => handleEdit(post)}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    Editar
+                                                </DropdownMenuItem>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                         <button className="w-full text-left relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            Excluir
+                                                         </button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Tem certeza que deseja excluir o post <strong>{post.title}</strong>? Esta ação não pode ser desfeita.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(post.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                Excluir
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">{getInfluencerDisplay(post.influencerId)}</p>
+                                </CardContent>
+                             </Card>
+                        ))}
+                         {!loading && posts.length === 0 && (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                                Nenhum post adicionado.
+                            </p>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
 
@@ -590,3 +662,5 @@ export function PostsManager() {
         </>
     )
 }
+
+    
