@@ -13,6 +13,19 @@ export default function DashboardPage() {
     const { user } = useAuth();
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [greeting, setGreeting] = useState("Olá");
+
+    useEffect(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) {
+            setGreeting("Bom dia");
+        } else if (hour < 18) {
+            setGreeting("Boa tarde");
+        } else {
+            setGreeting("Boa noite");
+        }
+    }, []);
+
 
     useEffect(() => {
         if (!user) return;
@@ -117,6 +130,11 @@ export default function DashboardPage() {
         return <span className={color}>{`${sign}${value.toFixed(1)}%`}</span>;
     }
 
+    const userName = useMemo(() => {
+      if (!user) return "";
+      return user.displayName || user.email?.split('@')[0] || "Usuário";
+    }, [user]);
+
 
     if (loading) {
         return <div className="p-8">Carregando dashboard...</div>
@@ -124,6 +142,14 @@ export default function DashboardPage() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <div className="space-y-2 mb-6">
+                <h2 className="text-3xl font-bold tracking-tight">
+                    {greeting}, <span className="text-primary">{userName}!</span>
+                </h2>
+                <p className="text-muted-foreground">
+                    Seja bem-vindo ao LCI! Visão geral do desempenho de suas campanhas.
+                </p>
+            </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
