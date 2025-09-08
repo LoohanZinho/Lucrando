@@ -29,7 +29,12 @@ export function FunnelChart({ data }: FunnelChartProps) {
     const stepWidth = viewBoxWidth / data.length;
 
     const generatePath = () => {
-        if (data.length === 0) return "";
+        if (data.length < 2) {
+             const stepHeight = viewBoxHeight * (data[0]?.percentage / 100 || 0);
+             const yTop = Math.max(10, (viewBoxHeight - stepHeight) / 2);
+             const yBottom = Math.min(viewBoxHeight - 10, yTop + stepHeight);
+             return `M 0,${yTop} L ${viewBoxWidth},${yTop} L ${viewBoxWidth},${yBottom} L 0,${yBottom} Z`;
+        };
 
         const yPoints = data.map(step => {
             const stepHeight = viewBoxHeight * (step.percentage / 100);
@@ -51,7 +56,6 @@ export function FunnelChart({ data }: FunnelChartProps) {
 
             topPath += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${yPoints[i+1].yTop} `;
         }
-        topPath += `L ${viewBoxWidth},${yPoints[data.length - 1].yTop} `;
         
         // Bottom path from right to left
         let bottomPath = `L ${viewBoxWidth},${yPoints[data.length - 1].yBottom} `;
@@ -66,7 +70,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
             
             bottomPath += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${yPoints[i-1].yBottom} `;
         }
-        bottomPath += `L 0,${yPoints[0].yBottom} Z`;
+        bottomPath += `Z`;
         
         return `${topPath} ${bottomPath}`;
     }
@@ -111,17 +115,15 @@ export function FunnelChart({ data }: FunnelChartProps) {
                              return null;
                          })}
                     </svg>
-                    <div className="absolute inset-0 flex flex-col md:flex-row items-stretch justify-between text-center">
+                    <div className="absolute inset-0 flex flex-col md:flex-row items-stretch justify-between text-center bg-gradient-to-r from-chart-3 to-chart-1 bg-clip-text text-transparent">
                         {data.map((step, index) => (
                              <div 
                                 key={step.label} 
                                 className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
                             >
-                                <div className="bg-gradient-to-r from-chart-3 to-chart-1 bg-clip-text text-transparent">
-                                    <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">{step.label}</h3>
-                                    <p className="text-4xl font-bold my-2">{formatPercentage(step.percentage)}</p>
-                                    <p className="text-lg font-medium">{formatNumber(step.value)}</p>
-                                </div>
+                                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">{step.label}</h3>
+                                <p className="text-4xl font-bold my-2">{formatPercentage(step.percentage)}</p>
+                                <p className="text-lg font-medium">{formatNumber(step.value)}</p>
                             </div>
                         ))}
                     </div>
