@@ -126,8 +126,8 @@ function MultiSelectFilter({ title, options, selected, onSelectedChange }: { tit
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                    {title}
+                <Button variant="outline" className="w-full justify-start text-left">
+                    <span className="truncate flex-1">{title}</span>
                     {selected.length > 0 && <Badge variant="secondary" className="ml-2">{selected.length}</Badge>}
                 </Button>
             </PopoverTrigger>
@@ -421,9 +421,9 @@ export default function DashboardPage() {
 
     return (
         <ScrollArea className="h-full">
-            <div className="flex-1 space-y-4 p-4 md:p-6 pt-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-                    <div className="space-y-2">
+            <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+                    <div className="space-y-2 self-start">
                         <h2 className="text-3xl font-bold tracking-tight">
                             {greeting}, <span className="text-primary">{userName}!</span>
                         </h2>
@@ -431,65 +431,65 @@ export default function DashboardPage() {
                             Visão geral do desempenho de suas campanhas.
                         </p>
                     </div>
-                    <div className="flex w-full sm:w-auto items-center space-x-2">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="date"
-                                    variant={"outline"}
-                                    className={cn("w-full justify-start text-left font-normal sm:w-[200px]", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="end">
-                                <div className="flex flex-col sm:flex-row">
-                                    <div className="flex flex-col space-y-1 p-2 border-b sm:border-b-0 sm:border-r">
-                                        <Button variant={selectedPeriod === 'today' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('today')}>Hoje</Button>
-                                        <Button variant={selectedPeriod === 'yesterday' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('yesterday')}>Ontem</Button>
-                                        <Button variant={selectedPeriod === 'last_7_days' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('last_7_days')}>Últimos 7 dias</Button>
-                                        <Button variant={selectedPeriod === 'this_month' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('this_month')}>Este mês</Button>
-                                        <Button variant={selectedPeriod === 'all_time' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('all_time')}>Máximo</Button>
+                    <div className="flex w-full flex-col md:w-auto md:flex-row md:items-center gap-2">
+                        <div className="flex items-center gap-2">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn("w-full justify-start text-left font-normal", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="end">
+                                    <div className="flex flex-col sm:flex-row">
+                                        <div className="flex flex-col space-y-1 p-2 border-b sm:border-b-0 sm:border-r">
+                                            <Button variant={selectedPeriod === 'today' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('today')}>Hoje</Button>
+                                            <Button variant={selectedPeriod === 'yesterday' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('yesterday')}>Ontem</Button>
+                                            <Button variant={selectedPeriod === 'last_7_days' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('last_7_days')}>Últimos 7 dias</Button>
+                                            <Button variant={selectedPeriod === 'this_month' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('this_month')}>Este mês</Button>
+                                            <Button variant={selectedPeriod === 'all_time' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('all_time')}>Máximo</Button>
+                                        </div>
+                                        <Calendar
+                                            initialFocus mode="range" defaultMonth={customDateRange?.from}
+                                            selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
+                                            numberOfMonths={2} locale={ptBR} className="hidden sm:block"
+                                        />
+                                        <Calendar
+                                            initialFocus mode="range" defaultMonth={customDateRange?.from}
+                                            selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
+                                            numberOfMonths={1} locale={ptBR} className="block sm:hidden"
+                                        />
                                     </div>
-                                    <Calendar
-                                        initialFocus mode="range" defaultMonth={customDateRange?.from}
-                                        selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
-                                        numberOfMonths={2} locale={ptBR} className="hidden sm:block"
-                                    />
-                                    <Calendar
-                                        initialFocus mode="range" defaultMonth={customDateRange?.from}
-                                        selected={customDateRange} onSelect={(range) => { setCustomDateRange(range); if (range) setSelectedPeriod('custom'); }}
-                                        numberOfMonths={1} locale={ptBR} className="block sm:hidden"
-                                    />
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="relative w-full sm:w-auto">
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    <span>Filtros</span>
-                                    {activeFiltersCount > 0 && 
-                                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                                            {activeFiltersCount}
-                                        </span>
-                                    }
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent align="end" className="w-[320px]">
-                                <h3 className="text-lg font-medium mb-4">Filtros Avançados</h3>
-                                <div className="space-y-4">
-                                    <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
-                                    <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
-                                    <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-
-                        <Link href="/posts?new=true">
-                            <Button className="w-full sm:w-auto">
+                                </PopoverContent>
+                            </Popover>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="relative shrink-0">
+                                        <Filter className="mr-2 h-4 w-4" />
+                                        <span className="hidden sm:inline">Filtros</span>
+                                        {activeFiltersCount > 0 && 
+                                            <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                                                {activeFiltersCount}
+                                            </span>
+                                        }
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent align="end" className="w-[320px]">
+                                    <h3 className="text-lg font-medium mb-4">Filtros Avançados</h3>
+                                    <div className="space-y-4">
+                                        <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
+                                        <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
+                                        <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        <Link href="/posts?new=true" className="w-full md:w-auto">
+                            <Button className="w-full">
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Nova Postagem
                             </Button>
@@ -514,7 +514,7 @@ export default function DashboardPage() {
                     </Card>
                 )}
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Receita</CardTitle>
