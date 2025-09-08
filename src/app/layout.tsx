@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -6,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { LoaderProvider, Loader } from '@/contexts/loader-context';
 import { ptBR } from 'date-fns/locale';
 import { setDefaultOptions } from 'date-fns';
+import { ThemeProvider } from '@/components/theme-provider';
 
 setDefaultOptions({ locale: ptBR });
 
@@ -24,13 +26,20 @@ export default function RootLayout({
   return (
     <html lang="pt-br" suppressHydrationWarning>
       <body className={inter.className}>
-        <LoaderProvider>
-            <AuthProvider>
-                {children}
-                <Toaster />
-                <Loader />
-            </AuthProvider>
-        </LoaderProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <LoaderProvider>
+              <AuthProvider>
+                  {children}
+                  <Toaster />
+                  <Loader />
+              </AuthProvider>
+          </LoaderProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

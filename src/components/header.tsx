@@ -1,9 +1,11 @@
+
 "use client"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { PanelLeft } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
 import { UserNav } from "./user-nav";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
     return (
@@ -19,10 +21,10 @@ export function Header() {
                     <MobileNav />
                 </SheetContent>
             </Sheet>
-            <div className="relative ml-auto flex-1 md:grow-0">
-                {/* Futuro search bar */}
+            <div className="relative ml-auto flex items-center gap-2 md:grow-0">
+                <ThemeToggle />
+                <UserNav />
             </div>
-            <UserNav />
         </header>
     )
 }
