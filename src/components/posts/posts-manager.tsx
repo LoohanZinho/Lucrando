@@ -176,16 +176,16 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                  toast({ title: "Produto Criado!", description: `O produto "${newProductData.name}" foi adicionado.` });
             }
 
-            const postData: Omit<Post, 'id' | 'createdAt'> & { hasPartner?: boolean, productSelection?: string, newProductName?: string, newProductDescription?: string } = {
+            const postData: Omit<Post, 'id' | 'createdAt'> & { [key: string]: any } = {
                 ...values,
                 productId: finalProductId!,
                 userId: user.uid,
             };
 
             if (!values.hasPartner) {
-                postData.partnerId = undefined;
-                postData.partnerShareType = undefined;
-                postData.partnerShareValue = undefined;
+                delete postData.partnerId;
+                delete postData.partnerShareType;
+                delete postData.partnerShareValue;
             }
             delete postData.hasPartner;
             delete postData.productSelection;
@@ -272,7 +272,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                                    <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={isEditMode}>
                                         <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Selecione o produto" />
