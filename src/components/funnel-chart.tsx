@@ -44,22 +44,43 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
             return { yTop, yBottom };
         });
 
-        // Top path from left to right
-        let topPath = `M 0,${yPoints[0].yTop} `;
+        let path = `M 0,${yPoints[0].yTop} `;
+
+        // Draw top curve
         for (let i = 0; i < data.length - 1; i++) {
+            const x1 = i * stepWidth;
+            const y1 = yPoints[i].yTop;
             const x2 = (i + 1) * stepWidth;
-            topPath += `L ${x2},${yPoints[i+1].yTop} `;
+            const y2 = yPoints[i+1].yTop;
+            
+            const cx1 = x1 + stepWidth / 2;
+            const cy1 = y1;
+            const cx2 = x2 - stepWidth / 2;
+            const cy2 = y2;
+            
+            path += `C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2} `;
         }
         
-        // Bottom path from right to left
-        let bottomPath = `L ${viewBoxWidth},${yPoints[data.length - 1].yBottom} `;
+        path += `L ${viewBoxWidth},${yPoints[data.length - 1].yBottom} `;
+
+        // Draw bottom curve
         for (let i = data.length - 1; i > 0; i--) {
+            const x1 = i * stepWidth;
+            const y1 = yPoints[i].yBottom;
             const x2 = (i - 1) * stepWidth;
-             bottomPath += `L ${x2},${yPoints[i-1].yBottom} `;
+            const y2 = yPoints[i-1].yBottom;
+            
+            const cx1 = x1 - stepWidth / 2;
+            const cy1 = y1;
+            const cx2 = x2 + stepWidth / 2;
+            const cy2 = y2;
+
+            path += `C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2} `;
         }
-        bottomPath += `Z`;
+
+        path += `Z`;
         
-        return `${topPath} ${bottomPath}`;
+        return path;
     }
 
     const finalPath = generatePath();
