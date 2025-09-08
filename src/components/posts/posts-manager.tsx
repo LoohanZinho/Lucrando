@@ -33,7 +33,12 @@ const postSchema = z.object({
     description: z.string().optional(),
     link: z.string().url("Link inválido").optional().or(z.literal('')),
     influencerId: z.string().min(1, "Selecione um influenciador"),
-    productId: z.string().min(1, "Selecione um produto"),
+    
+    productSelection: z.enum(['existing', 'new']).default('existing'),
+    productId: z.string().optional(),
+    newProductName: z.string().optional(),
+    newProductDescription: z.string().optional(),
+
     hasPartner: z.boolean().default(false),
     partnerId: z.string().optional(),
     partnerShareType: z.enum(['percentage', 'fixed']).optional(),
@@ -51,12 +56,28 @@ const postSchema = z.object({
     return true;
 }, {
     message: "Se um sócio for adicionado, todos os campos de sócio são obrigatórios.",
-    path: ['partnerId'] // You can choose a more appropriate path
+    path: ['partnerId'] 
+}).refine(data => {
+    if (data.productSelection === 'existing') {
+        return !!data.productId;
+    }
+    return true;
+}, {
+    message: "Selecione um produto existente.",
+    path: ['productId']
+}).refine(data => {
+     if (data.productSelection === 'new') {
+        return data.newProductName && data.newProductName.length >= 2;
+    }
+    return true;
+}, {
+    message: "O nome do novo produto é obrigatório.",
+    path: ['newProductName']
 });
 
 type PostFormData = z.infer<typeof postSchema>;
 
-function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, products }: { onSuccess: () => void, postToEdit?: Post | null, onCancel: () => void, influencers: Influencer[], partners: Partner[], products: Product[] }) {
+function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, products, onProductCreated }: { onSuccess: () => void, postToEdit?: Post | null, onCancel: () => void, influencers: Influencer[], partners: Partner[], products: Product[], onProductCreated: () => void }) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +90,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
             description: "",
             link: "",
             influencerId: "",
+            productSelection: 'existing',
             productId: "",
+            newProductName: "",
+            newProductDescription: "",
             hasPartner: false,
             partnerId: "",
             partnerShareType: 'percentage',
@@ -87,6 +111,11 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
         control: form.control,
         name: 'hasPartner'
     });
+    
+    const productSelection = useWatch({
+        control: form.control,
+        name: 'productSelection'
+    });
 
     useEffect(() => {
         if (postToEdit) {
@@ -100,6 +129,8 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 pageVisits: postToEdit.pageVisits ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 partnerShareValue: postToEdit.partnerShareValue ?? undefined,
+                productSelection: 'existing',
+                productId: postToEdit.productId,
             });
         } else {
             form.reset({
@@ -107,7 +138,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 description: "",
                 link: "",
                 influencerId: "",
+                productSelection: 'existing',
                 productId: "",
+                newProductName: "",
+                newProductDescription: "",
                 hasPartner: false,
                 partnerId: "",
                 partnerShareType: 'percentage',
@@ -127,10 +161,25 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
         if (!user) return;
         setIsSubmitting(true);
         try {
-            const postData: Partial<Post> & { hasPartner?: boolean } = {
+
+            let finalProductId = values.productId;
+
+            if (values.productSelection === 'new') {
+                const newProductData = {
+                    name: values.newProductName!,
+                    description: values.newProductDescription || "",
+                    userId: user.uid,
+                };
+                const newProductRef = await addDoc(collection(db, `users/${user.uid}/products`), newProductData);
+                finalProductId = newProductRef.id;
+                onProductCreated();
+                 toast({ title: "Produto Criado!", description: `O produto "${newProductData.name}" foi adicionado.` });
+            }
+
+            const postData: Omit<Post, 'id' | 'createdAt'> & { hasPartner?: boolean, productSelection?: string, newProductName?: string, newProductDescription?: string } = {
                 ...values,
+                productId: finalProductId!,
                 userId: user.uid,
-                createdAt: isEditMode && postToEdit?.createdAt ? postToEdit.createdAt : Timestamp.now()
             };
 
             if (!values.hasPartner) {
@@ -139,14 +188,20 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 postData.partnerShareValue = undefined;
             }
             delete postData.hasPartner;
+            delete postData.productSelection;
+            delete postData.newProductName;
+            delete postData.newProductDescription;
 
 
             if (isEditMode && postToEdit) {
                 const postRef = doc(db, `users/${user.uid}/posts`, postToEdit.id);
-                await updateDoc(postRef, postData as DocumentData);
+                await updateDoc(postRef, {
+                    ...postData,
+                     createdAt: postToEdit.createdAt,
+                });
                 toast({ title: "Sucesso!", description: "Post atualizado." });
             } else {
-                await addDoc(collection(db, `users/${user.uid}/posts`), postData as DocumentData);
+                await addDoc(collection(db, `users/${user.uid}/posts`), { ...postData, createdAt: Timestamp.now() });
                 toast({ title: "Sucesso!", description: "Novo post adicionado." });
             }
             onSuccess();
@@ -176,28 +231,86 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                             <FormMessage />
                         </FormItem>
                     )} />
-                     <FormField control={form.control} name="productId" render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Produto Divulgado</FormLabel>
-                             <Select onValueChange={field.onChange} value={field.value ?? ''}>
+
+                    <div className="md:col-span-2 space-y-4 p-4 border rounded-lg">
+                        <FormField
+                            control={form.control}
+                            name="productSelection"
+                            render={({ field }) => (
+                            <FormItem className="space-y-3">
+                                <FormLabel>Produto Divulgado</FormLabel>
                                 <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o produto" />
-                                </SelectTrigger>
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    className="flex gap-4"
+                                    disabled={isEditMode}
+                                >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="existing" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            Produto Existente
+                                        </FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="new" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            Novo Produto
+                                        </FormLabel>
+                                    </FormItem>
+                                </RadioGroup>
                                 </FormControl>
-                                <SelectContent>
-                                {productOptions.map(option => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        {productSelection === 'existing' && (
+                             <FormField control={form.control} name="productId" render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Selecione o Produto</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione o produto" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        {productOptions.map(option => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                            </SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        )}
+                        {productSelection === 'new' && (
+                            <div className="space-y-4 pt-4 border-t">
+                                <FormField control={form.control} name="newProductName" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nome do Novo Produto</FormLabel>
+                                        <FormControl><Input placeholder="Ex: Curso de Finanças" {...field} value={field.value ?? ''} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <FormField control={form.control} name="newProductDescription" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Descrição do Novo Produto (Opcional)</FormLabel>
+                                        <FormControl><Textarea placeholder="Descreva brevemente o novo produto" {...field} value={field.value ?? ''} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            </div>
+                        )}
+                    </div>
                      <FormField control={form.control} name="influencerId" render={({ field }) => (
-                        <FormItem className="flex flex-col">
+                        <FormItem className="flex flex-col md:col-span-2">
                             <FormLabel>Influenciador</FormLabel>
                              <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                 <FormControl>
@@ -394,9 +507,9 @@ export function PostsManager() {
     const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [viewingPost, setViewingPost] = useState<Post | null>(null);
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async (showLoading = true) => {
         if (!user) return;
-        setLoading(true);
+        if(showLoading) setLoading(true);
         try {
             const postsCol = collection(db, `users/${user.uid}/posts`);
             const influencersCol = collection(db, `users/${user.uid}/influencers`);
@@ -424,7 +537,7 @@ export function PostsManager() {
             console.error("Error fetching data: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar os dados." });
         } finally {
-            setLoading(false);
+            if(showLoading) setLoading(false);
         }
     }, [user, toast]);
 
@@ -677,6 +790,7 @@ export function PostsManager() {
                         influencers={influencers}
                         partners={partners}
                         products={products}
+                        onProductCreated={() => fetchData(false)}
                     />
                 </SheetContent>
             </Sheet>
