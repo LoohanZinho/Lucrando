@@ -150,12 +150,7 @@ export function InfluencersManager() {
         <>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Gerenciar Influenciadores</CardTitle>
-                        <CardDescription>
-                            Adicione e gerencie os influenciadores da sua equipe.
-                        </CardDescription>
-                    </div>
+                     <CardTitle>Seus Influenciadores</CardTitle>
                     <Button onClick={handleAddNew}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         Adicionar Influenciador

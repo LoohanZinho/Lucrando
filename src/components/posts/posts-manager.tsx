@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Trash2, Loader2, Edit, MoreHorizontal, LinkIcon, BarChart, User, Handshake } from "lucide-react";
+import { PlusCircle, Trash2, Loader2, Edit, MoreHorizontal, LinkIcon } from "lucide-react";
 import { type Post, type Influencer, type Partner } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, DocumentData } from "firebase/firestore/lite";
@@ -286,14 +286,15 @@ export function PostsManager() {
 
     return (
         <>
+             <div className="space-y-2">
+                <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
+                <p className="text-muted-foreground">
+                    Adicione, edite e gerencie os posts das suas campanhas.
+                </p>
+            </div>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Gerenciar Posts</CardTitle>
-                        <CardDescription>
-                            Adicione e gerencie os posts das suas campanhas.
-                        </CardDescription>
-                    </div>
+                    <CardTitle>Seus Posts</CardTitle>
                     <Button onClick={handleAddNew}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Adicionar Post

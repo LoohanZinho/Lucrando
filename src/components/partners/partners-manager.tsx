@@ -148,14 +148,15 @@ export function PartnersManager() {
 
     return (
         <>
+            <div className="space-y-2">
+                <h1 className="text-2xl font-bold tracking-tight">Sócios</h1>
+                <p className="text-muted-foreground">
+                    Adicione e gerencie os sócios da sua equipe.
+                </p>
+            </div>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Gerenciar Sócios</CardTitle>
-                        <CardDescription>
-                            Adicione e gerencie os sócios da sua equipe.
-                        </CardDescription>
-                    </div>
+                    <CardTitle>Seus Sócios</CardTitle>
                     <Button onClick={handleAddNew}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         Adicionar Sócio
