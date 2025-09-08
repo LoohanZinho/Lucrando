@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
+import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle, Calendar as CalendarIcon, Info } from "lucide-react";
 import { ProfitChart } from "@/components/profit-chart";
 import { useAuth } from '@/contexts/auth-context';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore/lite';
@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { format, subDays, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
@@ -445,35 +446,74 @@ export default function DashboardPage() {
                         <CardTitle>Análise de Performance</CardTitle>
                         <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-2 gap-4">
-                       <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4">
-                          <div className="flex items-center gap-2 text-sm font-medium">
-                            <Target className="h-4 w-4 text-muted-foreground" />
-                            <span>ROAS</span>
-                          </div>
-                          <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
-                        </div>
-                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Percent className="h-4 w-4 text-muted-foreground" />
-                                <span>Taxa de Conversão</span>
+                    <CardContent>
+                       <TooltipProvider>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
+                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                <Target className="h-4 w-4 text-muted-foreground" />
+                                                <span>ROAS</span>
+                                            </div>
+                                            <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="font-bold mb-1">Return on Ad Spend (ROAS)</p>
+                                        <p>Retorno sobre o Investimento em Anúncios. <br/> Mostra quanto você lucrou para cada real investido. <br/> Fórmula: (Receita / Investimento)</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
+                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                <Percent className="h-4 w-4 text-muted-foreground" />
+                                                <span>Taxa de Conversão</span>
+                                            </div>
+                                            <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                         <p className="font-bold mb-1">Taxa de Conversão</p>
+                                         <p>Percentual de cliques que resultaram em uma venda. <br/> Fórmula: (Vendas / Cliques) * 100</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
+                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                                <span>CPA</span>
+                                            </div>
+                                            <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                         <p className="font-bold mb-1">Custo Por Aquisição (CPA)</p>
+                                         <p>O custo médio para adquirir um cliente (realizar uma venda). <br/> Fórmula: (Investimento / Vendas)</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                     <TooltipTrigger asChild>
+                                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 cursor-help">
+                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                                                <span>Ticket Médio</span>
+                                            </div>
+                                            <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                         <p className="font-bold mb-1">Ticket Médio</p>
+                                         <p>O valor médio gasto por cliente em cada compra. <br/> Fórmula: (Receita / Vendas)</p>
+                                    </TooltipContent>
+                                </Tooltip>
                             </div>
-                            <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
-                        </div>
-                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                <span>CPA</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
-                        </div>
-                        <div className="flex flex-col gap-1 rounded-md bg-muted/50 p-4">
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                <span>Ticket Médio</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
-                        </div>
+                       </TooltipProvider>
                     </CardContent>
                 </Card>
             </div>
