@@ -155,7 +155,7 @@ export default function DashboardPage() {
     }, [posts]);
 
 
-    const formatCurrency = (value: number) => `R$${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
     const formatPercentageChange = (value: number) => {
         if (!isFinite(value)) return <span className="text-green-500">Novo</span>;
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                         Seja bem-vindo ao LCI! Visão geral do desempenho de suas campanhas.
                     </p>
                 </div>
-                 <Link href="/posts">
+                 <Link href="/posts?new=true">
                     <Button>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nova Postagem

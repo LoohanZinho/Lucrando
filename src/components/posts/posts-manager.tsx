@@ -54,12 +54,12 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
             link: "",
             influencerId: "",
             partnerId: "",
-            investment: 0,
-            revenue: 0,
-            views: 0,
-            clicks: 0,
-            pageVisits: 0,
-            sales: 0,
+            investment: undefined,
+            revenue: undefined,
+            views: undefined,
+            clicks: undefined,
+            pageVisits: undefined,
+            sales: undefined,
         }
     });
 
@@ -67,12 +67,12 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
         if (postToEdit) {
             form.reset({
                  ...postToEdit,
-                views: postToEdit.views ?? 0,
-                clicks: postToEdit.clicks ?? 0,
-                pageVisits: postToEdit.pageVisits ?? 0,
-                sales: postToEdit.sales ?? 0,
-                revenue: postToEdit.revenue ?? 0,
-                investment: postToEdit.investment ?? 0,
+                investment: postToEdit.investment,
+                revenue: postToEdit.revenue,
+                views: postToEdit.views,
+                clicks: postToEdit.clicks,
+                pageVisits: postToEdit.pageVisits,
+                sales: postToEdit.sales,
             });
         } else {
             form.reset({
@@ -81,12 +81,12 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                 link: "",
                 influencerId: "",
                 partnerId: "",
-                investment: 0,
-                revenue: 0,
-                views: 0,
-                clicks: 0,
-                pageVisits: 0,
-                sales: 0,
+                investment: undefined,
+                revenue: undefined,
+                views: undefined,
+                clicks: undefined,
+                pageVisits: undefined,
+                sales: undefined,
             });
         }
     }, [postToEdit, form]);
@@ -136,7 +136,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                     <FormField control={form.control} name="link" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Link</FormLabel>
-                            <FormControl><Input placeholder="https://..." {...field} /></FormControl>
+                            <FormControl><Input placeholder="https://..." {...field} value={field.value ?? ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -171,49 +171,49 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners }: { 
                     <FormField control={form.control} name="description" render={({ field }) => (
                         <FormItem className="md:col-span-2">
                             <FormLabel>Descrição</FormLabel>
-                            <FormControl><Textarea placeholder="Detalhes sobre o post..." {...field} /></FormControl>
+                            <FormControl><Textarea placeholder="Detalhes sobre o post..." {...field} value={field.value ?? ''}/></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                      <FormField control={form.control} name="investment" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Investimento (R$)</FormLabel>
-                            <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                            <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                      <FormField control={form.control} name="revenue" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Receita (R$)</FormLabel>
-                            <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                            <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                     <FormField control={form.control} name="views" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Views (Stories)</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                     <FormField control={form.control} name="clicks" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Cliques (Link)</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                      <FormField control={form.control} name="pageVisits" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Visitas na Página</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                      <FormField control={form.control} name="sales" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Conversões (Vendas)</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormControl><Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -312,6 +312,15 @@ export function PostsManager() {
     const getInfluencerName = (id: string) => influencers.find(i => i.id === id)?.name || 'N/A';
     const getPartnerName = (id: string) => partners.find(p => p.id === id)?.name || 'N/A';
 
+    const formatCurrency = (value?: number) => {
+        if (value === undefined || value === null) return "R$ 0,00";
+        return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    const formatNumber = (value?: number) => {
+        if (value === undefined || value === null) return "0";
+        return value.toLocaleString('pt-BR');
+    }
+
     return (
         <>
             <Card>
@@ -334,9 +343,9 @@ export function PostsManager() {
                                 <TableHead>Título</TableHead>
                                 <TableHead className="hidden md:table-cell">Influenciador</TableHead>
                                 <TableHead className="hidden md:table-cell">Sócio</TableHead>
-                                <TableHead className="hidden lg:table-cell">Investimento</TableHead>
-                                <TableHead className="hidden lg:table-cell">Receita</TableHead>
-                                <TableHead className="hidden lg:table-cell">Vendas</TableHead>
+                                <TableHead className="hidden lg:table-cell text-right">Investimento</TableHead>
+                                <TableHead className="hidden lg:table-cell text-right">Receita</TableHead>
+                                <TableHead className="hidden lg:table-cell text-right">Vendas</TableHead>
                                 <TableHead><span className="sr-only">Ações</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -346,10 +355,10 @@ export function PostsManager() {
                                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                     <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                                     <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
-                                    <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
+                                    <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                 </TableRow>
                             ))}
                             {!loading && posts.map(post => (
@@ -357,41 +366,43 @@ export function PostsManager() {
                                     <TableCell className="font-medium">{post.title}</TableCell>
                                     <TableCell className="hidden md:table-cell">{getInfluencerName(post.influencerId)}</TableCell>
                                     <TableCell className="hidden md:table-cell">{getPartnerName(post.partnerId)}</TableCell>
-                                    <TableCell className="hidden lg:table-cell">R$ {post.investment?.toFixed(2) ?? '0.00'}</TableCell>
-                                    <TableCell className="hidden lg:table-cell">R$ {post.revenue?.toFixed(2) ?? '0.00'}</TableCell>
-                                    <TableCell className="hidden lg:table-cell">{post.sales ?? 0}</TableCell>
+                                    <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
+                                    <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
+                                    <TableCell className="hidden lg:table-cell text-right">{formatNumber(post.sales)}</TableCell>
                                     <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Toggle menu</span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                <DropdownMenuItem onSelect={() => handleEdit(post)}>Editar</DropdownMenuItem>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" className="w-full justify-start cursor-pointer font-normal h-8 px-2 text-sm relative flex select-none items-center rounded-sm transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">Excluir</Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Tem certeza que deseja excluir o post <strong>{post.title}</strong>? Esta ação não pode ser desfeita.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(post.id)} className="bg-destructive hover:bg-destructive/90">
-                                                                Excluir
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <div className="flex justify-end">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">Toggle menu</span>
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                                    <DropdownMenuItem onSelect={() => handleEdit(post)}>Editar</DropdownMenuItem>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <button className="w-full text-left relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-600 hover:bg-accent hover:text-red-700">Excluir</button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Tem certeza que deseja excluir o post <strong>{post.title}</strong>? Esta ação não pode ser desfeita.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDelete(post.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                    Excluir
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}

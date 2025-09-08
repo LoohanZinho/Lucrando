@@ -37,6 +37,9 @@ export function FunnelChart({ data }: FunnelChartProps) {
         if (percentage === 0) return "0%";
         return `${percentage.toFixed(1)}%`;
     }
+    const formatNumber = (value: number) => {
+        return value.toLocaleString('pt-BR');
+    }
 
     return (
         <Card>
@@ -63,7 +66,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
                             >
                                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">{step.label}</h3>
                                 <p className="text-4xl font-bold my-2">{formatPercentage(step.percentage)}</p>
-                                <p className="text-lg font-medium">{step.value.toLocaleString('pt-BR')}</p>
+                                <p className="text-lg font-medium">{formatNumber(step.value)}</p>
                                 
                                 {index < data.length - 1 && (
                                    <div className="hidden md:block absolute top-0 bottom-0 w-px bg-white/20" style={{ right: '0' }} />
