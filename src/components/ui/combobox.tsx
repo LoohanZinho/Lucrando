@@ -94,10 +94,9 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    const selectedOption = options.find(opt => opt.value.toLowerCase() === currentValue.toLowerCase());
-                    const newValue = selectedOption?.value === value ? "" : selectedOption?.value || "";
+                    const newValue = currentValue === value ? "" : currentValue;
                     onChange(newValue);
-                    setOpen(false)
+                    setOpen(false);
                     setSearchTerm("");
                   }}
                   className="flex justify-between items-center"
