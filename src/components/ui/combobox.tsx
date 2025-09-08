@@ -63,8 +63,9 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value} // Use option.value for the command item value
+                  value={option.value} // Crucial: This value is used for selection
                   onSelect={(currentValue) => {
+                    // currentValue will be option.value because we set it above
                     onChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
