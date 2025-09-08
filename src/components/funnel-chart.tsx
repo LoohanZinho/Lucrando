@@ -96,7 +96,7 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
             </CardHeader>
             <CardContent>
                  <div className="relative w-full">
-                     <svg viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} className="w-full h-auto" preserveAspectRatio="none">
+                     <svg viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} className="w-full h-auto hidden md:block" preserveAspectRatio="none">
                         <defs>
                             <linearGradient id="funnelGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
@@ -116,11 +116,11 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
                              return null;
                          })}
                     </svg>
-                    <div className="absolute inset-0 flex flex-col md:flex-row items-stretch justify-between text-center">
+                    <div className="md:absolute md:inset-0 flex flex-col md:flex-row items-stretch justify-between text-center">
                         {data.map((step, index) => (
                              <div 
                                 key={step.label} 
-                                className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
+                                className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center md:bg-transparent bg-muted/30 dark:md:bg-transparent dark:bg-muted/30 border-b md:border-none"
                             >
                                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-muted-foreground dark:text-slate-50">{step.label}</h3>
                                 <p className="text-4xl font-bold my-2 text-muted-foreground dark:text-slate-50">{formatPercentage(step.percentage)}</p>
@@ -133,3 +133,5 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
         </Card>
     );
 }
+
+    

@@ -150,14 +150,14 @@ export function PartnersManager() {
     return (
         <>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <CardTitle>Gerenciar Sócios</CardTitle>
                         <CardDescription>
                             Adicione e gerencie os sócios da sua equipe.
                         </CardDescription>
                     </div>
-                    <Button onClick={handleAddNew}>
+                    <Button onClick={handleAddNew} className="w-full md:w-auto">
                         <UserPlus className="mr-2 h-4 w-4" />
                         Adicionar Sócio
                     </Button>
@@ -167,7 +167,9 @@ export function PartnersManager() {
                         {loading && [...Array(3)].map((_, i) => (
                              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
                                 <div className="flex items-center gap-4">
-                                     <Skeleton className="h-10 w-10 rounded-full" />
+                                     <Avatar>
+                                        <AvatarFallback>{partner.name.substring(0,2).toUpperCase()}</AvatarFallback>
+                                    </Avatar>
                                     <div className="space-y-2">
                                         <Skeleton className="h-4 w-24" />
                                     </div>
@@ -243,3 +245,5 @@ export function PartnersManager() {
         </>
     )
 }
+
+    

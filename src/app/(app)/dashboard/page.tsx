@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEffect, useState, useMemo } from 'react';
@@ -354,8 +353,8 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-             <div className="flex items-center justify-between mb-6">
+        <div className="flex-1 space-y-4 pt-6">
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                 <div className="space-y-2">
                     <h2 className="text-3xl font-bold tracking-tight">
                         {greeting}, <span className="text-primary">{userName}!</span>
@@ -364,24 +363,24 @@ export default function DashboardPage() {
                         Seja bem-vindo ao LCI! Visão geral do desempenho de suas campanhas.
                     </p>
                 </div>
-                 <div className="flex items-center space-x-2">
+                 <div className="flex w-full sm:w-auto items-center space-x-2">
                      <Popover>
                         <PopoverTrigger asChild>
                             <Button
                                 id="date"
                                 variant={"outline"}
                                 className={cn(
-                                "w-[260px] justify-start text-left font-normal",
+                                "w-full sm:w-[260px] justify-start text-left font-normal",
                                 !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground"
                                 )}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                <span>{getPeriodLabel(selectedPeriod, customDateRange)}</span>
+                                <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="end">
-                            <div className="flex">
-                                <div className="flex flex-col space-y-1 p-2 border-r">
+                            <div className="flex flex-col sm:flex-row">
+                                <div className="flex flex-col space-y-1 p-2 border-b sm:border-b-0 sm:border-r">
                                     <Button variant={selectedPeriod === 'today' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('today')}>Hoje</Button>
                                     <Button variant={selectedPeriod === 'yesterday' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('yesterday')}>Ontem</Button>
                                     <Button variant={selectedPeriod === 'last_7_days' ? 'default' : 'ghost'} className="justify-start" onClick={() => handlePeriodChange('last_7_days')}>Últimos 7 dias</Button>
@@ -401,12 +400,28 @@ export default function DashboardPage() {
                                     }}
                                     numberOfMonths={2}
                                     locale={ptBR}
+                                    className="hidden sm:block"
+                                />
+                                <Calendar
+                                    initialFocus
+                                    mode="range"
+                                    defaultMonth={customDateRange?.from}
+                                    selected={customDateRange}
+                                    onSelect={(range) => {
+                                        setCustomDateRange(range);
+                                        if (range) {
+                                            setSelectedPeriod('custom');
+                                        }
+                                    }}
+                                    numberOfMonths={1}
+                                    locale={ptBR}
+                                    className="block sm:hidden"
                                 />
                             </div>
                         </PopoverContent>
                     </Popover>
                     <Link href="/posts?new=true">
-                        <Button>
+                        <Button className="w-full sm:w-auto">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Nova Postagem
                         </Button>
@@ -478,7 +493,7 @@ export default function DashboardPage() {
                         <CardTitle>Análise de Performance</CardTitle>
                         <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-2 gap-4">
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid grid-cols-1 gap-4">
                             <div 
                                 className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
@@ -531,7 +546,7 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        <div className="col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
+                        <div className="col-span-1 sm:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
                             {hoveredKpi ? (
                                 <>
                                     <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
@@ -554,3 +569,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    

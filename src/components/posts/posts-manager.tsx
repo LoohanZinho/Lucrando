@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -455,14 +454,14 @@ export function PostsManager() {
     return (
         <>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <CardTitle>Gerenciar Posts</CardTitle>
                         <CardDescription>
                             Adicione e gerencie as publicações da sua campanha.
                         </CardDescription>
                     </div>
-                     <Button onClick={handleAddNew}>
+                     <Button onClick={handleAddNew} className="w-full md:w-auto">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nova Postagem
                     </Button>
@@ -473,10 +472,10 @@ export function PostsManager() {
                             <TableRow>
                                 <TableHead>Título</TableHead>
                                 <TableHead className="hidden md:table-cell">Influenciador</TableHead>
-                                <TableHead className="hidden md:table-cell">Sócio</TableHead>
+                                <TableHead className="hidden lg:table-cell">Sócio</TableHead>
                                 <TableHead className="hidden lg:table-cell text-right">Investimento</TableHead>
                                 <TableHead className="hidden lg:table-cell text-right">Receita</TableHead>
-                                <TableHead className="hidden lg:table-cell text-right">Vendas</TableHead>
+                                <TableHead className="hidden md:table-cell text-right">Vendas</TableHead>
                                 <TableHead><span className="sr-only">Ações</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -485,10 +484,10 @@ export function PostsManager() {
                                 <TableRow key={i}>
                                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                     <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
                                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-                                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
+                                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
                                     <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                 </TableRow>
                             ))}
@@ -496,10 +495,10 @@ export function PostsManager() {
                                 <TableRow key={post.id}>
                                     <TableCell className="font-medium">{post.title}</TableCell>
                                     <TableCell className="hidden md:table-cell">{getInfluencerDisplay(post.influencerId)}</TableCell>
-                                    <TableCell className="hidden md:table-cell">{getPartnerName(post.partnerId)}</TableCell>
+                                    <TableCell className="hidden lg:table-cell">{getPartnerName(post.partnerId)}</TableCell>
                                     <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
                                     <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.revenue)}</TableCell>
-                                    <TableCell className="hidden lg:table-cell text-right">{formatNumber(post.sales)}</TableCell>
+                                    <TableCell className="hidden md:table-cell text-right">{formatNumber(post.sales)}</TableCell>
                                     <TableCell>
                                         <div className="flex justify-end">
                                             <DropdownMenu>
@@ -569,3 +568,5 @@ export function PostsManager() {
         </>
     )
 }
+
+    

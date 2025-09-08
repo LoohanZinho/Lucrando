@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -223,14 +222,14 @@ export function InfluencersManager() {
     return (
         <>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <CardTitle>Gerenciar Influenciadores</CardTitle>
                         <CardDescription>
                             Adicione e gerencie os influenciadores da sua campanha.
                         </CardDescription>
                     </div>
-                    <Button onClick={handleAddNew}>
+                    <Button onClick={handleAddNew} className="w-full md:w-auto">
                         <UserPlus className="mr-2 h-4 w-4" />
                         Adicionar Influenciador
                     </Button>
@@ -340,3 +339,5 @@ export function InfluencersManager() {
         </>
     )
 }
+
+    
