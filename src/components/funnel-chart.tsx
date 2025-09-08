@@ -28,69 +28,41 @@ export function FunnelChart({ data }: FunnelChartProps) {
     const viewBoxHeight = 250;
     const stepWidth = viewBoxWidth / data.length;
 
-    const topPoints = [10];
-    const bottomPoints = [viewBoxHeight - 10];
-    const midPoints = [];
+    const generatePath = () => {
+        if (data.length === 0) return "";
 
-    data.forEach((step, index) => {
-        const stepHeight = viewBoxHeight * (step.percentage / 100);
-        const yTop = (viewBoxHeight - stepHeight) / 2;
-        const yBottom = yTop + stepHeight;
-
-        if (index > 0) {
-            topPoints.push(yTop);
-            bottomPoints.push(yBottom);
-        }
-        midPoints.push({
-            x: stepWidth * (index + 0.5),
-            y: viewBoxHeight / 2,
+        const yPoints = data.map(step => {
+            const stepHeight = viewBoxHeight * (step.percentage / 100);
+            const yTop = Math.max(10, (viewBoxHeight - stepHeight) / 2);
+            const yBottom = Math.min(viewBoxHeight - 10, yTop + stepHeight);
+            return { yTop, yBottom };
         });
-    });
 
-    const pathData = data.reduce((acc, step, index) => {
-        const stepHeight = viewBoxHeight * (step.percentage / 100);
-        const yTop = Math.max(10, (viewBoxHeight - stepHeight) / 2);
-        const yBottom = Math.min(viewBoxHeight - 10, yTop + stepHeight);
-        
-        const x1 = index * stepWidth;
-        const x2 = (index + 1) * stepWidth;
-
-        if (index === 0) {
-            // Start
-            acc += `M ${x1},${yTop} `;
-        }
-
-        // Top curve to next point
-        const nextStepHeight = index < data.length - 1 ? viewBoxHeight * (data[index + 1].percentage / 100) : stepHeight;
-        const nextYTop = index < data.length - 1 ? Math.max(10, (viewBoxHeight - nextStepHeight) / 2) : yTop;
-        
-        acc += `C ${x1 + stepWidth / 2},${yTop} ${x1 + stepWidth / 2},${nextYTop} ${x2},${nextYTop} `;
-        
-        return acc;
-    }, "");
-
-    const pathDataBottom = data.reduceRight((acc, step, index) => {
-        const stepHeight = viewBoxHeight * (step.percentage / 100);
-        const yTop = Math.max(10, (viewBoxHeight - stepHeight) / 2);
-        const yBottom = Math.min(viewBoxHeight - 10, yTop + stepHeight);
-        
-        const x1 = index * stepWidth;
-        const x2 = (index + 1) * stepWidth;
-
-        if (index === data.length - 1) {
-            // Start from bottom-right
-            acc += `L ${x2},${yBottom} `;
+        // Top path
+        let topPath = `M 0,${yPoints[0].yTop} `;
+        for (let i = 0; i < data.length; i++) {
+            const x1 = i * stepWidth;
+            const x2 = (i + 1) * stepWidth;
+            const nextYTop = (i < data.length - 1) ? yPoints[i+1].yTop : yPoints[i].yTop;
+            
+            topPath += `L ${x1 + stepWidth / 2},${yPoints[i].yTop} Q ${x1 + stepWidth * 0.75},${yPoints[i].yTop} ${x2},${nextYTop}`;
         }
         
-        const prevStepHeight = index > 0 ? viewBoxHeight * (data[index - 1].percentage / 100) : stepHeight;
-        const prevYBottom = index > 0 ? Math.min(viewBoxHeight-10, (viewBoxHeight - prevStepHeight) / 2 + prevStepHeight) : yBottom;
-       
-        acc += `C ${x1 + stepWidth / 2},${yBottom} ${x1 + stepWidth / 2},${prevYBottom} ${x1},${prevYBottom} `;
+        // Bottom path
+        let bottomPath = ` L ${viewBoxWidth},${yPoints[data.length - 1].yBottom} `;
+        for (let i = data.length - 1; i >= 0; i--) {
+            const x1 = i * stepWidth;
+            const x2 = (i + 1) * stepWidth;
+            const prevYBottom = (i > 0) ? yPoints[i-1].yBottom : yPoints[i].yBottom;
+            
+             bottomPath += `L ${x1 + stepWidth / 2},${yPoints[i].yBottom} Q ${x1 + stepWidth * 0.25},${yPoints[i].yBottom} ${x1},${prevYBottom}`;
+        }
+        
+        return `${topPath} ${bottomPath} Z`;
+    }
 
-        return acc;
-    }, "");
+    const finalPath = generatePath();
 
-    const finalPath = `${pathData} ${pathDataBottom} Z`;
 
     return (
         <Card>
@@ -109,15 +81,17 @@ export function FunnelChart({ data }: FunnelChartProps) {
             </CardHeader>
             <CardContent>
                  <div className="relative w-full">
-                     <svg viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} className="w-full h-auto">
+                     <svg viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} className="w-full h-auto" preserveAspectRatio="none">
                         <defs>
                             <linearGradient id="funnelGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="hsl(var(--chart-1))" />
-                                <stop offset="100%" stopColor="hsl(210 40% 96.1%)" />
+                                <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
+                                <stop offset="75%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
                             </linearGradient>
                              <linearGradient id="funnelGradientDark" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="hsl(var(--chart-1))" />
-                                <stop offset="100%" stopColor="hsl(240 3.7% 15.9%)" />
+                                <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
+                                <stop offset="75%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
                             </linearGradient>
                         </defs>
                         <path d={finalPath} fill="url(#funnelGradient)" className="dark:fill-[url(#funnelGradientDark)]"/>
