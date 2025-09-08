@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -94,8 +95,7 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
                   value={option.value}
                   onSelect={(currentValue) => {
                     const newValue = currentValue === value ? "" : currentValue
-                    const finalValue = options.find(o => o.label.toLowerCase() === newValue)?.value || newValue;
-                    onChange(finalValue)
+                    onChange(newValue)
                     setOpen(false)
                     setSearchTerm("");
                   }}
