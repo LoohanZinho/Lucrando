@@ -126,7 +126,8 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
                         <FormControl>
                             <Input 
                                 placeholder="@username" 
-                                {...field} 
+                                {...field}
+                                value={field.value ?? ''}
                                 onChange={(e) => handleInstagramChange(e, field)}
                             />
                         </FormControl>
@@ -136,14 +137,14 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
                  <FormField control={form.control} name="followers" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Seguidores</FormLabel>
-                        <FormControl><Input type="number" placeholder="Ex: 150000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                        <FormControl><Input type="number" placeholder="Ex: 150000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
                  <FormField control={form.control} name="storyViews" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Média de Views nos Stories</FormLabel>
-                        <FormControl><Input type="number" placeholder="Ex: 15000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                        <FormControl><Input type="number" placeholder="Ex: 15000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
