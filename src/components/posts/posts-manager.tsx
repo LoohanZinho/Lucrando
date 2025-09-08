@@ -315,11 +315,17 @@ export function PostsManager() {
     return (
         <>
             <Card>
-                <CardHeader>
-                    <CardTitle>Gerenciar Posts</CardTitle>
-                    <CardDescription>
-                        Adicione e gerencie as publicações da sua campanha.
-                    </CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Gerenciar Posts</CardTitle>
+                        <CardDescription>
+                            Adicione e gerencie as publicações da sua campanha.
+                        </CardDescription>
+                    </div>
+                     <Button onClick={handleAddNew}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nova Postagem
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <Table>
