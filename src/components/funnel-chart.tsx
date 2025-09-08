@@ -95,13 +95,11 @@ export function FunnelChart({ data }: FunnelChartProps) {
                         <defs>
                             <linearGradient id="funnelGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
-                                <stop offset="75%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
+                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.7} />
                             </linearGradient>
                              <linearGradient id="funnelGradientDark" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.9} />
-                                <stop offset="75%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
+                                <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.7} />
                             </linearGradient>
                         </defs>
                         <path d={finalPath} fill="url(#funnelGradient)" className="dark:fill-[url(#funnelGradientDark)]"/>
