@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Users, HandCoins, Settings, ChevronRight } from "lucide-react";
+import { BarChart3, Users, HandCoins, Settings, ChevronRight, ClipboardList, User, Handshake, LayoutDashboard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,7 +21,12 @@ const menuItems = [
   {
     href: "/",
     label: "Dashboard",
-    icon: BarChart3,
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/posts",
+    label: "Posts",
+    icon: ClipboardList,
   },
   {
     href: "/influencers",
@@ -36,6 +41,16 @@ const menuItems = [
       { href: "/campaigns/active", label: "Ativas" },
       { href: "/campaigns/past", label: "Anteriores" },
     ],
+  },
+  {
+    href: "/partners",
+    label: "Sócios",
+    icon: Handshake,
+  },
+  {
+    href: "/profile",
+    label: "Perfil",
+    icon: User,
   },
   {
     href: "/settings",

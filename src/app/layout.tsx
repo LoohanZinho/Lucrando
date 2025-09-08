@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth-context';
 import { LoaderProvider, GlobalLoader } from '@/contexts/loader-context';
 import { ThemeProvider } from '@/components/theme-provider';
+import { MobileNav } from '@/components/mobile-nav';
 
 export const metadata: Metadata = {
   title: 'LCI Lucrando com Influenciadores',
@@ -26,7 +27,8 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LoaderProvider>
             <AuthProvider>
-              {children}
+              <div className="pb-16 md:pb-0">{children}</div>
+              <MobileNav />
               <Toaster />
               <GlobalLoader />
             </AuthProvider>
