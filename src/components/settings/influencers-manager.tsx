@@ -85,20 +85,28 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
     
     const handleInstagramChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
         let value = e.target.value;
-        if (value.length === 1 && value !== '@') {
-            value = '@' + value;
-        } else if (value.length > 1 && !value.startsWith('@')) {
-            value = '@' + value;
-        } else if (value === '@') {
-            // This case handles when user tries to delete the '@'
-            // We allow it to be empty
-        }
+
+        // Ensure it's lowercase
+        value = value.toLowerCase();
         
+        // Allow only letters, numbers, periods, and underscores after the @
+        if (value.startsWith('@')) {
+            const username = value.substring(1).replace(/[^a-z0-9._]/g, '');
+            value = '@' + username;
+        } else {
+            // Handles case where user might have deleted the @
+            value = value.replace(/[^a-z0-9._]/g, '');
+        }
+
+        if (value.length > 0 && !value.startsWith('@')) {
+            value = '@' + value;
+        }
+
         // Handle backspace when only '@' is left
         if (e.nativeEvent instanceof InputEvent && e.nativeEvent.inputType === 'deleteContentBackward' && field.value === '@') {
             value = '';
         }
-        
+
         field.onChange(value);
     };
 
