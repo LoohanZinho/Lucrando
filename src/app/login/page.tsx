@@ -25,10 +25,10 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    showLoader();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      showLoader();
-      router.push('/');
+      router.push('/dashboard');
     } catch (error: any) {
        toast({
         variant: "destructive",
@@ -37,6 +37,7 @@ export default function LoginPage() {
       });
     } finally {
       setLoading(false);
+      // The loader will be hidden by the auth context listener when navigation completes
     }
   };
 
