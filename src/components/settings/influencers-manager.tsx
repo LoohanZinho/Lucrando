@@ -82,6 +82,25 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
             setIsSubmitting(false);
         }
     }
+    
+    const handleInstagramChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
+        let value = e.target.value;
+        if (value.length === 1 && value !== '@') {
+            value = '@' + value;
+        } else if (value.length > 1 && !value.startsWith('@')) {
+            value = '@' + value;
+        } else if (value === '@') {
+            // This case handles when user tries to delete the '@'
+            // We allow it to be empty
+        }
+        
+        // Handle backspace when only '@' is left
+        if (e.nativeEvent instanceof InputEvent && e.nativeEvent.inputType === 'deleteContentBackward' && field.value === '@') {
+            value = '';
+        }
+        
+        field.onChange(value);
+    };
 
     return (
         <Form {...form}>
@@ -96,7 +115,13 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
                  <FormField control={form.control} name="instagram" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Instagram</FormLabel>
-                        <FormControl><Input placeholder="@username" {...field} /></FormControl>
+                        <FormControl>
+                            <Input 
+                                placeholder="@username" 
+                                {...field} 
+                                onChange={(e) => handleInstagramChange(e, field)}
+                            />
+                        </FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
@@ -298,3 +323,5 @@ export function InfluencersManager() {
         </>
     )
 }
+
+    
