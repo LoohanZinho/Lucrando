@@ -467,9 +467,9 @@ export default function DashboardPage() {
 
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="icon" className="relative sm:w-auto sm:px-4">
-                                <Filter className="h-4 w-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Filtros</span>
+                            <Button variant="outline" className="relative w-full sm:w-auto">
+                                <Filter className="mr-2 h-4 w-4" />
+                                <span>Filtros</span>
                                 {activeFiltersCount > 0 && 
                                     <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
                                         {activeFiltersCount}
@@ -650,5 +650,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    
