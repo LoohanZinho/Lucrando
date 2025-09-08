@@ -178,6 +178,7 @@ export default function DashboardPage() {
                 <Card className="col-span-4">
                     <CardHeader>
                         <CardTitle>Análise de Tendência de Lucro</CardTitle>
+                         <p className="text-sm text-muted-foreground">Lucro mensal ao longo do ano.</p>
                     </CardHeader>
                     <CardContent className="pl-2">
                         <ProfitChart data={profitTrendData} />
