@@ -12,12 +12,76 @@ import { type Post } from '@/lib/data-types';
 import { FunnelChart } from '@/components/funnel-chart';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRange } from 'react-day-picker';
+
+type Period = "this_month" | "last_month" | "last_3_months" | "this_year" | "all_time";
+
+
+const getPeriodLabel = (period: Period) => {
+    switch (period) {
+        case 'this_month': return 'Este Mês';
+        case 'last_month': return 'Mês Passado';
+        case 'last_3_months': return 'Últimos 3 Meses';
+        case 'this_year': return 'Este Ano';
+        case 'all_time': return 'Todo o período';
+        default: return '';
+    }
+}
+
+const getPeriodDates = (period: Period): { current: DateRange, previous: DateRange } => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    let currentStart, currentEnd, previousStart, previousEnd;
+
+    switch (period) {
+        case 'this_month':
+            currentStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            currentEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+            previousStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            previousEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
+            break;
+        case 'last_month':
+            currentStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            currentEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
+            previousStart = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+            previousEnd = new Date(today.getFullYear(), today.getMonth() - 1, 0, 23, 59, 59, 999);
+            break;
+        case 'last_3_months':
+            currentStart = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+            currentEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+            previousStart = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+            previousEnd = new Date(today.getFullYear(), today.getMonth() - 2, 0, 23, 59, 59, 999);
+            break;
+        case 'this_year':
+            currentStart = new Date(today.getFullYear(), 0, 1);
+            currentEnd = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
+            previousStart = new Date(today.getFullYear() - 1, 0, 1);
+            previousEnd = new Date(today.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+            break;
+        case 'all_time':
+        default:
+            currentStart = new Date(0); // Epoch
+            currentEnd = today;
+            previousStart = new Date(0); // No previous period for all time
+            previousEnd = new Date(0);
+            break;
+    }
+
+    return {
+        current: { from: currentStart, to: currentEnd },
+        previous: { from: previousStart, to: previousEnd }
+    };
+};
+
 
 export default function DashboardPage() {
     const { user } = useAuth();
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [greeting, setGreeting] = useState("Olá");
+    const [selectedPeriod, setSelectedPeriod] = useState<Period>('this_month');
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -59,14 +123,27 @@ export default function DashboardPage() {
         fetchPosts();
     }, [user]);
     
-    const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    const { periodPosts, previousPeriodPosts, allTimePosts } = useMemo(() => {
+        const { current, previous } = getPeriodDates(selectedPeriod);
+        
+        const filterPostsByDate = (posts: Post[], range: DateRange) => {
+             if (!range.from || !range.to) return [];
+             return posts.filter(p => {
+                const postDate = new Date(p.createdAt);
+                return postDate >= range.from! && postDate <= range.to!;
+            });
+        }
+        
+        const periodData = selectedPeriod === 'all_time' ? posts : filterPostsByDate(posts, current);
+        const previousPeriodData = selectedPeriod === 'all_time' ? [] : filterPostsByDate(posts, previous);
 
-    const currentMonthPosts = posts.filter(p => new Date(p.createdAt) > lastMonth);
-    const previousMonthPosts = posts.filter(p => {
-        const postDate = new Date(p.createdAt);
-        return postDate <= lastMonth && postDate > new Date(lastMonth.getFullYear(), lastMonth.getMonth() - 1, 1);
-    });
+        return {
+            periodPosts: periodData,
+            previousPeriodPosts: previousPeriodData,
+            allTimePosts: posts, // For charts that always show all data
+        }
+
+    }, [posts, selectedPeriod]);
 
     const calculateMetrics = (postList: Post[]) => {
         return postList.reduce((acc, post) => {
@@ -80,8 +157,8 @@ export default function DashboardPage() {
         }, { revenue: 0, investment: 0, profit: 0, sales: 0, clicks: 0, views: 0, pageVisits: 0 });
     };
 
-    const currentMetrics = calculateMetrics(currentMonthPosts);
-    const previousMetrics = calculateMetrics(previousMonthPosts);
+    const currentMetrics = calculateMetrics(periodPosts);
+    const previousMetrics = calculateMetrics(previousPeriodPosts);
     
     currentMetrics.profit = currentMetrics.revenue - currentMetrics.investment;
     previousMetrics.profit = previousMetrics.revenue - previousMetrics.investment;
@@ -108,7 +185,7 @@ export default function DashboardPage() {
         const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
         const monthlyProfit: { [key: string]: number } = {};
 
-        posts.forEach(post => {
+        allTimePosts.forEach(post => {
             const date = new Date(post.createdAt);
             const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
             const profit = (post.revenue || 0) - (post.investment || 0);
@@ -124,10 +201,10 @@ export default function DashboardPage() {
                 profit: monthlyProfit[monthKey],
             };
         });
-    }, [posts]);
+    }, [allTimePosts]);
     
     const funnelData = useMemo(() => {
-        const totalMetrics = posts.reduce((acc, post) => {
+        const totalMetrics = periodPosts.reduce((acc, post) => {
             acc.views += post.views || 0;
             acc.clicks += post.clicks || 0;
             acc.pageVisits += post.pageVisits || 0;
@@ -152,17 +229,20 @@ export default function DashboardPage() {
             { label: "Visitas na Página", value: totalMetrics.pageVisits, percentage: (totalMetrics.pageVisits / baseValue) * 100 },
             { label: "Conversões", value: totalMetrics.sales, percentage: (totalMetrics.sales / baseValue) * 100 },
         ];
-    }, [posts]);
+    }, [periodPosts]);
 
 
     const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
     const formatPercentageChange = (value: number) => {
+        if (selectedPeriod === 'all_time') return null;
         if (!isFinite(value)) return <span className="text-green-500">Novo</span>;
         const sign = value >= 0 ? '+' : '';
         const color = value >= 0 ? 'text-green-500' : 'text-red-500';
         return <span className={color}>{`${sign}${value.toFixed(1)}%`}</span>;
     }
+    const comparisonText = selectedPeriod !== 'all_time' ? "do período anterior" : "desde o início";
+
 
     const userName = useMemo(() => {
       if (!user) return "";
@@ -185,59 +265,73 @@ export default function DashboardPage() {
                         Seja bem-vindo ao LCI! Visão geral do desempenho de suas campanhas.
                     </p>
                 </div>
-                 <Link href="/posts?new=true">
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nova Postagem
-                    </Button>
-                </Link>
+                 <div className="flex items-center space-x-2">
+                    <Select value={selectedPeriod} onValueChange={(value) => setSelectedPeriod(value as Period)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Selecione o período" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="this_month">Este Mês</SelectItem>
+                            <SelectItem value="last_month">Mês Passado</SelectItem>
+                            <SelectItem value="last_3_months">Últimos 3 Meses</SelectItem>
+                            <SelectItem value="this_year">Este Ano</SelectItem>
+                            <SelectItem value="all_time">Todo o período</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Link href="/posts?new=true">
+                        <Button>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Nova Postagem
+                        </Button>
+                    </Link>
+                </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+                        <CardTitle className="text-sm font-medium">Receita ({getPeriodLabel(selectedPeriod)})</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{formatCurrency(currentMetrics.revenue)}</div>
-                        <p className="text-xs text-muted-foreground">
-                           {formatPercentageChange(revenueChange)} do último mês
+                        <p className="text-xs text-muted-foreground h-4">
+                           {formatPercentageChange(revenueChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Despesas Totais</CardTitle>
+                        <CardTitle className="text-sm font-medium">Despesas ({getPeriodLabel(selectedPeriod)})</CardTitle>
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{formatCurrency(currentMetrics.investment)}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {formatPercentageChange(expensesChange)} do último mês
+                        <p className="text-xs text-muted-foreground h-4">
+                            {formatPercentageChange(expensesChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Lucro</CardTitle>
+                        <CardTitle className="text-sm font-medium">Lucro ({getPeriodLabel(selectedPeriod)})</CardTitle>
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{formatCurrency(currentMetrics.profit)}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {formatPercentageChange(profitChange)} do último mês
+                        <p className="text-xs text-muted-foreground h-4">
+                            {formatPercentageChange(profitChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                        <CardTitle className="text-sm font-medium">ROI ({getPeriodLabel(selectedPeriod)})</CardTitle>
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{formatPercentage(roi)}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {formatPercentageChange(roiChange)} do último mês
+                         <p className="text-xs text-muted-foreground h-4">
+                            {formatPercentageChange(roiChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
                     </CardContent>
                 </Card>
@@ -254,7 +348,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card className="col-span-4 md:col-span-3">
                      <CardHeader>
-                        <CardTitle>Análise de Performance</CardTitle>
+                        <CardTitle>Análise de Performance ({getPeriodLabel(selectedPeriod)})</CardTitle>
                         <p className="text-sm text-muted-foreground">Métricas chave de performance da campanha.</p>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 gap-4">
@@ -295,3 +389,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
