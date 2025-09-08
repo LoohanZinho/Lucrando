@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -50,9 +51,9 @@ export default function LoginPage() {
                 </div>
                 <span className="font-bold text-lg">LCI</span>
             </Link>
-            <CardTitle>Login</CardTitle>
+            <CardTitle>LCI</CardTitle>
             <CardDescription>
-              Acesse seu painel de controle de campanhas.
+              Lucrando com Influenciadores
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
