@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Trash2, Loader2, Edit } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, Eye } from "lucide-react";
 import { type Partner } from "@/lib/data-types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PartnerHistoryDialog } from "./partner-history-dialog";
 
 const partnerSchema = z.object({
     name: z.string().min(2, "Nome é obrigatório"),
@@ -97,6 +98,7 @@ export function PartnersManager() {
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+    const [viewingHistory, setViewingHistory] = useState<Partner | null>(null);
 
     const fetchPartners = useCallback(async () => {
         if (!user) return;
@@ -140,6 +142,10 @@ export function PartnersManager() {
         setIsSheetOpen(true);
     }
 
+    const handleViewHistory = (partner: Partner) => {
+        setViewingHistory(partner);
+    }
+
     const handleFormSuccess = () => {
         setIsSheetOpen(false);
         setEditingPartner(null);
@@ -175,6 +181,7 @@ export function PartnersManager() {
                                 <div className="flex gap-2">
                                    <Skeleton className="h-8 w-8 rounded-md" />
                                    <Skeleton className="h-8 w-8 rounded-md" />
+                                   <Skeleton className="h-8 w-8 rounded-md" />
                                 </div>
                             </div>
                         ))}
@@ -189,6 +196,9 @@ export function PartnersManager() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
+                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleViewHistory(partner)}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(partner)}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
@@ -240,6 +250,14 @@ export function PartnersManager() {
                     />
                 </SheetContent>
             </Sheet>
+
+            {viewingHistory && (
+                <PartnerHistoryDialog
+                    partner={viewingHistory}
+                    open={!!viewingHistory}
+                    onOpenChange={(isOpen) => !isOpen && setViewingHistory(null)}
+                />
+            )}
         </>
     )
 }
