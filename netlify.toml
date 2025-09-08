@@ -1,0 +1,18 @@
+# Configurações de build para a Netlify
+[build]
+  # Comando para construir o site
+  command = "npm run build"
+  
+  # Diretório que será publicado após o build
+  publish = ".next"
+
+[build.environment]
+  # Garante que as funções do Genkit não sejam incluídas no build de produção do front-end,
+  # já que elas são destinadas apenas ao servidor.
+  # Isso pode ajudar a reduzir o tamanho do bundle e evitar erros.
+  GENKIT_ENV = "production"
+
+[[plugins]]
+  # Plugin oficial da Netlify para Next.js
+  # Ele configura automaticamente os redirects, rewrites e o processamento de imagens.
+  package = "@netlify/plugin-nextjs"
