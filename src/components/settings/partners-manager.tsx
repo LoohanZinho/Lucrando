@@ -167,9 +167,7 @@ export function PartnersManager() {
                         {loading && [...Array(3)].map((_, i) => (
                              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
                                 <div className="flex items-center gap-4">
-                                     <Avatar>
-                                        <AvatarFallback>{partner.name.substring(0,2).toUpperCase()}</AvatarFallback>
-                                    </Avatar>
+                                    <Skeleton className="h-10 w-10 rounded-full" />
                                     <div className="space-y-2">
                                         <Skeleton className="h-4 w-24" />
                                     </div>
@@ -245,5 +243,3 @@ export function PartnersManager() {
         </>
     )
 }
-
-    
