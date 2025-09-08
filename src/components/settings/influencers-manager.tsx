@@ -39,8 +39,8 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
         defaultValues: {
             name: "",
             instagram: "",
-            followers: 0,
-            storyViews: 0,
+            followers: undefined,
+            storyViews: undefined,
         }
     });
 
@@ -48,11 +48,16 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
         if (influencerToEdit) {
             form.reset({
                 ...influencerToEdit,
-                followers: influencerToEdit.followers ?? 0,
-                storyViews: influencerToEdit.storyViews ?? 0,
+                followers: influencerToEdit.followers,
+                storyViews: influencerToEdit.storyViews,
             });
         } else {
-            form.reset({ name: "", instagram: "", followers: 0, storyViews: 0 });
+            form.reset({ 
+                name: "", 
+                instagram: "", 
+                followers: undefined, 
+                storyViews: undefined 
+            });
         }
     }, [influencerToEdit, form]);
 
@@ -98,14 +103,14 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
                  <FormField control={form.control} name="followers" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Seguidores</FormLabel>
-                        <FormControl><Input type="number" placeholder="Ex: 150000" {...field} /></FormControl>
+                        <FormControl><Input type="number" placeholder="Ex: 150000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
                  <FormField control={form.control} name="storyViews" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Média de Views nos Stories</FormLabel>
-                        <FormControl><Input type="number" placeholder="Ex: 15000" {...field} /></FormControl>
+                        <FormControl><Input type="number" placeholder="Ex: 15000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
@@ -293,5 +298,3 @@ export function InfluencersManager() {
         </>
     )
 }
-
-    
