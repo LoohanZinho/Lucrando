@@ -31,29 +31,12 @@ type ComboboxProps = {
 
 export function Combobox({ options, value, onChange, placeholder, className, onDelete }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [searchTerm, setSearchTerm] = React.useState("")
-
+  
   const handleDelete = (e: React.MouseEvent, value: string) => {
     e.stopPropagation(); // Prevent the item from being selected when deleting
     onDelete?.(value);
   }
   
-  const handleSelectNew = () => {
-    if (searchTerm) {
-      onChange(searchTerm);
-      setOpen(false);
-      setSearchTerm("");
-    }
-  }
-
-  const filteredOptions = searchTerm
-    ? options.filter((option) =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : options;
-
-  const showCreateNew = searchTerm && !filteredOptions.some(opt => opt.label.toLowerCase() === searchTerm.toLowerCase());
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -72,32 +55,19 @@ export function Combobox({ options, value, onChange, placeholder, className, onD
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" side="bottom" align="start">
         <Command>
           <CommandInput 
-            placeholder="Pesquisar ou criar novo..." 
-            value={searchTerm}
-            onValueChange={setSearchTerm}
+            placeholder="Pesquisar..." 
           />
           <CommandList>
-            {filteredOptions.length === 0 && !showCreateNew && (
-                <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
-            )}
+            <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
              <CommandGroup>
-                {showCreateNew && (
-                    <CommandItem
-                        value={searchTerm}
-                        onSelect={handleSelectNew}
-                    >
-                       Criar novo: <span className="font-bold ml-1">{searchTerm}</span>
-                    </CommandItem>
-                )}
-              {filteredOptions.map((option) => (
+              {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    const newValue = currentValue === value ? "" : currentValue;
+                  value={option.label} // Important: Use label for filtering in Command
+                  onSelect={() => {
+                    const newValue = option.value === value ? "" : option.value;
                     onChange(newValue);
                     setOpen(false);
-                    setSearchTerm("");
                   }}
                   className="flex justify-between items-center"
                 >
