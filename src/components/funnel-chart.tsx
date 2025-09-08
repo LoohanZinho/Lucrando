@@ -118,7 +118,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
                                 className="relative flex-1 py-4 px-2 flex flex-col justify-center items-center"
                             >
                                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-2 text-muted-foreground">{step.label}</h3>
-                                <p className="text-4xl font-bold my-2 text-white" style={{ textShadow: '0 0 5px hsla(0, 0%, 100%, 0.7), 0 0 10px hsla(0, 0%, 100%, 0.5)' }}>{formatPercentage(step.percentage)}</p>
+                                <p className="text-4xl font-bold my-2 text-muted-foreground">{formatPercentage(step.percentage)}</p>
                                 <p className="text-lg font-medium text-muted-foreground">{formatNumber(step.value)}</p>
                             </div>
                         ))}
