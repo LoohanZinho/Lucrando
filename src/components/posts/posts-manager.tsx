@@ -31,7 +31,6 @@ import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
     description: z.string().optional(),
@@ -82,7 +81,17 @@ const postSchema = z.object({
 
 type PostFormData = z.infer<typeof postSchema>;
 
-function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, products, onProductCreated }: { onSuccess: () => void, postToEdit?: Post | null, onCancel: () => void, influencers: Influencer[], partners: Partner[], products: Product[], onProductCreated: () => void }) {
+type PostFormProps = {
+  onSuccess: () => void;
+  postToEdit?: Post | null;
+  onCancel: () => void;
+  influencers: Influencer[];
+  partners: Partner[];
+  products: Product[];
+  onProductCreated: () => void;
+};
+
+function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, products, onProductCreated }: PostFormProps) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,7 +145,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 pageVisits: postToEdit.pageVisits ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 partnerShareValue: postToEdit.partnerShareValue ?? undefined,
-                productSelection: 'existing',
+                productSelection: 'existing', // Keep existing as default on edit
                 productId: postToEdit.productId,
             });
         } else {
@@ -163,7 +172,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
             });
         }
     }, [postToEdit, form]);
-
 
     async function onSubmit(values: PostFormData) {
         if (!user) return;
@@ -201,7 +209,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
             delete postData.productSelection;
             delete postData.newProductName;
             delete postData.newProductDescription;
-
 
             if (isEditMode && postToEdit) {
                 const postRef = doc(db, `users/${user.uid}/posts`, postToEdit.id);
@@ -548,7 +555,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
     );
 }
 
-
 export function PostsManager() {
     const { user } = useAuth();
     const { toast } = useToast();
@@ -698,7 +704,13 @@ export function PostsManager() {
                                         <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
                                         <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
                                         <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
-                                        <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                        <TableCell>
+                                             <div className="flex justify-end items-center gap-2">
+                                                <Skeleton className="h-8 w-8" />
+                                                <Skeleton className="h-8 w-8" />
+                                                <Skeleton className="h-8 w-8" />
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                                 {!loading && posts.map(post => (
@@ -861,3 +873,5 @@ export function PostsManager() {
         </>
     )
 }
+
+    
