@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Send, Users, Handshake, Package } from 'lucide-react';
+import { Home, Send, Users, Calendar, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomNav() {
@@ -12,8 +12,8 @@ export function BottomNav() {
     const navLinks = [
         { href: '/dashboard', label: 'Dashboard', icon: Home },
         { href: '/posts', label: 'Posts', icon: Send },
+        { href: '/calendar', label: 'Calendário', icon: Calendar },
         { href: '/influencers', label: 'Influencers', icon: Users },
-        { href: '/partners', label: 'Sócios', icon: Handshake },
         { href: '/products', label: 'Produtos', icon: Package },
     ];
 

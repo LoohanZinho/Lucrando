@@ -2,7 +2,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { type Post, type Influencer, type Partner, type Product } from "@/lib/data-types";
+import { type Post, type Influencer, type Product } from "@/lib/data-types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Timestamp } from "firebase/firestore/lite";
@@ -10,7 +10,6 @@ import { Timestamp } from "firebase/firestore/lite";
 interface PostDetailsDialogProps {
   post: Post;
   influencer?: Influencer;
-  partner?: Partner;
   product?: Product;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -23,7 +22,7 @@ const DetailItem = ({ label, value, className }: { label: string, value: React.R
     </div>
 )
 
-export function PostDetailsDialog({ post, influencer, partner, product, open, onOpenChange }: PostDetailsDialogProps) {
+export function PostDetailsDialog({ post, influencer, product, open, onOpenChange }: PostDetailsDialogProps) {
 
   const formatCurrency = (value?: number) => {
     if (value === undefined || value === null) return "R$ 0,00";
@@ -38,12 +37,6 @@ export function PostDetailsDialog({ post, influencer, partner, product, open, on
       const profit = (post.revenue || 0) - (post.investment || 0);
       const color = profit > 0 ? 'text-green-600' : profit < 0 ? 'text-red-600' : 'text-foreground';
       return <span className={color}>{formatCurrency(profit)}</span>
-  }
-  
-  const getPartnerShareDisplay = () => {
-    if (!post.partnerShareType || post.partnerShareValue === undefined) return "-";
-    if (post.partnerShareType === 'percentage') return `${post.partnerShareValue}%`;
-    return formatCurrency(post.partnerShareValue);
   }
   
   const postDate = post.postDate instanceof Timestamp ? post.postDate.toDate() : post.postDate;
@@ -95,18 +88,6 @@ export function PostDetailsDialog({ post, influencer, partner, product, open, on
                  <DetailItem label="Visitas na Página" value={formatNumber(post.pageVisits)} />
                  <DetailItem label="Vendas" value={formatNumber(post.sales)} />
             </div>
-            
-            {partner && (
-                <>
-                    <hr/>
-                    <h3 className="font-semibold text-lg -mb-2">Detalhes do Sócio</h3>
-                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <DetailItem label="Sócio" value={partner.name} />
-                        <DetailItem label="Tipo de Comissão" value={post.partnerShareType === 'percentage' ? 'Porcentagem' : 'Valor Fixo'} />
-                        <DetailItem label="Valor da Comissão" value={getPartnerShareDisplay()} />
-                    </div>
-                </>
-            )}
 
         </div>
       </DialogContent>

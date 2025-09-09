@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BarChart3, Home, Users, Handshake, Send, Settings, Package } from 'lucide-react';
+import { BarChart3, Home, Users, Calendar, Send, Settings, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
@@ -12,8 +12,8 @@ export function Sidebar() {
     const navLinks = [
         { href: '/dashboard', label: 'Dashboard', icon: Home },
         { href: '/posts', label: 'Posts', icon: Send },
+        { href: '/calendar', label: 'Calendário', icon: Calendar },
         { href: '/influencers', label: 'Influenciadores', icon: Users },
-        { href: '/partners', label: 'Sócios', icon: Handshake },
         { href: '/products', label: 'Produtos', icon: Package },
     ];
 

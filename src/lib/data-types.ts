@@ -10,12 +10,6 @@ export interface Influencer {
     userId: string;
 }
 
-export interface Partner {
-    id: string;
-    name: string;
-    userId: string;
-}
-
 export interface Product {
     id: string;
     name: string;
@@ -30,9 +24,6 @@ export interface Post {
     link?: string;
     influencerId: string;
     productId: string;
-    partnerId?: string;
-    partnerShareType?: 'percentage' | 'fixed';
-    partnerShareValue?: number;
     investment?: number;
     revenue?: number;
     views?: number;
@@ -42,5 +33,3 @@ export interface Post {
     postDate: Date | Timestamp;
     userId: string;
 }
-
-    

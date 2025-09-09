@@ -2,7 +2,7 @@
 "use client"
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Home, Users, Handshake, Send, Package } from 'lucide-react';
+import { BarChart3, Home, Users, Calendar, Send, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function MobileNav() {
@@ -11,8 +11,8 @@ export function MobileNav() {
     const navLinks = [
         { href: '/dashboard', label: 'Dashboard', icon: Home },
         { href: '/posts', label: 'Posts', icon: Send },
+        { href: '/calendar', label: 'Calendário', icon: Calendar },
         { href: '/influencers', label: 'Influenciadores', icon: Users },
-        { href: '/partners', label: 'Sócios', icon: Handshake },
         { href: '/products', label: 'Produtos', icon: Package },
     ];
 

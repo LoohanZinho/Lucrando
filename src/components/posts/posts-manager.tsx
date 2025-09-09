@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Loader2, Eye, Pencil, Trash2, Calendar as CalendarIcon } from "lucide-react";
-import { type Post, type Influencer, type Partner, type Product } from "@/lib/data-types";
+import { type Post, type Influencer, type Product } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
@@ -20,7 +20,6 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PostDetailsDialog } from "./post-details-dialog";
@@ -43,24 +42,12 @@ const postSchema = z.object({
     newProductName: z.string().optional(),
     newProductDescription: z.string().optional(),
 
-    hasPartner: z.boolean().default(false),
-    partnerId: z.string().optional(),
-    partnerShareType: z.enum(['percentage', 'fixed']).optional(),
-    partnerShareValue: z.coerce.number().min(0, "Valor da comissão não pode ser negativo").optional(),
     investment: z.coerce.number().min(0, "Investimento não pode ser negativo").optional(),
     revenue: z.coerce.number().min(0, "Receita não pode ser negativa").optional(),
     views: z.coerce.number().int("Views deve ser um número inteiro").min(0).optional(),
     clicks: z.coerce.number().int("Cliques deve ser um número inteiro").min(0).optional(),
     pageVisits: z.coerce.number().int("Visitas deve ser um número inteiro").min(0).optional(),
     sales: z.coerce.number().int("Vendas deve ser um número inteiro").min(0).optional(),
-}).refine((data) => {
-    if (data.hasPartner) {
-        return !!data.partnerId && !!data.partnerShareType && data.partnerShareValue !== undefined;
-    }
-    return true;
-}, {
-    message: "Se um sócio for adicionado, todos os campos de sócio são obrigatórios.",
-    path: ['partnerId'] 
 }).refine((data) => {
     if (data.productSelection === 'existing') {
         return !!data.productId;
@@ -86,12 +73,11 @@ type PostFormProps = {
   postToEdit?: Post | null;
   onCancel: () => void;
   influencers: Influencer[];
-  partners: Partner[];
   products: Product[];
   onProductCreated: () => void;
 };
 
-function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, products, onProductCreated }: PostFormProps) {
+function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onProductCreated }: PostFormProps) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,10 +95,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
             productId: "",
             newProductName: "",
             newProductDescription: "",
-            hasPartner: false,
-            partnerId: "",
-            partnerShareType: 'percentage',
-            partnerShareValue: undefined,
             investment: undefined,
             revenue: undefined,
             views: undefined,
@@ -122,11 +104,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
         }
     });
 
-    const hasPartner = useWatch({
-        control: form.control,
-        name: 'hasPartner'
-    });
-    
     const productSelection = useWatch({
         control: form.control,
         name: 'productSelection'
@@ -137,15 +114,13 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
             form.reset({
                 ...postToEdit,
                 postDate: postToEdit.postDate instanceof Timestamp ? postToEdit.postDate.toDate() : postToEdit.postDate,
-                hasPartner: !!postToEdit.partnerId,
                 investment: postToEdit.investment ?? undefined,
                 revenue: postToEdit.revenue ?? undefined,
                 views: postToEdit.views ?? undefined,
                 clicks: postToEdit.clicks ?? undefined,
                 pageVisits: postToEdit.pageVisits ?? undefined,
                 sales: postToEdit.sales ?? undefined,
-                partnerShareValue: postToEdit.partnerShareValue ?? undefined,
-                productSelection: 'existing', // Keep existing as default on edit
+                productSelection: 'existing', 
                 productId: postToEdit.productId,
             });
         } else {
@@ -159,10 +134,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 productId: "",
                 newProductName: "",
                 newProductDescription: "",
-                hasPartner: false,
-                partnerId: "",
-                partnerShareType: 'percentage',
-                partnerShareValue: undefined,
                 investment: undefined,
                 revenue: undefined,
                 views: undefined,
@@ -180,7 +151,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
 
             let finalProductId = values.productId;
 
-            // Only allow creating a new product if not in edit mode
             if (values.productSelection === 'new' && !isEditMode) {
                 const newProductData = {
                     name: values.newProductName!,
@@ -200,12 +170,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 postDate: Timestamp.fromDate(values.postDate)
             };
 
-            if (!values.hasPartner) {
-                delete postData.partnerId;
-                delete postData.partnerShareType;
-                delete postData.partnerShareValue;
-            }
-            delete postData.hasPartner;
             delete postData.productSelection;
             delete postData.newProductName;
             delete postData.newProductDescription;
@@ -231,7 +195,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
         label: `${i.name} ${i.instagram ? `(${i.instagram})` : ''}`,
         value: i.id
     }));
-    const partnerOptions = partners.map(p => ({ label: p.name, value: p.id }));
     const productOptions = products.map(p => ({ label: p.name, value: p.id }));
 
     return (
@@ -452,96 +415,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                         )} />
                     </div>
                  </div>
-                
-                 <div className="space-y-4 p-4 border rounded-lg">
-                     <FormField
-                        control={form.control}
-                        name="hasPartner"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between">
-                               <div className="space-y-0.5">
-                                    <FormLabel className="text-base">Adicionar Sócio?</FormLabel>
-                                    <FormDescription>
-                                        Marque se este post tiver a participação de um sócio.
-                                    </FormDescription>
-                                </div>
-                                <FormControl>
-                                    <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                        />
-                    {hasPartner && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                             <FormField control={form.control} name="partnerId" render={({ field }) => (
-                                <FormItem className="flex flex-col md:col-span-2">
-                                    <FormLabel>Sócio</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ?? ''}>
-                                        <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecione o sócio" />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                        {partnerOptions.map(option => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                            </SelectItem>
-                                        ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            
-                             <FormField
-                                control={form.control}
-                                name="partnerShareType"
-                                render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormLabel>Tipo de Comissão</FormLabel>
-                                    <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        value={field.value ?? 'percentage'}
-                                        className="flex flex-col space-y-1"
-                                    >
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="percentage" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">
-                                                Porcentagem (%)
-                                            </FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="fixed" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">
-                                                Valor Fixo (R$)
-                                            </FormLabel>
-                                        </FormItem>
-                                    </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-
-                            <FormField control={form.control} name="partnerShareValue" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Valor da Comissão</FormLabel>
-                                    <FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                        </div>
-                    )}
-                 </div>
 
                 <div className="flex gap-2 justify-end pt-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
@@ -560,7 +433,6 @@ export function PostsManager() {
     const { toast } = useToast();
     const [posts, setPosts] = useState<Post[]>([]);
     const [influencers, setInfluencers] = useState<Influencer[]>([]);
-    const [partners, setPartners] = useState<Partner[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -573,24 +445,20 @@ export function PostsManager() {
         try {
             const postsCol = collection(db, `users/${user.uid}/posts`);
             const influencersCol = collection(db, `users/${user.uid}/influencers`);
-            const partnersCol = collection(db, `users/${user.uid}/partners`);
             const productsCol = collection(db, `users/${user.uid}/products`);
 
-            const [postsSnapshot, influencersSnapshot, partnersSnapshot, productsSnapshot] = await Promise.all([
+            const [postsSnapshot, influencersSnapshot, productsSnapshot] = await Promise.all([
                 getDocs(query(postsCol, orderBy("postDate", "desc"))),
                 getDocs(query(influencersCol, orderBy("name", "asc"))),
-                getDocs(query(partnersCol, orderBy("name", "asc"))),
                 getDocs(query(productsCol, orderBy("name", "asc"))),
             ]);
 
             const fetchedPosts = postsSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data(), postDate: doc.data().postDate.toDate() } as Post));
             const fetchedInfluencers = influencersSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Influencer));
-            const fetchedPartners = partnersSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Partner));
             const fetchedProducts = productsSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Product));
             
             setPosts(fetchedPosts);
             setInfluencers(fetchedInfluencers);
-            setPartners(fetchedPartners);
             setProducts(fetchedProducts);
 
         } catch (error) {
@@ -606,8 +474,7 @@ export function PostsManager() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('new') === 'true') {
             handleAddNew();
-             // Clean up URL
-            const newUrl = window.location.pathname;
+             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
         }
     }, [fetchData]);
@@ -649,9 +516,7 @@ export function PostsManager() {
         return `${influencer.name} ${influencer.instagram ? `(${influencer.instagram})` : ''}`;
     };
 
-    const getPartnerName = (id?: string) => partners.find(p => p.id === id)?.name || 'Nenhum';
     const getInfluencer = (id: string) => influencers.find(i => i.id === id);
-    const getPartner = (id?: string) => partners.find(p => p.id === id);
     const getProduct = (id: string) => products.find(p => p.id === id);
 
     const formatCurrency = (value?: number) => {
@@ -663,7 +528,7 @@ export function PostsManager() {
         return value.toLocaleString('pt-BR');
     }
 
-    const getDateToFormat = (date: Date | Timestamp) => {
+    const getDateToFormat = (date: Date | Timestamp): Date => {
         return date instanceof Timestamp ? date.toDate() : date;
     }
 
@@ -683,7 +548,6 @@ export function PostsManager() {
                     </Button>
                 </CardHeader>
                 <CardContent>
-                    {/* Desktop View */}
                     <div className="hidden md:block">
                         <Table>
                             <TableHeader>
@@ -773,7 +637,6 @@ export function PostsManager() {
                         </Table>
                     </div>
 
-                    {/* Mobile View */}
                     <div className="md:hidden space-y-4">
                          {loading && [...Array(3)].map((_, i) => (
                              <Card key={i} className="p-4">
@@ -857,7 +720,6 @@ export function PostsManager() {
                         postToEdit={editingPost}
                         onCancel={() => setIsSheetOpen(false)}
                         influencers={influencers}
-                        partners={partners}
                         products={products}
                         onProductCreated={() => fetchData(false)}
                     />
@@ -868,7 +730,6 @@ export function PostsManager() {
                 <PostDetailsDialog
                     post={viewingPost}
                     influencer={getInfluencer(viewingPost.influencerId)}
-                    partner={getPartner(viewingPost.partnerId)}
                     product={getProduct(viewingPost.productId)}
                     open={!!viewingPost}
                     onOpenChange={(isOpen) => !isOpen && setViewingPost(null)}
@@ -877,5 +738,3 @@ export function PostsManager() {
         </>
     )
 }
-
-    
