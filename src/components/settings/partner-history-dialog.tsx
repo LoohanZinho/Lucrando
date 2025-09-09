@@ -34,7 +34,7 @@ export function PartnerHistoryDialog({ partner, open, onOpenChange }: PartnerHis
         const postsQuery = query(
           postsCol,
           where("partnerId", "==", partner.id),
-          orderBy("createdAt", "desc")
+          orderBy("postDate", "desc")
         );
 
         const [postsSnapshot, productsSnapshot] = await Promise.all([
@@ -47,7 +47,7 @@ export function PartnerHistoryDialog({ partner, open, onOpenChange }: PartnerHis
             return {
                 id: doc.id,
                 ...data,
-                createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+                postDate: data.postDate instanceof Timestamp ? data.postDate.toDate() : new Date(),
             } as Post;
         });
 

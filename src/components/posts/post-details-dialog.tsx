@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { type Post, type Influencer, type Partner, type Product } from "@/lib/data-types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Timestamp } from "firebase/firestore/lite";
 
 interface PostDetailsDialogProps {
   post: Post;
@@ -44,6 +45,8 @@ export function PostDetailsDialog({ post, influencer, partner, product, open, on
     if (post.partnerShareType === 'percentage') return `${post.partnerShareValue}%`;
     return formatCurrency(post.partnerShareValue);
   }
+  
+  const postDate = post.postDate instanceof Timestamp ? post.postDate.toDate() : post.postDate;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,7 +54,7 @@ export function PostDetailsDialog({ post, influencer, partner, product, open, on
         <DialogHeader>
           <DialogTitle>{post.title}</DialogTitle>
           <DialogDescription>
-            Detalhes completos do post. Criado em: {format(new Date(post.createdAt as Date), "dd/MM/yyyy 'às' HH:mm", {locale: ptBR})}
+            Postagem de: {format(postDate, "dd/MM/yyyy", {locale: ptBR})}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">

@@ -19,11 +19,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { MultiSelectFilter } from '@/components/multi-select-filter';
+
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
@@ -113,57 +111,11 @@ const getPeriodDates = (period: Period, customDateRange?: DateRange): { current:
     };
 };
 
-function MultiSelectFilter({ title, options, selected, onSelectedChange }: { title: string, options: { value: string, label: string }[], selected: string[], onSelectedChange: (selected: string[]) => void }) {
-    const [open, setOpen] = useState(false);
-
-    const handleSelect = (value: string) => {
-        const newSelected = selected.includes(value)
-            ? selected.filter(s => s !== value)
-            : [...selected, value];
-        onSelectedChange(newSelected);
-    }
-    
-    return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left">
-                    <span className="truncate flex-1">{title}</span>
-                    {selected.length > 0 && <Badge variant="secondary" className="ml-2">{selected.length}</Badge>}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[320px] p-0" align="start">
-                 <ScrollArea className="max-h-60">
-                    <div className="p-2 space-y-1">
-                        {options.length === 0 && <p className="text-sm text-muted-foreground text-center p-2">Nenhuma opção.</p>}
-                        {options.map(option => (
-                           <div
-                                key={option.value}
-                                onClick={() => handleSelect(option.value)}
-                                className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent cursor-pointer"
-                           >
-                               <Checkbox
-                                   id={`select-${option.value}`}
-                                   checked={selected.includes(option.value)}
-                                   onCheckedChange={() => handleSelect(option.value)}
-                               />
-                               <label htmlFor={`select-${option.value}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
-                                   {option.label}
-                               </label>
-                           </div>
-                        ))}
-                    </div>
-                 </ScrollArea>
-            </PopoverContent>
-        </Popover>
-    )
-}
-
 export default function DashboardPage() {
     const { user } = useAuth();
     const [allPosts, setAllPosts] = useState<Post[]>([]);
     const [allInfluencers, setAllInfluencers] = useState<Influencer[]>([]);
     const [allProducts, setAllProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
     const [greeting, setGreeting] = useState("Olá");
     const [selectedPeriod, setSelectedPeriod] = useState<Period>('this_month');
     const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
@@ -208,7 +160,6 @@ export default function DashboardPage() {
         if (!user) return;
 
         const fetchData = async () => {
-            setLoading(true);
             try {
                 const postsCol = collection(db, `users/${user.uid}/posts`);
                 const influencersCol = collection(db, `users/${user.uid}/influencers`);
@@ -222,7 +173,7 @@ export default function DashboardPage() {
 
                 const fetchedPosts = postsSnapshot.docs.map(doc => ({
                     id: doc.id, ...doc.data(),
-                    createdAt: doc.data().createdAt instanceof Timestamp ? doc.data().createdAt.toDate() : new Date(),
+                    postDate: doc.data().postDate instanceof Timestamp ? doc.data().postDate.toDate() : new Date(),
                 } as Post));
                 
                 const fetchedInfluencers = influencersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Influencer));
@@ -234,8 +185,6 @@ export default function DashboardPage() {
 
             } catch (error) {
                 console.error("Error fetching dashboard data: ", error);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -262,7 +211,7 @@ export default function DashboardPage() {
         const filterPostsByDate = (posts: Post[], range: DateRange) => {
              if (!range.from || !range.to) return [];
              return posts.filter(p => {
-                const postDate = new Date(p.createdAt);
+                const postDate = new Date(p.postDate instanceof Timestamp ? p.postDate.toDate() : p.postDate);
                 return postDate >= range.from! && postDate <= range.to!;
             });
         }
@@ -322,7 +271,7 @@ export default function DashboardPage() {
         const dataMap: { [key: string]: number } = {};
 
         chartPosts.forEach(post => {
-            const date = new Date(post.createdAt);
+            const date = new Date(post.postDate instanceof Timestamp ? post.postDate.toDate() : post.postDate);
             const key = isLongPeriod ? format(date, 'yyyy-MM') : format(date, 'yyyy-MM-dd');
             const profit = (post.revenue || 0) - (post.investment || 0);
             dataMap[key] = (dataMap[key] || 0) + profit;
@@ -415,12 +364,8 @@ export default function DashboardPage() {
         return '';
     }
 
-    if (loading) {
-        return <div className="p-8">Carregando dashboard...</div>
-    }
-
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 md:p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="space-y-2 self-start w-full">
                     <h2 className="text-3xl font-bold tracking-tight">

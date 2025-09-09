@@ -39,7 +39,7 @@ export interface Post {
     clicks?: number;
     pageVisits?: number;
     sales?: number;
-    createdAt: Date | Timestamp;
+    postDate: Date | Timestamp;
     userId: string;
 }
 

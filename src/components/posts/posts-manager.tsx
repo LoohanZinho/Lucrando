@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Loader2, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Loader2, Eye, Pencil, Trash2, Calendar as CalendarIcon } from "lucide-react";
 import { type Post, type Influencer, type Partner, type Product } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
@@ -20,18 +20,23 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PostDetailsDialog } from "./post-details-dialog";
 import { Separator } from "../ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { cn } from "@/lib/utils";
+import { Calendar } from "../ui/calendar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
     description: z.string().optional(),
     link: z.string().url("Link inválido").optional().or(z.literal('')),
+    postDate: z.date({ required_error: "A data do post é obrigatória." }),
     influencerId: z.string().min(1, "Selecione um influenciador"),
     
     productSelection: z.enum(['existing', 'new']).default('existing'),
@@ -89,6 +94,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
             title: "",
             description: "",
             link: "",
+            postDate: new Date(),
             influencerId: "",
             productSelection: 'existing',
             productId: "",
@@ -121,6 +127,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
         if (postToEdit) {
             form.reset({
                 ...postToEdit,
+                postDate: postToEdit.postDate instanceof Timestamp ? postToEdit.postDate.toDate() : postToEdit.postDate,
                 hasPartner: !!postToEdit.partnerId,
                 investment: postToEdit.investment ?? undefined,
                 revenue: postToEdit.revenue ?? undefined,
@@ -137,6 +144,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 title: "",
                 description: "",
                 link: "",
+                postDate: new Date(),
                 influencerId: "",
                 productSelection: 'existing',
                 productId: "",
@@ -177,10 +185,11 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                  toast({ title: "Produto Criado!", description: `O produto "${newProductData.name}" foi adicionado.` });
             }
 
-            const postData: Omit<Post, 'id' | 'createdAt'> & { [key: string]: any } = {
+            const postData: Omit<Post, 'id'> & { [key: string]: any } = {
                 ...values,
                 productId: finalProductId!,
                 userId: user.uid,
+                postDate: Timestamp.fromDate(values.postDate)
             };
 
             if (!values.hasPartner) {
@@ -196,13 +205,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
 
             if (isEditMode && postToEdit) {
                 const postRef = doc(db, `users/${user.uid}/posts`, postToEdit.id);
-                await updateDoc(postRef, {
-                    ...postData,
-                     createdAt: postToEdit.createdAt,
-                });
+                await updateDoc(postRef, postData);
                 toast({ title: "Sucesso!", description: "Post atualizado." });
             } else {
-                await addDoc(collection(db, `users/${user.uid}/posts`), { ...postData, createdAt: Timestamp.now() });
+                await addDoc(collection(db, `users/${user.uid}/posts`), postData);
                 toast({ title: "Sucesso!", description: "Novo post adicionado." });
             }
             onSuccess();
@@ -226,12 +232,55 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="title" render={({ field }) => (
-                        <FormItem className="md:col-span-2">
+                        <FormItem>
                             <FormLabel>Título</FormLabel>
                             <FormControl><Input placeholder="Ex: Post Promocional" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
+
+                     <FormField
+                        control={form.control}
+                        name="postDate"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                            <FormLabel>Data do Post</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, "PPP", { locale: ptBR })
+                                    ) : (
+                                        <span>Escolha uma data</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                        date > new Date() || date < new Date("1900-01-01")
+                                    }
+                                    initialFocus
+                                    locale={ptBR}
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
 
                     <div className="md:col-span-2 space-y-4 p-4 border rounded-lg">
                         <FormField
@@ -242,7 +291,11 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                 <FormLabel>Produto Divulgado</FormLabel>
                                 <FormControl>
                                 <RadioGroup
-                                    onValueChange={field.onChange}
+                                    onValueChange={(value) => {
+                                        field.onChange(value)
+                                        form.setValue('productId', undefined)
+                                        form.setValue('newProductName', undefined)
+                                    }}
                                     value={field.value}
                                     className="flex gap-4"
                                 >
@@ -517,13 +570,13 @@ export function PostsManager() {
             const productsCol = collection(db, `users/${user.uid}/products`);
 
             const [postsSnapshot, influencersSnapshot, partnersSnapshot, productsSnapshot] = await Promise.all([
-                getDocs(query(postsCol, orderBy("createdAt", "desc"))),
+                getDocs(query(postsCol, orderBy("postDate", "desc"))),
                 getDocs(query(influencersCol, orderBy("name", "asc"))),
                 getDocs(query(partnersCol, orderBy("name", "asc"))),
                 getDocs(query(productsCol, orderBy("name", "asc"))),
             ]);
 
-            const fetchedPosts = postsSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt.toDate() } as Post));
+            const fetchedPosts = postsSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data(), postDate: doc.data().postDate.toDate() } as Post));
             const fetchedInfluencers = influencersSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Influencer));
             const fetchedPartners = partnersSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Partner));
             const fetchedProducts = productsSnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Product));

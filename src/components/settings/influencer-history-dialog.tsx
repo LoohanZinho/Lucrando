@@ -32,7 +32,7 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
         const q = query(
           postsCol,
           where("influencerId", "==", influencer.id),
-          orderBy("createdAt", "desc")
+          orderBy("postDate", "desc")
         );
         const querySnapshot = await getDocs(q);
         const fetchedPosts = querySnapshot.docs.map(doc => {
@@ -40,7 +40,7 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
             return {
                 id: doc.id,
                 ...data,
-                createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+                postDate: data.postDate instanceof Timestamp ? data.postDate.toDate() : new Date(),
             } as Post;
         });
         setPosts(fetchedPosts);
