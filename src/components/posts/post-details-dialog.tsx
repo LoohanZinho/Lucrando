@@ -39,7 +39,7 @@ export function PostDetailsDialog({ post, influencer, product, open, onOpenChang
       return <span className={color}>{formatCurrency(profit)}</span>
   }
   
-  const postDate = post.postDate instanceof Timestamp ? post.postDate.toDate() : post.postDate;
+  const postDate = post.postDate instanceof Timestamp ? post.postDate.toDate() : new Date(post.postDate);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

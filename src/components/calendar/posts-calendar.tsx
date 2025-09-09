@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
@@ -13,9 +14,12 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '../ui/button';
+import { PlusCircle } from 'lucide-react';
 
 export function PostsCalendar() {
   const { user } = useAuth();
+  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +57,7 @@ export function PostsCalendar() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, toast]);
 
   useEffect(() => {
     fetchData();
@@ -75,31 +79,39 @@ export function PostsCalendar() {
     return influencers.find(i => i.id === id)?.name || 'Desconhecido';
   }
 
+  const handleAddPost = (date: Date) => {
+    const dateString = format(date, 'yyyy-MM-dd');
+    router.push(`/posts?new=true&date=${dateString}`);
+  }
+
   const DayWithPosts = ({ date, displayMonth }: { date: Date, displayMonth: Date }) => {
     const dateKey = format(date, 'yyyy-MM-dd');
     const postsForDay = postsByDate[dateKey] || [];
     const isToday = isSameDay(date, new Date());
 
     return (
-      <div className="relative flex flex-col h-full p-2">
-        <time dateTime={dateKey} className={`text-xs ${isToday ? 'font-bold text-primary' : ''}`}>
+      <div className="relative flex flex-col h-full p-1 group/day">
+        <time dateTime={dateKey} className={`text-xs text-right pr-1 ${isToday ? 'font-bold text-primary' : ''}`}>
           {format(date, 'd')}
         </time>
-        {postsForDay.length > 0 && (
-          <div className="flex-grow space-y-1 mt-1 overflow-hidden">
-            {postsForDay.slice(0, 2).map(post => (
-              <Badge key={post.id} variant="secondary" className="w-full truncate block text-left font-normal text-xs p-1">
-                {post.title}
-                <span className="text-muted-foreground ml-1">({getInfluencerName(post.influencerId).split(' ')[0]})</span>
-              </Badge>
-            ))}
-            {postsForDay.length > 2 && (
-              <Badge variant="outline" className="w-full text-xs p-1">
-                + {postsForDay.length - 2} mais
-              </Badge>
-            )}
-          </div>
-        )}
+        <div className="flex-grow space-y-1 mt-1 overflow-hidden">
+          {postsForDay.slice(0, 2).map(post => (
+            <Badge key={post.id} variant="secondary" className="w-full truncate block text-left font-normal text-xs p-1">
+              {post.title}
+              <span className="text-muted-foreground ml-1">({getInfluencerName(post.influencerId).split(' ')[0]})</span>
+            </Badge>
+          ))}
+          {postsForDay.length > 2 && (
+            <Badge variant="outline" className="w-full text-xs p-1">
+              + {postsForDay.length - 2} mais
+            </Badge>
+          )}
+        </div>
+        <div className="absolute bottom-1 right-1 opacity-0 group-hover/day:opacity-100 transition-opacity">
+            <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground" onClick={() => handleAddPost(date)}>
+                <PlusCircle className="h-4 w-4" />
+            </Button>
+        </div>
       </div>
     );
   };
@@ -137,8 +149,8 @@ export function PostsCalendar() {
             head_row: 'flex border-b',
             head_cell: 'text-muted-foreground rounded-md w-full font-normal text-[0.8rem] py-2',
             row: 'flex w-full mt-2 gap-1',
-            cell: 'text-center text-sm p-0 relative w-full h-24 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-            day: 'h-full w-full focus:relative focus:z-20 p-0 hover:bg-accent/50 rounded-md transition-colors',
+            cell: 'text-center text-sm p-0 relative w-full h-28 border rounded-md bg-card hover:bg-accent/50 transition-colors [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
+            day: 'h-full w-full focus:relative focus:z-20 p-0',
             day_selected: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
             day_today: 'bg-accent text-accent-foreground',
             day_outside: 'text-muted-foreground opacity-50',

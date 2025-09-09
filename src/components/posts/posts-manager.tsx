@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ import { Separator } from "../ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const postSchema = z.object({
@@ -75,9 +76,10 @@ type PostFormProps = {
   influencers: Influencer[];
   products: Product[];
   onProductCreated: () => void;
+  initialDate?: Date;
 };
 
-function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onProductCreated }: PostFormProps) {
+function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onProductCreated, initialDate }: PostFormProps) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,7 +91,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
             title: "",
             description: "",
             link: "",
-            postDate: new Date(),
+            postDate: initialDate || new Date(),
             influencerId: "",
             productSelection: 'existing',
             productId: "",
@@ -128,7 +130,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                 title: "",
                 description: "",
                 link: "",
-                postDate: new Date(),
+                postDate: initialDate || new Date(),
                 influencerId: "",
                 productSelection: 'existing',
                 productId: "",
@@ -142,7 +144,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                 sales: undefined,
             });
         }
-    }, [postToEdit, form]);
+    }, [postToEdit, form, initialDate]);
 
     async function onSubmit(values: PostFormData) {
         if (!user) return;
@@ -239,9 +241,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                                     mode="single"
                                     selected={field.value}
                                     onSelect={field.onChange}
-                                    disabled={(date) =>
-                                        date > new Date() || date < new Date("1900-01-01")
-                                    }
                                     initialFocus
                                     locale={ptBR}
                                 />
@@ -431,6 +430,8 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
 export function PostsManager() {
     const { user } = useAuth();
     const { toast } = useToast();
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const [posts, setPosts] = useState<Post[]>([]);
     const [influencers, setInfluencers] = useState<Influencer[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
@@ -438,6 +439,7 @@ export function PostsManager() {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [viewingPost, setViewingPost] = useState<Post | null>(null);
+    const [initialDate, setInitialDate] = useState<Date | undefined>();
 
     const fetchData = useCallback(async (showLoading = true) => {
         if (!user) return;
@@ -471,13 +473,23 @@ export function PostsManager() {
 
     useEffect(() => {
         fetchData();
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('new') === 'true') {
+    }, [fetchData]);
+
+    useEffect(() => {
+        const newParam = searchParams.get('new');
+        const dateParam = searchParams.get('date');
+
+        if (newParam === 'true') {
+            if (dateParam) {
+                setInitialDate(parseISO(dateParam));
+            } else {
+                setInitialDate(undefined);
+            }
             handleAddNew();
-             const newUrl = window.location.pathname;
+            const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
         }
-    }, [fetchData]);
+    }, [searchParams]);
 
     const handleDelete = async (postId: string) => {
         if (!user) return;
@@ -722,6 +734,7 @@ export function PostsManager() {
                         influencers={influencers}
                         products={products}
                         onProductCreated={() => fetchData(false)}
+                        initialDate={initialDate}
                     />
                 </SheetContent>
             </Sheet>
