@@ -21,7 +21,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
@@ -362,7 +362,7 @@ export default function DashboardPage() {
         return '';
     }
 
-    const FiltersComponent = () => (
+    const FiltersComponent = ({ inSheet = false }: { inSheet?: boolean }) => (
         <div className="grid gap-4">
              <div>
                 <Label htmlFor="influencer-filter">Influenciador</Label>
@@ -400,6 +400,12 @@ export default function DashboardPage() {
                     </SelectContent>
                 </Select>
              </div>
+             {inSheet && (
+                 <Button variant="ghost" onClick={clearAllFilters} disabled={activeFiltersCount === 0}>
+                     <X className="mr-2 h-4 w-4" />
+                     Limpar Filtros
+                </Button>
+             )}
         </div>
     );
 
@@ -415,13 +421,13 @@ export default function DashboardPage() {
                     </p>
                 </div>
                 <div className="flex w-full flex-col md:w-auto md:flex-row md:items-center gap-2">
-                    <div className="flex items-center gap-2 w-full">
+                    <div className="flex items-center gap-2 w-full md:w-auto">
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
                                     id="date"
                                     variant={"outline"}
-                                    className={cn("w-full justify-start text-left font-normal", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
+                                    className={cn("w-full md:w-[260px] justify-start text-left font-normal", !customDateRange && selectedPeriod !== 'custom' && "text-muted-foreground")}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     <span className="truncate">{getPeriodLabel(selectedPeriod, customDateRange)}</span>
@@ -454,7 +460,7 @@ export default function DashboardPage() {
                         <div className="md:hidden">
                             <Sheet>
                                 <SheetTrigger asChild>
-                                    <Button variant="outline" className="relative shrink-0">
+                                    <Button variant="outline" className="relative shrink-0 w-full">
                                         <Filter className="mr-2 h-4 w-4" />
                                         <span>Filtros</span>
                                         {activeFiltersCount > 0 &&
@@ -472,10 +478,30 @@ export default function DashboardPage() {
                                         </SheetDescription>
                                     </SheetHeader>
                                     <div className="py-4">
-                                        <FiltersComponent />
+                                        <FiltersComponent inSheet={true} />
                                     </div>
                                 </SheetContent>
                             </Sheet>
+                        </div>
+
+                         {/* Filters for Desktop */}
+                        <div className="hidden md:block">
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="relative shrink-0">
+                                        <Filter className="mr-2 h-4 w-4" />
+                                        <span>Filtros</span>
+                                        {activeFiltersCount > 0 &&
+                                            <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                                                {activeFiltersCount}
+                                            </span>
+                                        }
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4" align="end">
+                                    <FiltersComponent />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                      <Link href="/posts?new=true" className="w-full md:w-auto">
@@ -485,11 +511,6 @@ export default function DashboardPage() {
                         </Button>
                     </Link>
                 </div>
-            </div>
-
-            {/* Filters for Desktop */}
-            <div className="hidden md:grid md:grid-cols-3 gap-4">
-                <FiltersComponent />
             </div>
 
             {activeFiltersCount > 0 && (
@@ -646,3 +667,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
