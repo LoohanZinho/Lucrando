@@ -35,9 +35,16 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
       return <span className={color}>{formatCurrency(profit)}</span>
   }
 
+  const calculateRoas = (post: Post) => {
+    const { revenue = 0, investment = 0 } = post;
+    if (investment === 0) return 'N/A';
+    const roas = revenue / investment;
+    return `${roas.toFixed(2)}x`;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl w-full">
+      <DialogContent className="max-w-4xl w-full">
         <DialogHeader>
           <DialogTitle>Publicações de {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</DialogTitle>
           <DialogDescription>
@@ -61,6 +68,7 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
                       <TableHead className="text-right">Invest.</TableHead>
                       <TableHead className="text-right">Receita</TableHead>
                       <TableHead className="text-right">Lucro</TableHead>
+                      <TableHead className="text-right">ROAS</TableHead>
                       <TableHead className="text-right">Views</TableHead>
                       <TableHead className="text-right">Cliques</TableHead>
                       <TableHead className="text-right">Vendas</TableHead>
@@ -71,6 +79,7 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
                       <TableCell className="text-right">{formatCurrency(post.investment)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(post.revenue)}</TableCell>
                       <TableCell className="text-right font-medium">{calculateProfit(post)}</TableCell>
+                      <TableCell className="text-right font-medium">{calculateRoas(post)}</TableCell>
                       <TableCell className="text-right">{post.views?.toLocaleString('pt-BR') || '0'}</TableCell>
                       <TableCell className="text-right">{post.clicks?.toLocaleString('pt-BR') || '0'}</TableCell>
                       <TableCell className="text-right">{post.sales?.toLocaleString('pt-BR') || '0'}</TableCell>
@@ -85,4 +94,3 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
     </Dialog>
   );
 }
-
