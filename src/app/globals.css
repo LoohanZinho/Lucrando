@@ -53,7 +53,7 @@
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
     --accent: 35 100% 63%; /* Orange */
-    --accent-foreground: 240 5.9% 10%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
@@ -70,7 +70,7 @@
     --sidebar-primary: 35 100% 63%;
     --sidebar-primary-foreground: 240 5.9% 10%;
     --sidebar-accent: 35 100% 63%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-ring: 35 100% 63%;
   }
 }
