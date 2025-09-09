@@ -53,7 +53,7 @@ const postSchema = z.object({
     clicks: z.coerce.number().int("Cliques deve ser um número inteiro").min(0).optional(),
     pageVisits: z.coerce.number().int("Visitas deve ser um número inteiro").min(0).optional(),
     sales: z.coerce.number().int("Vendas deve ser um número inteiro").min(0).optional(),
-}).refine(data => {
+}).refine((data) => {
     if (data.hasPartner) {
         return !!data.partnerId && !!data.partnerShareType && data.partnerShareValue !== undefined;
     }
@@ -61,7 +61,7 @@ const postSchema = z.object({
 }, {
     message: "Se um sócio for adicionado, todos os campos de sócio são obrigatórios.",
     path: ['partnerId'] 
-}).refine(data => {
+}).refine((data) => {
     if (data.productSelection === 'existing') {
         return !!data.productId;
     }
@@ -69,7 +69,7 @@ const postSchema = z.object({
 }, {
     message: "Selecione um produto existente.",
     path: ['productId']
-}).refine(data => {
+}).refine((data) => {
      if (data.productSelection === 'new') {
         return data.newProductName && data.newProductName.length >= 2;
     }
