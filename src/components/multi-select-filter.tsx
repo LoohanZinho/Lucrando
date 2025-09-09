@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react"
-import { Check, X, ChevronsUpDown } from "lucide-react"
+import { Check, PlusCircle, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -14,18 +14,21 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
 
 interface MultiSelectFilterProps {
   title: string;
   options: {
     label: string
     value: string
+    icon?: React.ComponentType<{ className?: string }>
   }[];
   selected: string[];
   onSelectedChange: (selected: string[]) => void;
@@ -41,74 +44,77 @@ export function MultiSelectFilter({
 }: MultiSelectFilterProps) {
   const selectedValues = new Set(selected);
 
-  const handleUnselect = (value: string) => {
-    const newSelected = selected.filter((s) => s !== value);
-    onSelectedChange(newSelected);
-  }
-
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          className={cn("w-[200px] justify-between", className, selected.length > 0 && "h-auto")}
-        >
-          <div className="flex gap-1 flex-wrap">
-            {selected.length > 0 ? (
-                 options
-                    .filter(option => selected.includes(option.value))
-                    .map(option => (
-                        <Badge
-                            variant="secondary"
-                            key={option.value}
-                            className="mr-1 mb-1"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleUnselect(option.value);
-                            }}
-                        >
-                            {option.label}
-                            <X className="ml-1 h-3 w-3" />
-                        </Badge>
-                    ))
-            ) : (
-              <span>{title}</span>
-            )}
-          </div>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+        <Button variant="outline" size="sm" className="h-9 border-dashed w-full justify-start">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          {title}
+          {selectedValues.size > 0 && (
+            <>
+              <Separator orientation="vertical" className="mx-2 h-4" />
+              <Badge
+                variant="secondary"
+                className="rounded-sm px-1 font-normal"
+              >
+                {selectedValues.size}
+              </Badge>
+            </>
+          )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder={`Buscar ${title.toLowerCase()}...`} />
+          <CommandInput placeholder={title} />
           <CommandList>
             <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
-                const isSelected = selected.includes(option.value)
+                const isSelected = selectedValues.has(option.value)
                 return (
                   <CommandItem
                     key={option.value}
                     onSelect={() => {
                       if (isSelected) {
-                        onSelectedChange(selected.filter((s) => s !== option.value));
+                        selectedValues.delete(option.value)
                       } else {
-                        onSelectedChange([...selected, option.value]);
+                        selectedValues.add(option.value)
                       }
+                      const filterValues = Array.from(selectedValues)
+                      onSelectedChange(filterValues);
                     }}
                   >
-                    <Check
+                    <div
                       className={cn(
-                        "mr-2 h-4 w-4",
-                        isSelected ? "opacity-100" : "opacity-0"
+                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "opacity-50 [&_svg]:invisible"
                       )}
-                    />
-                    {option.label}
+                    >
+                      <Check className={cn("h-4 w-4")} />
+                    </div>
+                    {option.icon && (
+                      <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="truncate">{option.label}</span>
                   </CommandItem>
                 )
               })}
             </CommandGroup>
+            {selectedValues.size > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => onSelectedChange([])}
+                    className="justify-center text-center"
+                  >
+                    Limpar filtros
+                  </CommandItem>
+                </CommandGroup>
+              </>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>
