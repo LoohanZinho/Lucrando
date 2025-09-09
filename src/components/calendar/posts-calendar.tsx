@@ -12,6 +12,7 @@ import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 export function PostsCalendar() {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ export function PostsCalendar() {
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user]);
 
   useEffect(() => {
     fetchData();
@@ -151,10 +152,3 @@ export function PostsCalendar() {
     </Card>
   );
 }
-
-// Stub useToast until the hook is provided in a real environment
-const useToast = () => ({
-  toast: (options: { variant?: string, title: string, description: string }) => {
-    console.log(`Toast: ${options.title} - ${options.description}`);
-  }
-});
