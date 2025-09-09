@@ -517,7 +517,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                             <FormLabel className="font-normal">
                                                 Valor Fixo (R$)
                                             </FormLabel>
-                                        </FormItem>
+                                        </Item>
                                     </RadioGroup>
                                     </FormControl>
                                     <FormMessage />
@@ -861,5 +861,3 @@ export function PostsManager() {
         </>
     )
 }
-
-    
