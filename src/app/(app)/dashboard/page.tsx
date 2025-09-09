@@ -349,21 +349,6 @@ export default function DashboardPage() {
     const productOptions = useMemo(() => allProducts.map(p => ({ value: p.id, label: p.name })), [allProducts]);
     const postOptions = useMemo(() => allPosts.map(p => ({ value: p.id, label: p.title })), [allPosts]);
 
-    const clearAllFilters = () => {
-        setSelectedInfluencers([]);
-        setSelectedProducts([]);
-        setSelectedPosts([]);
-    }
-
-    const activeFiltersCount = selectedInfluencers.length + selectedProducts.length + selectedPosts.length;
-
-    const getFilterBadgeLabel = (type: 'influencer' | 'product' | 'post', id: string) => {
-        if (type === 'influencer') return allInfluencers.find(i => i.id === id)?.name;
-        if (type === 'product') return allProducts.find(p => p.id === id)?.name;
-        if (type === 'post') return allPosts.find(p => p.id === id)?.title;
-        return '';
-    }
-
     return (
         <div className="space-y-6 md:p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -410,27 +395,6 @@ export default function DashboardPage() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="relative shrink-0">
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    <span>Filtros</span>
-                                    {activeFiltersCount > 0 && 
-                                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                                            {activeFiltersCount}
-                                        </span>
-                                    }
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent align="end" className="w-[320px]">
-                                <h3 className="text-lg font-medium mb-4">Filtros Avançados</h3>
-                                <div className="space-y-4">
-                                    <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
-                                    <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
-                                    <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
-                                </div>
-                            </PopoverContent>
-                        </Popover>
                     </div>
                     <Link href="/posts?new=true" className="w-full md:w-auto">
                         <Button className="w-full">
@@ -441,22 +405,11 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {activeFiltersCount > 0 && (
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-medium">Filtros Ativos:</span>
-                            {selectedInfluencers.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('influencer', id)}</Badge>)}
-                            {selectedProducts.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('product', id)}</Badge>)}
-                            {selectedPosts.map(id => <Badge key={id} variant="secondary" className="max-w-[150px] truncate">{getFilterBadgeLabel('post', id)}</Badge>)}
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={clearAllFilters}>
-                                <X className="h-4 w-4" />
-                                <span className="sr-only">Limpar Filtros</span>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+                <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
+                <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
+                <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
+            </div>
 
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
