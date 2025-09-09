@@ -524,7 +524,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                             <FormLabel className="font-normal">
                                                 Valor Fixo (R$)
                                             </FormLabel>
-                                        </Item>
+                                        </FormItem>
                                     </RadioGroup>
                                     </FormControl>
                                     <FormMessage />
@@ -663,6 +663,10 @@ export function PostsManager() {
         return value.toLocaleString('pt-BR');
     }
 
+    const getDateToFormat = (date: Date | Timestamp) => {
+        return date instanceof Timestamp ? date.toDate() : date;
+    }
+
     return (
         <>
             <Card>
@@ -716,7 +720,7 @@ export function PostsManager() {
                                 {!loading && posts.map(post => (
                                     <TableRow key={post.id}>
                                         <TableCell className="font-medium">{post.title}</TableCell>
-                                        <TableCell>{format(post.postDate, "dd/MM/yy")}</TableCell>
+                                        <TableCell>{format(getDateToFormat(post.postDate), "dd/MM/yy")}</TableCell>
                                         <TableCell>{getProduct(post.productId)?.name || 'N/A'}</TableCell>
                                         <TableCell className="hidden md:table-cell">{getInfluencerDisplay(post.influencerId)}</TableCell>
                                         <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
@@ -789,7 +793,7 @@ export function PostsManager() {
                                         <div className="flex justify-between items-start mb-2 gap-4">
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-lg">{post.title}</h3>
-                                                <p className="text-sm text-muted-foreground">{format(post.postDate, "dd/MM/yyyy")}</p>
+                                                <p className="text-sm text-muted-foreground">{format(getDateToFormat(post.postDate), "dd/MM/yyyy")}</p>
                                                 <p className="text-sm text-muted-foreground">{getInfluencerDisplay(post.influencerId)}</p>
                                                 <p className="text-sm text-muted-foreground">Produto: {getProduct(post.productId)?.name || 'N/A'}</p>
                                             </div>
