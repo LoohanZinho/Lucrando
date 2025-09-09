@@ -20,7 +20,7 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { MultiSelectFilter } from '../../components/multi-select-filter';
+import { MultiSelectFilter } from '@/components/multi-select-filter';
 
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
@@ -595,5 +595,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    
