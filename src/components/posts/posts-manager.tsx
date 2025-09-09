@@ -136,7 +136,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                 pageVisits: postToEdit.pageVisits ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 partnerShareValue: postToEdit.partnerShareValue ?? undefined,
-                productSelection: 'existing', // Always start with existing product in edit mode
+                productSelection: 'existing',
                 productId: postToEdit.productId,
             });
         } else {
@@ -298,6 +298,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                     }}
                                     value={field.value}
                                     className="flex gap-4"
+                                    disabled={isEditMode}
                                 >
                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                         <FormControl>
@@ -309,7 +310,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, partners, prod
                                     </FormItem>
                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                         <FormControl>
-                                            <RadioGroupItem value="new" disabled={isEditMode} />
+                                            <RadioGroupItem value="new" />
                                         </FormControl>
                                         <FormLabel className="font-normal">
                                             Novo Produto
@@ -678,6 +679,7 @@ export function PostsManager() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Título</TableHead>
+                                    <TableHead>Data</TableHead>
                                     <TableHead>Produto</TableHead>
                                     <TableHead className="hidden md:table-cell">Influenciador</TableHead>
                                     <TableHead className="hidden lg:table-cell text-right">Investimento</TableHead>
@@ -690,6 +692,7 @@ export function PostsManager() {
                                 {loading && [...Array(5)].map((_, i) => (
                                     <TableRow key={i}>
                                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                         <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                                         <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
@@ -701,6 +704,7 @@ export function PostsManager() {
                                 {!loading && posts.map(post => (
                                     <TableRow key={post.id}>
                                         <TableCell className="font-medium">{post.title}</TableCell>
+                                        <TableCell>{format(post.postDate, "dd/MM/yy")}</TableCell>
                                         <TableCell>{getProduct(post.productId)?.name || 'N/A'}</TableCell>
                                         <TableCell className="hidden md:table-cell">{getInfluencerDisplay(post.influencerId)}</TableCell>
                                         <TableCell className="hidden lg:table-cell text-right">{formatCurrency(post.investment)}</TableCell>
@@ -744,7 +748,7 @@ export function PostsManager() {
                                 ))}
                                 {!loading && posts.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-4">
+                                        <TableCell colSpan={8} className="text-center py-4">
                                             Nenhum post adicionado.
                                         </TableCell>
                                     </TableRow>
@@ -773,6 +777,7 @@ export function PostsManager() {
                                         <div className="flex justify-between items-start mb-2 gap-4">
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-lg">{post.title}</h3>
+                                                <p className="text-sm text-muted-foreground">{format(post.postDate, "dd/MM/yyyy")}</p>
                                                 <p className="text-sm text-muted-foreground">{getInfluencerDisplay(post.influencerId)}</p>
                                                 <p className="text-sm text-muted-foreground">Produto: {getProduct(post.productId)?.name || 'N/A'}</p>
                                             </div>
