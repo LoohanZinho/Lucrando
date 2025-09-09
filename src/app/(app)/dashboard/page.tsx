@@ -20,8 +20,9 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { MultiSelectFilter } from '@/components/multi-select-filter';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Label } from '@/components/ui/label';
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
@@ -122,9 +123,9 @@ export default function DashboardPage() {
     const [hoveredKpi, setHoveredKpi] = useState<KpiInfo>(null);
 
     // Advanced Filters State
-    const [selectedInfluencers, setSelectedInfluencers] = useState<string[]>([]);
-    const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-    const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
+    const [selectedInfluencer, setSelectedInfluencer] = useState<string>("all");
+    const [selectedProduct, setSelectedProduct] = useState<string>("all");
+    const [selectedPost, setSelectedPost] = useState<string>("all");
 
     const kpiDetails = {
         roas: {
@@ -194,9 +195,9 @@ export default function DashboardPage() {
     const { periodPosts, previousPeriodPosts, chartPosts, chartPeriodLabel } = useMemo(() => {
         // Apply advanced filters first
         const filteredByAdvanced = allPosts.filter(p => {
-            const influencerMatch = selectedInfluencers.length === 0 || selectedInfluencers.includes(p.influencerId);
-            const productMatch = selectedProducts.length === 0 || selectedProducts.includes(p.productId);
-            const postMatch = selectedPosts.length === 0 || selectedPosts.includes(p.id);
+            const influencerMatch = selectedInfluencer === 'all' || p.influencerId === selectedInfluencer;
+            const productMatch = selectedProduct === 'all' || p.productId === selectedProduct;
+            const postMatch = selectedPost === 'all' || p.id === selectedPost;
             return influencerMatch && productMatch && postMatch;
         });
 
@@ -227,7 +228,7 @@ export default function DashboardPage() {
             chartPeriodLabel: getPeriodLabel(chartPeriod, chartCustomRange)
         }
 
-    }, [allPosts, selectedPeriod, customDateRange, selectedInfluencers, selectedProducts, selectedPosts]);
+    }, [allPosts, selectedPeriod, customDateRange, selectedInfluencer, selectedProduct, selectedPost]);
 
     const calculateMetrics = (postList: Post[]) => {
         return postList.reduce((acc, post) => {
@@ -344,25 +345,63 @@ export default function DashboardPage() {
         if (value !== 'custom') setCustomDateRange(undefined);
         setSelectedPeriod(value);
     }
-    
-    const influencerOptions = useMemo(() => allInfluencers.map(i => ({ value: i.id, label: i.name })), [allInfluencers]);
-    const productOptions = useMemo(() => allProducts.map(p => ({ value: p.id, label: p.name })), [allProducts]);
-    const postOptions = useMemo(() => allPosts.map(p => ({ value: p.id, label: p.title })), [allPosts]);
 
     const clearAllFilters = () => {
-        setSelectedInfluencers([]);
-        setSelectedProducts([]);
-        setSelectedPosts([]);
+        setSelectedInfluencer("all");
+        setSelectedProduct("all");
+        setSelectedPost("all");
     }
 
-    const activeFiltersCount = selectedInfluencers.length + selectedProducts.length + selectedPosts.length;
+    const activeFiltersCount = [selectedInfluencer, selectedProduct, selectedPost].filter(f => f !== 'all').length;
 
     const getFilterBadgeLabel = (type: 'influencer' | 'product' | 'post', id: string) => {
+        if (id === 'all') return '';
         if (type === 'influencer') return allInfluencers.find(i => i.id === id)?.name;
         if (type === 'product') return allProducts.find(p => p.id === id)?.name;
         if (type === 'post') return allPosts.find(p => p.id === id)?.title;
         return '';
     }
+
+    const FiltersComponent = () => (
+        <div className="grid gap-4">
+             <div>
+                <Label htmlFor="influencer-filter">Influenciador</Label>
+                <Select value={selectedInfluencer} onValueChange={setSelectedInfluencer}>
+                    <SelectTrigger id="influencer-filter">
+                        <SelectValue placeholder="Selecione um influenciador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos os Influenciadores</SelectItem>
+                        {allInfluencers.map(i => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+             </div>
+             <div>
+                <Label htmlFor="product-filter">Produto</Label>
+                <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                    <SelectTrigger id="product-filter">
+                        <SelectValue placeholder="Selecione um produto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos os Produtos</SelectItem>
+                        {allProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+             </div>
+             <div>
+                <Label htmlFor="post-filter">Postagem</Label>
+                <Select value={selectedPost} onValueChange={setSelectedPost}>
+                    <SelectTrigger id="post-filter">
+                        <SelectValue placeholder="Selecione uma postagem" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todas as Postagens</SelectItem>
+                        {allPosts.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+             </div>
+        </div>
+    );
 
     return (
         <div className="space-y-6 md:p-8">
@@ -376,7 +415,7 @@ export default function DashboardPage() {
                     </p>
                 </div>
                 <div className="flex w-full flex-col md:w-auto md:flex-row md:items-center gap-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full">
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
@@ -410,29 +449,36 @@ export default function DashboardPage() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="relative shrink-0">
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    <span>Filtros</span>
-                                    {activeFiltersCount > 0 && 
-                                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                                            {activeFiltersCount}
-                                        </span>
-                                    }
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent align="end" className="w-[320px]">
-                                <h3 className="text-lg font-medium mb-4">Filtros Avançados</h3>
-                                <div className="space-y-4">
-                                    <MultiSelectFilter title="Influenciadores" options={influencerOptions} selected={selectedInfluencers} onSelectedChange={setSelectedInfluencers} />
-                                    <MultiSelectFilter title="Produtos" options={productOptions} selected={selectedProducts} onSelectedChange={setSelectedProducts} />
-                                    <MultiSelectFilter title="Postagens" options={postOptions} selected={selectedPosts} onSelectedChange={setSelectedPosts} />
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                        
+                        {/* Filters for Mobile */}
+                        <div className="md:hidden">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline" className="relative shrink-0">
+                                        <Filter className="mr-2 h-4 w-4" />
+                                        <span>Filtros</span>
+                                        {activeFiltersCount > 0 &&
+                                            <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                                                {activeFiltersCount}
+                                            </span>
+                                        }
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent>
+                                    <SheetHeader>
+                                        <SheetTitle>Filtros Avançados</SheetTitle>
+                                        <SheetDescription>
+                                            Filtre os dados do dashboard para uma análise mais detalhada.
+                                        </SheetDescription>
+                                    </SheetHeader>
+                                    <div className="py-4">
+                                        <FiltersComponent />
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                        </div>
                     </div>
-                    <Link href="/posts?new=true" className="w-full md:w-auto">
+                     <Link href="/posts?new=true" className="w-full md:w-auto">
                         <Button className="w-full">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Nova Postagem
@@ -441,14 +487,19 @@ export default function DashboardPage() {
                 </div>
             </div>
 
+            {/* Filters for Desktop */}
+            <div className="hidden md:grid md:grid-cols-3 gap-4">
+                <FiltersComponent />
+            </div>
+
             {activeFiltersCount > 0 && (
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="text-sm font-medium">Filtros Ativos:</span>
-                            {selectedInfluencers.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('influencer', id)}</Badge>)}
-                            {selectedProducts.map(id => <Badge key={id} variant="secondary">{getFilterBadgeLabel('product', id)}</Badge>)}
-                            {selectedPosts.map(id => <Badge key={id} variant="secondary" className="max-w-[150px] truncate">{getFilterBadgeLabel('post', id)}</Badge>)}
+                            {selectedInfluencer !== 'all' && <Badge variant="secondary">{getFilterBadgeLabel('influencer', selectedInfluencer)}</Badge>}
+                            {selectedProduct !== 'all' && <Badge variant="secondary">{getFilterBadgeLabel('product', selectedProduct)}</Badge>}
+                            {selectedPost !== 'all' && <Badge variant="secondary" className="max-w-[150px] truncate">{getFilterBadgeLabel('post', selectedPost)}</Badge>}
                             <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={clearAllFilters}>
                                 <X className="h-4 w-4" />
                                 <span className="sr-only">Limpar Filtros</span>
