@@ -8,6 +8,8 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "../ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
+import { Button } from "../ui/button";
+import { Pencil } from "lucide-react";
 
 interface DayDetailsDialogProps {
   date: Date | null;
@@ -16,9 +18,10 @@ interface DayDetailsDialogProps {
   products: Product[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEditPost: (postId: string) => void;
 }
 
-export function DayDetailsDialog({ date, posts, influencers, products, open, onOpenChange }: DayDetailsDialogProps) {
+export function DayDetailsDialog({ date, posts, influencers, products, open, onOpenChange, onEditPost }: DayDetailsDialogProps) {
   if (!date) return null;
 
   const getInfluencerName = (id: string) => influencers.find(i => i.id === id)?.name || 'N/A';
@@ -55,11 +58,19 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
           <div className="pr-6">
             {posts.map(post => (
               <div key={post.id} className="mb-6 border rounded-lg p-4">
-                <h3 className="font-semibold text-lg">{post.title}</h3>
-                <div className="flex flex-wrap gap-2 items-center text-sm text-muted-foreground mb-3">
-                  <Badge variant="outline">{getInfluencerName(post.influencerId)}</Badge>
-                  <span>&bull;</span>
-                  <Badge variant="secondary">{getProductName(post.productId)}</Badge>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h3 className="font-semibold text-lg">{post.title}</h3>
+                        <div className="flex flex-wrap gap-2 items-center text-sm text-muted-foreground mb-3">
+                            <Badge variant="outline">{getInfluencerName(post.influencerId)}</Badge>
+                            <span>&bull;</span>
+                            <Badge variant="secondary">{getProductName(post.productId)}</Badge>
+                        </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => onEditPost(post.id)}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Editar Post</span>
+                    </Button>
                 </div>
                 
                 <Table>

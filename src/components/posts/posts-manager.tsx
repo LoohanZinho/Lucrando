@@ -478,6 +478,7 @@ export function PostsManager() {
     useEffect(() => {
         const newParam = searchParams.get('new');
         const dateParam = searchParams.get('date');
+        const editParam = searchParams.get('edit');
 
         if (newParam === 'true') {
             if (dateParam) {
@@ -489,7 +490,15 @@ export function PostsManager() {
             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
         }
-    }, [searchParams]);
+        if (editParam) {
+            const postToEdit = posts.find(p => p.id === editParam);
+            if (postToEdit) {
+                handleEdit(postToEdit);
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+        }
+    }, [searchParams, posts]);
 
     const handleDelete = async (postId: string) => {
         if (!user) return;

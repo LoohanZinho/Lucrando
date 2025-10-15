@@ -100,6 +100,11 @@ export function PostsCalendar() {
     const dateString = format(date, 'yyyy-MM-dd');
     router.push(`/posts?new=true&date=${dateString}`);
   }
+
+  const handleEditPost = (postId: string) => {
+    setIsDetailsModalOpen(false);
+    router.push(`/posts?edit=${postId}`);
+  }
   
   const handleDayClick = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
@@ -199,8 +204,8 @@ export function PostsCalendar() {
         posts={postsForSelectedDay}
         influencers={influencers}
         products={products}
+        onEditPost={handleEditPost}
       />
     </>
   );
 }
-
