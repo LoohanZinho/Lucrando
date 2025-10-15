@@ -48,13 +48,14 @@ const getPeriodLabel = (period: Period, customDateRange?: DateRange) => {
 const getPeriodDates = (period: Period, customDateRange?: DateRange, allPosts: Post[] = []): { current: DateRange, previous: DateRange } => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     
     let currentStart, currentEnd, previousStart, previousEnd;
 
     switch (period) {
         case 'today':
             currentStart = today;
-            currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+            currentEnd = endOfToday;
             previousStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
             previousEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 23, 59, 59, 999);
             break;
@@ -66,16 +67,17 @@ const getPeriodDates = (period: Period, customDateRange?: DateRange, allPosts: P
             break;
         case 'last_7_days':
             currentStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
-            currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+            currentEnd = endOfToday;
             const diff7 = (currentEnd.getTime() - currentStart.getTime());
             previousStart = new Date(currentStart.getTime() - diff7 - 1);
             previousEnd = new Date(currentStart.getTime() - 1);
             break;
         case 'this_month':
             currentStart = new Date(today.getFullYear(), today.getMonth(), 1);
-            currentEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+            currentEnd = endOfToday;
             previousStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-            previousEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
+            const lastDayOfPreviousMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+            previousEnd = new Date(previousStart.getFullYear(), previousStart.getMonth(), Math.min(today.getDate(), lastDayOfPreviousMonth.getDate()), 23, 59, 59, 999);
             break;
         case 'custom':
             if (customDateRange?.from && customDateRange?.to) {
@@ -102,7 +104,7 @@ const getPeriodDates = (period: Period, customDateRange?: DateRange, allPosts: P
             } else {
                 currentStart = today;
             }
-            currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+            currentEnd = endOfToday;
             previousStart = new Date(0); // No previous period for all time
             previousEnd = new Date(0);
             break;
