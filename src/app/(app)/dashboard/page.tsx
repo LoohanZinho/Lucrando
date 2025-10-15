@@ -204,9 +204,9 @@ export default function DashboardPage() {
         // Then, apply date filters
         const { current, previous } = getPeriodDates(selectedPeriod, customDateRange);
 
-        const isToday = selectedPeriod === 'today';
-        const chartPeriod = isToday ? 'last_7_days' : selectedPeriod;
-        const chartCustomRange = isToday ? undefined : customDateRange;
+        const isShortPeriod = ['today', 'yesterday'].includes(selectedPeriod);
+        const chartPeriod = isShortPeriod ? 'last_7_days' : selectedPeriod;
+        const chartCustomRange = isShortPeriod ? undefined : customDateRange;
         const { current: chartDateRange } = getPeriodDates(chartPeriod, chartCustomRange);
         
         const filterPostsByDate = (posts: Post[], range: DateRange) => {
@@ -277,8 +277,11 @@ export default function DashboardPage() {
             const profit = (post.revenue || 0) - (post.investment || 0);
             dataMap[key] = (dataMap[key] || 0) + profit;
         });
-
-        const { current: chartDateRange } = getPeriodDates(selectedPeriod === 'today' ? 'last_7_days' : selectedPeriod, customDateRange);
+        
+        const isShortPeriodForChart = ['today', 'yesterday'].includes(selectedPeriod);
+        const chartPeriodForDates = isShortPeriodForChart ? 'last_7_days' : selectedPeriod;
+        const chartCustomRangeForDates = isShortPeriodForChart ? undefined : customDateRange;
+        const { current: chartDateRange } = getPeriodDates(chartPeriodForDates, chartCustomRangeForDates);
 
         const filledData = [];
         if (isLongPeriod) {
@@ -667,5 +670,7 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
 
     
