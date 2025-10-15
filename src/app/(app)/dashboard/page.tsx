@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
+import { format, eachDayOfInterval, eachMonthOfInterval, startOfMonth, lastDayOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -267,41 +267,48 @@ export default function DashboardPage() {
     const averageTicket = currentMetrics.sales > 0 ? currentMetrics.revenue / currentMetrics.sales : 0;
 
     const profitTrendData = useMemo(() => {
-        const isLongPeriod = !['today', 'yesterday', 'last_7_days'].includes(selectedPeriod) || (selectedPeriod === 'custom' && customDateRange && (customDateRange.to!.getTime() - customDateRange.from!.getTime()) > 7 * 24 * 60 * 60 * 1000);
-        
-        const dataMap: { [key: string]: number } = {};
+        const isShortPeriodForChart = ['today', 'yesterday'].includes(selectedPeriod);
+        const chartPeriodForDates = isShortPeriodForChart ? 'last_7_days' : selectedPeriod;
+        const chartCustomRangeForDates = isShortPeriodForChart ? undefined : customDateRange;
+        const { current: chartDateRange } = getPeriodDates(chartPeriodForDates, chartCustomRangeForDates);
 
+        if (!chartDateRange.from || !chartDateRange.to) return [];
+
+        const isLongPeriod = (chartDateRange.to.getTime() - chartDateRange.from.getTime()) > 31 * 24 * 60 * 60 * 1000;
+
+        const dataMap: { [key: string]: number } = {};
         chartPosts.forEach(post => {
             const date = new Date(post.postDate instanceof Timestamp ? post.postDate.toDate() : post.postDate);
             const key = isLongPeriod ? format(date, 'yyyy-MM') : format(date, 'yyyy-MM-dd');
             const profit = (post.revenue || 0) - (post.investment || 0);
             dataMap[key] = (dataMap[key] || 0) + profit;
         });
-        
-        const isShortPeriodForChart = ['today', 'yesterday'].includes(selectedPeriod);
-        const chartPeriodForDates = isShortPeriodForChart ? 'last_7_days' : selectedPeriod;
-        const chartCustomRangeForDates = isShortPeriodForChart ? undefined : customDateRange;
-        const { current: chartDateRange } = getPeriodDates(chartPeriodForDates, chartCustomRangeForDates);
 
-        const filledData = [];
         if (isLongPeriod) {
-            const today = new Date();
-             for (let i = 11; i >= 0; i--) {
-                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-                const monthKey = format(date, 'yyyy-MM');
-                filledData.push({ month: format(date, 'MMM/yy', { locale: ptBR }), profit: dataMap[monthKey] || 0 });
-            }
+            const intervalMonths = eachMonthOfInterval({
+                start: startOfMonth(chartDateRange.from),
+                end: lastDayOfMonth(chartDateRange.to)
+            });
+            return intervalMonths.map(month => {
+                const monthKey = format(month, 'yyyy-MM');
+                return {
+                    month: format(month, 'MMM/yy', { locale: ptBR }),
+                    profit: dataMap[monthKey] || 0
+                };
+            });
         } else {
-             if (chartDateRange.from && chartDateRange.to) {
-                let day = new Date(chartDateRange.from);
-                while(day <= chartDateRange.to) {
-                    const dayKey = format(day, 'yyyy-MM-dd');
-                    filledData.push({ month: format(day, 'dd/MM'), profit: dataMap[dayKey] || 0 });
-                    day.setDate(day.getDate() + 1);
-                }
-             }
+            const intervalDays = eachDayOfInterval({
+                start: chartDateRange.from,
+                end: chartDateRange.to
+            });
+            return intervalDays.map(day => {
+                const dayKey = format(day, 'yyyy-MM-dd');
+                return {
+                    month: format(day, 'dd/MM'),
+                    profit: dataMap[dayKey] || 0
+                };
+            });
         }
-        return filledData;
     }, [chartPosts, selectedPeriod, customDateRange]);
     
     const funnelData = useMemo(() => {
