@@ -1,15 +1,12 @@
-
 "use client";
 
 import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Wallet, TrendingUp, Activity, Target, Percent, ShoppingCart, PlusCircle, Calendar as CalendarIcon, Info, Filter, X } from "lucide-react";
-import { ProfitChart } from "@/components/profit-chart";
+import { DollarSign, Wallet, TrendingUp, Activity, Filter, X, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { useAuth } from '@/contexts/auth-context';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
 import { type Post, type Influencer, type Product } from '@/lib/data-types';
-import { FunnelChart } from '@/components/funnel-chart';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,12 +15,13 @@ import { DateRange } from 'react-day-picker';
 import { format, eachDayOfInterval, eachMonthOfInterval, startOfMonth, lastDayOfMonth, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { PerformanceAnalysis } from '@/components/dashboard/performance-analysis';
+import { ProfitTrendAnalysis } from '@/components/dashboard/profit-trend-analysis';
+import { FunnelChart } from '@/components/funnel-chart';
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
 
@@ -246,10 +244,11 @@ export default function DashboardPage() {
     const averageTicket = currentMetrics.sales > 0 ? currentMetrics.revenue / currentMetrics.sales : 0;
 
     const profitTrendData = useMemo(() => {
-        const isShortPeriodForChart = ['today', 'yesterday'].includes(selectedPeriod);
-        const chartPeriodForDates = isShortPeriodForChart ? 'last_7_days' : selectedPeriod;
-        const chartCustomRangeForDates = isShortPeriodForChart ? undefined : customDateRange;
-        const { current: chartDateRange } = getPeriodDates(chartPeriodForDates, chartCustomRangeForDates, allPosts);
+        const { current: chartDateRange } = getPeriodDates(
+            ['today', 'yesterday'].includes(selectedPeriod) ? 'last_7_days' : selectedPeriod,
+            ['today', 'yesterday'].includes(selectedPeriod) ? undefined : customDateRange,
+            allPosts
+        );
 
         if (!chartDateRange.from || !chartDateRange.to) return [];
 
@@ -570,15 +569,10 @@ export default function DashboardPage() {
                 </Card>
             </div>
             <div className="grid gap-4 lg:grid-cols-7">
-                <Card className="lg:col-span-4">
-                    <CardHeader>
-                        <CardTitle>Análise de Tendência de Lucro</CardTitle>
-                        <p className="text-sm text-muted-foreground">Exibindo lucro para: {chartPeriodLabel}.</p>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        <ProfitChart data={profitTrendData} />
-                    </CardContent>
-                </Card>
+                <ProfitTrendAnalysis
+                    data={profitTrendData}
+                    periodLabel={chartPeriodLabel}
+                />
                 <PerformanceAnalysis 
                     roas={roas}
                     cpa={cpa}
