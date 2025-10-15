@@ -84,7 +84,7 @@ const getPeriodDates = (period: Period, customDateRange?: DateRange, allPosts: P
                 currentEnd = new Date(customDateRange.to.getFullYear(), customDateRange.to.getMonth(), customDateRange.to.getDate(), 23, 59, 59, 999);
                 const diff = currentEnd.getTime() - currentStart.getTime();
                 previousStart = new Date(currentStart.getTime() - diff - 1);
-                previousEnd = new Date(currentStart.getTime() -1);
+                previousEnd = new Date(currentStart.getTime() - 1);
             } else {
                  currentStart = today;
                  currentEnd = today;
@@ -318,6 +318,7 @@ export default function DashboardPage() {
     }, [chartPosts]);
 
     const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
     const formatPercentageChange = (value: number) => {
         if (selectedPeriod === 'all_time') return null;
         if (!isFinite(value)) return <span className="text-green-500">Novo</span>;
@@ -592,9 +593,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    
-
-    
-
-
