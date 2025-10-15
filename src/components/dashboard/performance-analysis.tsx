@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -49,61 +50,63 @@ export function PerformanceAnalysis({ roas, cpa, conversionRate, averageTicket, 
     };
 
     return (
-        <Card className="lg:col-span-3">
+        <Card className="lg:col-span-2">
             <CardHeader>
                 <CardTitle>Análise de Performance</CardTitle>
                 <p className="text-sm text-muted-foreground">Métricas chave para: {periodLabel}.</p>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div
-                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                    onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
-                    onMouseLeave={() => setHoveredKpi(null)}
-                >
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                        <Target className="h-4 w-4 text-muted-foreground" />
-                        <span>ROAS</span>
+            <CardContent className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-4">
+                    <div
+                        className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                        onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
+                        onMouseLeave={() => setHoveredKpi(null)}
+                    >
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                            <Target className="h-4 w-4 text-muted-foreground" />
+                            <span>ROAS</span>
+                        </div>
+                        <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
                     </div>
-                    <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
+
+                    <div
+                        className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                        onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
+                        onMouseLeave={() => setHoveredKpi(null)}
+                    >
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span>CPA</span>
+                        </div>
+                        <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
+                    </div>
+
+                    <div
+                        className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                        onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
+                        onMouseLeave={() => setHoveredKpi(null)}
+                    >
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                            <Percent className="h-4 w-4 text-muted-foreground" />
+                            <span>Taxa de Conversão</span>
+                        </div>
+                        <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
+                    </div>
+
+                    <div
+                        className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                        onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
+                        onMouseLeave={() => setHoveredKpi(null)}
+                    >
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                            <span>Ticket Médio</span>
+                        </div>
+                        <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
+                    </div>
                 </div>
 
-                <div
-                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                    onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
-                    onMouseLeave={() => setHoveredKpi(null)}
-                >
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span>CPA</span>
-                    </div>
-                    <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
-                </div>
-
-                <div
-                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                    onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
-                    onMouseLeave={() => setHoveredKpi(null)}
-                >
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                        <Percent className="h-4 w-4 text-muted-foreground" />
-                        <span>Taxa de Conversão</span>
-                    </div>
-                    <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
-                </div>
-
-                <div
-                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                    onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
-                    onMouseLeave={() => setHoveredKpi(null)}
-                >
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                        <span>Ticket Médio</span>
-                    </div>
-                    <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
-                </div>
-
-                <div className="col-span-1 md:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
+                <div className="col-span-1 sm:col-span-2 lg:col-span-1 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
                     {hoveredKpi ? (
                         <>
                             <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
