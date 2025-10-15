@@ -23,14 +23,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
+import { PerformanceAnalysis } from '@/components/dashboard/performance-analysis';
 
 type Period = "today" | "yesterday" | "last_7_days" | "this_month" | "all_time" | "custom";
-
-type KpiInfo = {
-  title: string;
-  description: string;
-  formula: string;
-} | null;
 
 const getPeriodLabel = (period: Period, customDateRange?: DateRange) => {
     switch (period) {
@@ -128,35 +123,11 @@ export default function DashboardPage() {
     const [greeting, setGreeting] = useState("Olá");
     const [selectedPeriod, setSelectedPeriod] = useState<Period>('this_month');
     const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
-    const [hoveredKpi, setHoveredKpi] = useState<KpiInfo>(null);
 
     // Advanced Filters State
     const [selectedInfluencer, setSelectedInfluencer] = useState<string>("all");
     const [selectedProduct, setSelectedProduct] = useState<string>("all");
     const [selectedPost, setSelectedPost] = useState<string>("all");
-
-    const kpiDetails = {
-        roas: {
-            title: "Return on Ad Spend (ROAS)",
-            description: "Retorno sobre o Investimento em Anúncios. Mostra quanto você lucrou para cada real investido.",
-            formula: "Fórmula: (Receita / Investimento)"
-        },
-        conversion: {
-            title: "Taxa de Conversão",
-            description: "Percentual de cliques que resultaram em uma venda.",
-            formula: "Fórmula: (Vendas / Cliques) * 100"
-        },
-        cpa: {
-            title: "Custo Por Aquisição (CPA)",
-            description: "O custo médio para adquirir um cliente (realizar uma venda).",
-            formula: "Fórmula: (Investimento / Vendas)"
-        },
-        ticket: {
-            title: "Ticket Médio",
-            description: "O valor médio gasto por cliente em cada compra.",
-            formula: "Fórmula: (Receita / Vendas)"
-        }
-    };
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -347,7 +318,6 @@ export default function DashboardPage() {
     }, [chartPosts]);
 
     const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
     const formatPercentageChange = (value: number) => {
         if (selectedPeriod === 'all_time') return null;
         if (!isFinite(value)) return <span className="text-green-500">Novo</span>;
@@ -608,76 +578,13 @@ export default function DashboardPage() {
                         <ProfitChart data={profitTrendData} />
                     </CardContent>
                 </Card>
-                <Card className="lg:col-span-3">
-                    <CardHeader>
-                        <CardTitle>Análise de Performance</CardTitle>
-                        <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Target className="h-4 w-4 text-muted-foreground" />
-                                <span>ROAS</span>
-                            </div>
-                            <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
-                        </div>
-
-                        <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                <span>CPA</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
-                        </div>
-
-                    <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <Percent className="h-4 w-4 text-muted-foreground" />
-                                <span>Taxa de Conversão</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
-                        </div>
-                        
-                        <div 
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                            onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
-                            onMouseLeave={() => setHoveredKpi(null)}
-                        >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                <span>Ticket Médio</span>
-                            </div>
-                            <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
-                        </div>
-
-                        <div className="col-span-1 md:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
-                            {hoveredKpi ? (
-                                <>
-                                    <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
-                                    <p className="text-sm text-muted-foreground">{hoveredKpi.description}</p>
-                                    <p className="text-sm text-muted-foreground mt-2 font-mono text-xs">{hoveredKpi.formula}</p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-muted-foreground text-center">
-                                    Passe o mouse sobre um KPI para ver a descrição.
-                                </p>
-                            )}
-                        </div>
-
-                    </CardContent>
-                </Card>
+                <PerformanceAnalysis 
+                    roas={roas}
+                    cpa={cpa}
+                    conversionRate={conversionRate}
+                    averageTicket={averageTicket}
+                    periodLabel={getPeriodLabel(selectedPeriod, customDateRange)}
+                />
             </div>
             <div className="grid gap-4">
                 <FunnelChart data={funnelData} title={`Funil de Conversão (${chartPeriodLabel})`} />
@@ -689,4 +596,5 @@ export default function DashboardPage() {
     
 
     
+
 

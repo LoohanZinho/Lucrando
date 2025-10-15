@@ -1,0 +1,123 @@
+"use client";
+
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DollarSign, Target, Percent, ShoppingCart } from "lucide-react";
+
+interface PerformanceAnalysisProps {
+    roas: number;
+    cpa: number;
+    conversionRate: number;
+    averageTicket: number;
+    periodLabel: string;
+}
+
+const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
+
+
+export function PerformanceAnalysis({ roas, cpa, conversionRate, averageTicket, periodLabel }: PerformanceAnalysisProps) {
+    type KpiInfo = {
+        title: string;
+        description: string;
+        formula: string;
+    } | null;
+
+    const [hoveredKpi, setHoveredKpi] = useState<KpiInfo>(null);
+
+    const kpiDetails = {
+        roas: {
+            title: "Return on Ad Spend (ROAS)",
+            description: "Retorno sobre o Investimento em Anúncios. Mostra quanto você lucrou para cada real investido.",
+            formula: "Fórmula: (Receita / Investimento)"
+        },
+        conversion: {
+            title: "Taxa de Conversão",
+            description: "Percentual de cliques que resultaram em uma venda.",
+            formula: "Fórmula: (Vendas / Cliques) * 100"
+        },
+        cpa: {
+            title: "Custo Por Aquisição (CPA)",
+            description: "O custo médio para adquirir um cliente (realizar uma venda).",
+            formula: "Fórmula: (Investimento / Vendas)"
+        },
+        ticket: {
+            title: "Ticket Médio",
+            description: "O valor médio gasto por cliente em cada compra.",
+            formula: "Fórmula: (Receita / Vendas)"
+        }
+    };
+
+    return (
+        <Card className="lg:col-span-3">
+            <CardHeader>
+                <CardTitle>Análise de Performance</CardTitle>
+                <p className="text-sm text-muted-foreground">Métricas chave para: {periodLabel}.</p>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                    onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
+                    onMouseLeave={() => setHoveredKpi(null)}
+                >
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                        <Target className="h-4 w-4 text-muted-foreground" />
+                        <span>ROAS</span>
+                    </div>
+                    <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
+                </div>
+
+                <div
+                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                    onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
+                    onMouseLeave={() => setHoveredKpi(null)}
+                >
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span>CPA</span>
+                    </div>
+                    <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
+                </div>
+
+                <div
+                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                    onMouseEnter={() => setHoveredKpi(kpiDetails.conversion)}
+                    onMouseLeave={() => setHoveredKpi(null)}
+                >
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                        <Percent className="h-4 w-4 text-muted-foreground" />
+                        <span>Taxa de Conversão</span>
+                    </div>
+                    <div className="text-3xl font-bold">{formatPercentage(conversionRate)}</div>
+                </div>
+
+                <div
+                    className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
+                    onMouseEnter={() => setHoveredKpi(kpiDetails.ticket)}
+                    onMouseLeave={() => setHoveredKpi(null)}
+                >
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                        <span>Ticket Médio</span>
+                    </div>
+                    <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
+                </div>
+
+                <div className="col-span-1 md:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
+                    {hoveredKpi ? (
+                        <>
+                            <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
+                            <p className="text-sm text-muted-foreground">{hoveredKpi.description}</p>
+                            <p className="text-sm text-muted-foreground mt-2 font-mono text-xs">{hoveredKpi.formula}</p>
+                        </>
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center">
+                            Passe o mouse sobre um KPI para ver a descrição.
+                        </p>
+                    )}
+                </div>
+
+            </CardContent>
+        </Card>
+    );
+}
