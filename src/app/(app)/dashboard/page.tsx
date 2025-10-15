@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
-import { format, eachDayOfInterval, eachMonthOfInterval, startOfMonth, lastDayOfMonth } from 'date-fns';
+import { format, eachDayOfInterval, eachMonthOfInterval, startOfMonth, lastDayOfMonth, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -51,7 +51,7 @@ const getPeriodLabel = (period: Period, customDateRange?: DateRange) => {
     }
 }
 
-const getPeriodDates = (period: Period, customDateRange?: DateRange): { current: DateRange, previous: DateRange } => {
+const getPeriodDates = (period: Period, customDateRange?: DateRange, allPosts: Post[] = []): { current: DateRange, previous: DateRange } => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
@@ -99,7 +99,15 @@ const getPeriodDates = (period: Period, customDateRange?: DateRange): { current:
             break;
         case 'all_time':
         default:
-            currentStart = new Date(0); // Epoch
+             if (allPosts.length > 0) {
+                const firstPostDate = allPosts.reduce((earliest, post) => {
+                    const postDate = post.postDate instanceof Timestamp ? post.postDate.toDate() : new Date(post.postDate);
+                    return postDate < earliest ? postDate : earliest;
+                }, new Date());
+                currentStart = startOfDay(firstPostDate);
+            } else {
+                currentStart = today;
+            }
             currentEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
             previousStart = new Date(0); // No previous period for all time
             previousEnd = new Date(0);
@@ -202,12 +210,12 @@ export default function DashboardPage() {
         });
 
         // Then, apply date filters
-        const { current, previous } = getPeriodDates(selectedPeriod, customDateRange);
+        const { current, previous } = getPeriodDates(selectedPeriod, customDateRange, allPosts);
 
         const isShortPeriod = ['today', 'yesterday'].includes(selectedPeriod);
         const chartPeriod = isShortPeriod ? 'last_7_days' : selectedPeriod;
         const chartCustomRange = isShortPeriod ? undefined : customDateRange;
-        const { current: chartDateRange } = getPeriodDates(chartPeriod, chartCustomRange);
+        const { current: chartDateRange } = getPeriodDates(chartPeriod, chartCustomRange, allPosts);
         
         const filterPostsByDate = (posts: Post[], range: DateRange) => {
              if (!range.from || !range.to) return [];
@@ -217,9 +225,9 @@ export default function DashboardPage() {
             });
         }
         
-        const periodData = selectedPeriod === 'all_time' ? filteredByAdvanced : filterPostsByDate(filteredByAdvanced, current);
+        const periodData = selectedPeriod === 'all_time' ? filteredByAdvanced.filter(p => p.postDate >= current.from! && p.postDate <= current.to!) : filterPostsByDate(filteredByAdvanced, current);
         const previousPeriodData = selectedPeriod === 'all_time' ? [] : filterPostsByDate(filteredByAdvanced, previous);
-        const chartData = selectedPeriod === 'all_time' ? filteredByAdvanced : filterPostsByDate(filteredByAdvanced, chartDateRange);
+        const chartData = filterPostsByDate(filteredByAdvanced, chartDateRange);
 
         return {
             periodPosts: periodData,
@@ -270,7 +278,7 @@ export default function DashboardPage() {
         const isShortPeriodForChart = ['today', 'yesterday'].includes(selectedPeriod);
         const chartPeriodForDates = isShortPeriodForChart ? 'last_7_days' : selectedPeriod;
         const chartCustomRangeForDates = isShortPeriodForChart ? undefined : customDateRange;
-        const { current: chartDateRange } = getPeriodDates(chartPeriodForDates, chartCustomRangeForDates);
+        const { current: chartDateRange } = getPeriodDates(chartPeriodForDates, chartCustomRangeForDates, allPosts);
 
         if (!chartDateRange.from || !chartDateRange.to) return [];
 
@@ -309,7 +317,7 @@ export default function DashboardPage() {
                 };
             });
         }
-    }, [chartPosts, selectedPeriod, customDateRange]);
+    }, [chartPosts, selectedPeriod, customDateRange, allPosts]);
     
     const funnelData = useMemo(() => {
         const totalMetrics = chartPosts.reduce((acc, post) => {
@@ -605,7 +613,7 @@ export default function DashboardPage() {
                         <CardTitle>Análise de Performance</CardTitle>
                         <p className="text-sm text-muted-foreground">Métricas chave para: {getPeriodLabel(selectedPeriod, customDateRange)}.</p>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div 
                             className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
                             onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
@@ -654,7 +662,7 @@ export default function DashboardPage() {
                             <div className="text-3xl font-bold">{formatCurrency(averageTicket)}</div>
                         </div>
 
-                        <div className="col-span-1 sm:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
+                        <div className="col-span-1 md:col-span-2 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
                             {hoveredKpi ? (
                                 <>
                                     <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>
@@ -681,3 +689,4 @@ export default function DashboardPage() {
     
 
     
+
