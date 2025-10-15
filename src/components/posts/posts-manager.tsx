@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Loader2, Eye, Pencil, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { PlusCircle, Loader2, Eye, Pencil, Trash2, Calendar as CalendarIcon, ExternalLink } from "lucide-react";
 import { type Post, type Influencer, type Product } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Link from "next/link";
 
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
@@ -148,12 +149,22 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
 
     async function onSubmit(values: PostFormData) {
         if (!user) return;
+        if (influencers.length === 0) {
+            toast({ variant: "destructive", title: "Erro", description: "Não é possível criar um post sem influenciadores cadastrados." });
+            return;
+        }
+
         setIsSubmitting(true);
         try {
 
             let finalProductId = values.productId;
 
             if (values.productSelection === 'new' && !isEditMode) {
+                if (!values.newProductName || values.newProductName.length < 2) {
+                     toast({ variant: "destructive", title: "Erro", description: "O nome do novo produto é obrigatório." });
+                     setIsSubmitting(false);
+                     return;
+                }
                 const newProductData = {
                     name: values.newProductName!,
                     description: values.newProductDescription || "",
@@ -164,6 +175,12 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                 onProductCreated();
                  toast({ title: "Produto Criado!", description: `O produto "${newProductData.name}" foi adicionado.` });
             }
+             if (!finalProductId) {
+                toast({ variant: "destructive", title: "Erro", description: "É necessário selecionar ou criar um produto." });
+                setIsSubmitting(false);
+                return;
+            }
+
 
             const postData: Omit<Post, 'id'> & { [key: string]: any } = {
                 ...values,
@@ -295,10 +312,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                                    <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={products.length === 0}>
                                         <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Selecione o produto" />
+                                            <SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione o produto"} />
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -309,6 +326,11 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                                         ))}
                                         </SelectContent>
                                     </Select>
+                                     {products.length === 0 && (
+                                        <FormDescription>
+                                            Crie um produto para poder selecioná-lo.
+                                        </FormDescription>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )} />
@@ -335,10 +357,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                      <FormField control={form.control} name="influencerId" render={({ field }) => (
                         <FormItem className="flex flex-col md:col-span-2">
                             <FormLabel>Influenciador</FormLabel>
-                             <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                             <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={influencers.length === 0}>
                                 <FormControl>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o influenciador" />
+                                    <SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador cadastrado" : "Selecione o influenciador"} />
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -349,7 +371,16 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                                 ))}
                                 </SelectContent>
                             </Select>
-                            <FormMessage />
+                             {influencers.length === 0 ? (
+                                 <FormDescription className="text-destructive">
+                                     Sem influenciadores cadastrados.{" "}
+                                     <Link href="/influencers" className="underline hover:text-primary transition-colors flex items-center gap-1">
+                                        Adicionar um agora <ExternalLink className="h-3 w-3" />
+                                     </Link>
+                                 </FormDescription>
+                            ) : (
+                                <FormMessage />
+                            )}
                         </FormItem>
                     )} />
                     <FormField control={form.control} name="description" render={({ field }) => (
