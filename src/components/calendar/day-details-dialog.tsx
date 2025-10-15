@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
 import { Pencil } from "lucide-react";
+import { Separator } from "../ui/separator";
 
 interface DayDetailsDialogProps {
   date: Date | null;
@@ -20,6 +21,13 @@ interface DayDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   onEditPost: (postId: string) => void;
 }
+
+const DetailItemMobile = ({ label, value }: { label: string; value: React.ReactNode }) => (
+    <div className="flex justify-between items-center text-sm">
+        <p className="text-muted-foreground">{label}</p>
+        <p className="font-medium">{value}</p>
+    </div>
+);
 
 export function DayDetailsDialog({ date, posts, influencers, products, open, onOpenChange, onEditPost }: DayDetailsDialogProps) {
   if (!date) return null;
@@ -55,15 +63,15 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh]">
-          <div className="pr-6">
+          <div className="pr-6 space-y-6">
             {posts.map(post => (
-              <div key={post.id} className="mb-6 border rounded-lg p-4">
+              <div key={post.id} className="border rounded-lg p-4">
                 <div className="flex justify-between items-start">
                     <div>
                         <h3 className="font-semibold text-lg">{post.title}</h3>
                         <div className="flex flex-wrap gap-2 items-center text-sm text-muted-foreground mb-3">
                             <Badge variant="outline">{getInfluencerName(post.influencerId)}</Badge>
-                            <span>&bull;</span>
+                            <span className="hidden sm:inline">&bull;</span>
                             <Badge variant="secondary">{getProductName(post.productId)}</Badge>
                         </div>
                     </div>
@@ -73,7 +81,8 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
                     </Button>
                 </div>
                 
-                <Table>
+                {/* Tabela para Desktop */}
+                <Table className="hidden md:table">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-right">Invest.</TableHead>
@@ -97,6 +106,25 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
                     </TableRow>
                   </TableBody>
                 </Table>
+
+                {/* Layout de Card para Mobile */}
+                <div className="md:hidden space-y-4 pt-2">
+                    <div className="space-y-2">
+                        <h4 className="font-semibold">Financeiro</h4>
+                        <DetailItemMobile label="Investimento" value={formatCurrency(post.investment)} />
+                        <DetailItemMobile label="Receita" value={formatCurrency(post.revenue)} />
+                        <DetailItemMobile label="Lucro" value={calculateProfit(post)} />
+                        <DetailItemMobile label="ROAS" value={calculateRoas(post)} />
+                    </div>
+                    <Separator />
+                     <div className="space-y-2">
+                        <h4 className="font-semibold">Engajamento</h4>
+                        <DetailItemMobile label="Views" value={post.views?.toLocaleString('pt-BR') || '0'} />
+                        <DetailItemMobile label="Cliques" value={post.clicks?.toLocaleString('pt-BR') || '0'} />
+                        <DetailItemMobile label="Visitas na Página" value={post.pageVisits?.toLocaleString('pt-BR') || '0'} />
+                        <DetailItemMobile label="Vendas" value={post.sales?.toLocaleString('pt-BR') || '0'} />
+                    </div>
+                </div>
               </div>
             ))}
           </div>
@@ -105,3 +133,4 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
     </Dialog>
   );
 }
+
