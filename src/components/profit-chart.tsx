@@ -28,6 +28,18 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
     negative: item.profit < 0 ? item.profit : 0,
   }));
 
+  const formatYAxisTick = (value: number | string) => {
+    if (typeof value !== 'number') return value;
+
+    const absValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    
+    if (absValue >= 1000) {
+      return `${sign}R$${(absValue / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}k`;
+    }
+    return `${sign}R$${absValue.toLocaleString('pt-BR')}`;
+  };
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <AreaChart
@@ -45,31 +57,29 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
         <YAxis
           domain={['dataMin', 'dataMax']}
           allowDataOverflow
-          tickFormatter={(value) => {
-            if (typeof value === 'number') {
-               return `R$${(value / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}k`;
-            }
-            return `${value}`;
-          }}
+          tickFormatter={formatYAxisTick}
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          width={60}
+          width={80} // Increased width to accommodate labels like R$-1.1k
         />
         <Tooltip
           cursor={true}
           content={<ChartTooltipContent
             indicator="dot"
             labelFormatter={(value, payload) => {
-              const data = payload?.[0]?.payload;
-              return data?.month;
+              return payload?.[0]?.payload?.month;
             }}
-            formatter={(value, name, item) => {
+            formatter={(value, name, item, index, payload) => {
+              // This custom formatter ensures only one line is shown for profit.
+              if (name === 'negative' && payload.positive > 0) return null;
+              if (name === 'positive' && payload.negative < 0) return null;
+              
               const originalProfit = item?.payload?.profit;
               const color = originalProfit >= 0 ? "hsl(var(--chart-1))" : "hsl(var(--destructive))";
 
               return (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" key="profit-tooltip">
                     <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: color}} />
                     <span className="capitalize">Lucro</span>
                     <span className="font-bold text-foreground ml-auto">
