@@ -7,10 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon, LayoutDashboard } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon, LayoutDashboard, Save } from "lucide-react";
 import { type User as UserType } from "@/lib/data-types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where, Timestamp } from "firebase/firestore/lite";
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where, Timestamp, setDoc, getDoc } from "firebase/firestore/lite";
 import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
@@ -129,7 +129,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
                 if (dataToSave.password === '******') {
                     delete dataToSave.password;
                 }
-                await updateDoc(userRef, dataToSave);
+                await updateDoc(userRef, dataToSave as { [x: string]: any; });
                 toast({ title: "Sucesso!", description: "Usuário atualizado." });
             } else {
                 await addDoc(collection(db, 'users'), dataToSave);
@@ -253,6 +253,83 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     );
 }
 
+function SettingsCard() {
+    const { toast } = useToast();
+    const [paymentLink, setPaymentLink] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const settingsRef = doc(db, 'settings', 'app_config');
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            setIsLoading(true);
+            try {
+                const docSnap = await getDoc(settingsRef);
+                if (docSnap.exists()) {
+                    setPaymentLink(docSnap.data().paymentLink || '');
+                }
+            } catch (error) {
+                console.error("Error fetching settings:", error);
+                toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar as configurações." });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSettings();
+    }, [toast]);
+
+    const handleSaveSettings = async () => {
+        setIsSaving(true);
+        try {
+            await setDoc(settingsRef, { paymentLink }, { merge: true });
+            toast({ title: "Sucesso!", description: "Configurações salvas." });
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as configurações." });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Configurações Gerais</CardTitle>
+                <CardDescription>Defina as configurações globais do aplicativo.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        <Label htmlFor="payment-link">Link de Pagamento</Label>
+                        <Input
+                            id="payment-link"
+                            placeholder="https://seu-link-de-pagamento.com"
+                            value={paymentLink}
+                            onChange={(e) => setPaymentLink(e.target.value)}
+                        />
+                         <p className="text-sm text-muted-foreground">
+                            Este link será mostrado para usuários com assinatura expirada.
+                        </p>
+                    </div>
+                )}
+            </CardContent>
+            <CardFooter>
+                 <Button onClick={handleSaveSettings} disabled={isSaving || isLoading}>
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Salvar Configurações
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}
+
+
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const { toast } = useToast();
     const [users, setUsers] = useState<UserType[]>([]);
@@ -337,7 +414,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         </Button>
                     </div>
                 </header>
-                <main className="flex-1 p-4 sm:p-6">
+                <main className="flex-1 p-4 sm:p-6 space-y-6">
+                     <SettingsCard />
                     <Card>
                         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div>

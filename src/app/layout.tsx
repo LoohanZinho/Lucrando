@@ -8,6 +8,7 @@ import { LoaderProvider, Loader } from '@/contexts/loader-context';
 import { ptBR } from 'date-fns/locale';
 import { setDefaultOptions } from 'date-fns';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SubscriptionProvider } from '@/contexts/subscription-context';
 
 setDefaultOptions({ locale: ptBR });
 
@@ -64,11 +65,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <LoaderProvider>
+            <SubscriptionProvider>
               <AuthProvider>
                   {children}
                   <Toaster />
                   <Loader />
               </AuthProvider>
+            </SubscriptionProvider>
           </LoaderProvider>
         </ThemeProvider>
       </body>
