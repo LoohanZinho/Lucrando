@@ -20,7 +20,7 @@ interface SubscriptionExpiredDialogProps {
   supportLink?: string;
 }
 
-export function SubscriptionExpiredDialog({ open, expirationDate, paymentLink, supportLink = "https://wa.me/5548998054993" }: SubscriptionExpiredDialogProps) {
+export function SubscriptionExpiredDialog({ open, expirationDate, paymentLink, supportLink = "mailto:lucrandolcihub@gmail.com" }: SubscriptionExpiredDialogProps) {
 
   const handleRenew = () => {
     if (paymentLink) {
