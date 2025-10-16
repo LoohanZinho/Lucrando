@@ -7,7 +7,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from './ui/slider';
-import { RotateCw } from 'lucide-react';
+import { RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface CropperImageProps {
   imageSrc: string | null;
@@ -100,17 +100,30 @@ export function CropperImage({ imageSrc, open, onOpenChange, onCropComplete }: C
         }, 'image/jpeg', 0.95);
     });
   }
+  
+  // Reset state when closing the dialog
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setTimeout(() => {
+        setScale(1);
+        setRotate(0);
+        setCrop(undefined);
+        setCompletedCrop(undefined);
+      }, 300); // delay to allow animation to finish
+    }
+    onOpenChange(isOpen);
+  };
 
   if (!imageSrc) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-md md:max-w-lg">
         <DialogHeader>
           <DialogTitle>Cortar Imagem</DialogTitle>
-          <DialogDescription>Ajuste a imagem para o seu perfil. Use o slider para dar zoom e o botão para girar.</DialogDescription>
+          <DialogDescription>Ajuste a imagem para o seu perfil. Use os controles para dar zoom e girar.</DialogDescription>
         </DialogHeader>
-        <div className="flex justify-center items-center overflow-hidden h-80 bg-muted/50 rounded-md">
+        <div className="flex justify-center items-center overflow-hidden h-64 md:h-80 bg-muted/50 rounded-md my-4">
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -130,16 +143,21 @@ export function CropperImage({ imageSrc, open, onOpenChange, onCropComplete }: C
         <div className="space-y-4">
             <div className='space-y-2'>
                 <label className="text-sm font-medium">Zoom</label>
-                <Slider defaultValue={[1]} min={1} max={3} step={0.1} value={[scale]} onValueChange={(value) => setScale(value[0])} />
+                <div className="flex items-center gap-2">
+                    <ZoomOut className="h-5 w-5 text-muted-foreground" />
+                    <Slider defaultValue={[1]} min={1} max={3} step={0.1} value={[scale]} onValueChange={(value) => setScale(value[0])} />
+                    <ZoomIn className="h-5 w-5 text-muted-foreground" />
+                </div>
             </div>
             <div className='space-y-2'>
-                <Button variant="outline" className="w-full" onClick={() => setRotate(r => (r + 90) % 360)}>
+                 <label className="text-sm font-medium">Girar</label>
+                 <Button variant="outline" className="w-full" onClick={() => setRotate(r => (r + 90) % 360)}>
                     <RotateCw className="mr-2 h-4 w-4" /> Girar 90°
                 </Button>
             </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        <DialogFooter className="pt-4 flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <Button variant="ghost" onClick={() => handleOpenChange(false)}>Cancelar</Button>
           <Button onClick={handleCrop}>Salvar Foto</Button>
         </DialogFooter>
       </DialogContent>
