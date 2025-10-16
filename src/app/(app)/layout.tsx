@@ -15,22 +15,21 @@ export default function AppLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const { showLoader, hideLoader } = useLoader();
 
   useEffect(() => {
-    if (loading) {
-      showLoader();
-    } else {
-      hideLoader();
-    }
-
     if (!loading && !user) {
       router.replace('/login');
     }
-  }, [user, loading, router, showLoader, hideLoader]);
+  }, [user, loading, router]);
 
   if (loading || !user) {
-    return null; 
+    // Mostra um loader global ou um skeleton enquanto verifica a autenticação.
+    // Isso evita o piscar da tela de login.
+    return (
+      <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
+        <Loader2 className="h-16 w-16 text-primary animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -46,5 +45,3 @@ export default function AppLayout({
     </div>
   );
 }
-
-    
