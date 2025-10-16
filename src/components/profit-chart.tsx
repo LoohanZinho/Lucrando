@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts";
@@ -71,11 +70,12 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
               return payload?.[0]?.payload?.month;
             }}
             formatter={(value, name, item, index, payload) => {
-              // This custom formatter ensures only one line is shown for profit.
-              if (name === 'negative' && payload.positive > 0) return null;
-              if (name === 'positive' && payload.negative < 0) return null;
-              
               const originalProfit = item?.payload?.profit;
+              
+              // This is the key change: only render the tooltip for one of the series.
+              // We choose 'positive' but it could be 'negative'. This prevents duplicate entries.
+              if (name !== 'positive') return null;
+
               const color = originalProfit >= 0 ? "hsl(var(--chart-1))" : "hsl(var(--destructive))";
 
               return (
