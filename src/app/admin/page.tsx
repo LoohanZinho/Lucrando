@@ -250,7 +250,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         <>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
-                    <h1 className="text-xl font-semibold text-primary">Painel do Gestor</h1>
+                    <h1 className="text-xl font-semibold text-primary">Painel LCI HUB</h1>
                     <div className="ml-auto">
                         <Button variant="outline" onClick={onLogout}>
                             <LogOut className="mr-2 h-4 w-4" />
@@ -435,3 +435,5 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
+
+    
