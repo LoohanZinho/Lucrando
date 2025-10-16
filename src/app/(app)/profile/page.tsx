@@ -75,9 +75,15 @@ export default function ProfilePage() {
       });
       setPhotoURL(user.photoURL || null);
 
-      if (user.subscriptionExpiresAt && user.paidAt) {
-          const expiresAt = (user.subscriptionExpiresAt as Timestamp).toDate();
-          const paidAt = (user.paidAt as Timestamp).toDate();
+      // A data pode vir como um objeto com `seconds` e `nanoseconds` do localStorage
+      // ou como um `Timestamp` do Firestore.
+      const expiresAtTimestamp = user.subscriptionExpiresAt as Timestamp | { seconds: number, nanoseconds: number };
+      const paidAtTimestamp = user.paidAt as Timestamp | { seconds: number, nanoseconds: number };
+
+      if (expiresAtTimestamp && typeof expiresAtTimestamp.seconds === 'number' && paidAtTimestamp && typeof paidAtTimestamp.seconds === 'number') {
+          const expiresAt = new Date(expiresAtTimestamp.seconds * 1000);
+          const paidAt = new Date(paidAtTimestamp.seconds * 1000);
+
           const totalDays = differenceInDays(expiresAt, paidAt);
           const remainingDays = differenceInDays(expiresAt, new Date());
           const progress = totalDays > 0 ? ((totalDays - remainingDays) / totalDays) * 100 : 0;
