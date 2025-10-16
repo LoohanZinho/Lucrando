@@ -149,11 +149,11 @@ export async function POST(req: NextRequest) {
     const querySnapshot = await getDocs(q);
 
     const paidAtDate = new Date(paidAt);
-    const subscriptionExpiresAt = add(paidAtDate, { days: 30 });
-    const defaultPassword = "123456";
-
+    
     if (querySnapshot.empty) {
       // User does not exist, create a new one
+      const defaultPassword = "123456";
+      const subscriptionExpiresAt = add(paidAtDate, { days: 30 });
       const newUserDoc = {
         displayName: customerName,
         email: customerEmail,
@@ -169,14 +169,26 @@ export async function POST(req: NextRequest) {
       await sendWelcomeEmail(customerName, customerEmail, defaultPassword);
 
     } else {
-      // User exists, just update subscription
+      // User exists, update subscription
       const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
       const userRef = doc(db, 'users', userDoc.id);
+
+      let newExpirationDate;
+      const currentExpiration = userData.subscriptionExpiresAt ? (userData.subscriptionExpiresAt as Timestamp).toDate() : null;
+
+      // If current subscription is still active, add 30 days to it. Otherwise, add 30 days from now.
+      if (currentExpiration && currentExpiration > new Date()) {
+        newExpirationDate = add(currentExpiration, { days: 30 });
+      } else {
+        newExpirationDate = add(paidAtDate, { days: 30 });
+      }
+
       await updateDoc(userRef, {
         paidAt: Timestamp.fromDate(paidAtDate),
-        subscriptionExpiresAt: Timestamp.fromDate(subscriptionExpiresAt),
+        subscriptionExpiresAt: Timestamp.fromDate(newExpirationDate),
       });
-      console.log(`Assinatura atualizada para o usuário existente: ${customerEmail}`);
+      console.log(`Assinatura atualizada para o usuário existente: ${customerEmail}. Nova data de expiração: ${newExpirationDate}`);
       
       console.log('Enviando email de renovação para o usuário:', customerName, customerEmail);
       await sendRenewalEmail(customerName, customerEmail);
