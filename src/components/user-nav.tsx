@@ -1,3 +1,4 @@
+
 "use client"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ export function UserNav() {
                 <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
                     <Avatar>
                         <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'Avatar'} />
-                        <AvatarFallback>{userInitial}</AvatarFallback>
+                        <AvatarFallback className="bg-muted">{userInitial}</AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
