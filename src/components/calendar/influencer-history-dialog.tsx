@@ -31,8 +31,8 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        const postsCol = collection(db, `users/${user.uid}/posts`);
-        const productsCol = collection(db, `users/${user.uid}/products`);
+        const postsCol = collection(db, `users/${user.id}/posts`);
+        const productsCol = collection(db, `users/${user.id}/products`);
 
         const q = query(
           postsCol,
@@ -179,3 +179,5 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
     </Dialog>
   );
 }
+
+    

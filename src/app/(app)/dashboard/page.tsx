@@ -142,9 +142,9 @@ export default function DashboardPage() {
 
         const fetchData = async () => {
             try {
-                const postsCol = collection(db, `users/${user.uid}/posts`);
-                const influencersCol = collection(db, `users/${user.uid}/influencers`);
-                const productsCol = collection(db, `users/${user.uid}/products`);
+                const postsCol = collection(db, `users/${user.id}/posts`);
+                const influencersCol = collection(db, `users/${user.id}/influencers`);
+                const productsCol = collection(db, `users/${user.id}/products`);
                 
                 const [postsSnapshot, influencersSnapshot, productsSnapshot] = await Promise.all([
                     getDocs(query(postsCol)),
@@ -596,3 +596,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    

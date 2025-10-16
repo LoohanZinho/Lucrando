@@ -55,11 +55,11 @@ function ProductForm({ onSuccess, productToEdit, onCancel }: { onSuccess: () => 
         setIsSubmitting(true);
         try {
             if (isEditMode && productToEdit) {
-                const productRef = doc(db, `users/${user.uid}/products`, productToEdit.id);
-                await updateDoc(productRef, { ...values, userId: user.uid });
+                const productRef = doc(db, `users/${user.id}/products`, productToEdit.id);
+                await updateDoc(productRef, { ...values, userId: user.id });
                 toast({ title: "Sucesso!", description: "Produto atualizado." });
             } else {
-                await addDoc(collection(db, `users/${user.uid}/products`), { ...values, userId: user.uid });
+                await addDoc(collection(db, `users/${user.id}/products`), { ...values, userId: user.id });
                 toast({ title: "Sucesso!", description: "Novo produto adicionado." });
             }
             onSuccess();
@@ -112,7 +112,7 @@ export function ProductsManager() {
         if (!user) return;
         setLoading(true);
         try {
-            const productsCol = collection(db, `users/${user.uid}/products`);
+            const productsCol = collection(db, `users/${user.id}/products`);
             const q = query(productsCol, orderBy("name", "asc"));
             const querySnapshot = await getDocs(q);
             const fetchedProducts = querySnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Product));
@@ -132,7 +132,7 @@ export function ProductsManager() {
     const handleDelete = async (productId: string) => {
         if (!user) return;
         try {
-            await deleteDoc(doc(db, `users/${user.uid}/products`, productId));
+            await deleteDoc(doc(db, `users/${user.id}/products`, productId));
             toast({ title: "Sucesso!", description: "Produto removido." });
             fetchProducts();
         } catch (error) {
@@ -254,3 +254,5 @@ export function ProductsManager() {
         </>
     )
 }
+
+    

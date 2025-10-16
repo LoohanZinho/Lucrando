@@ -154,22 +154,25 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
     }, [postToEdit, form, initialDate]);
 
     async function onSubmit(values: PostFormData) {
-        if (!user) return;
+        if (!user) {
+            toast({ variant: "destructive", title: "Erro de Autenticação", description: "Sua sessão pode ter expirado. Por favor, tente novamente." });
+            return;
+        }
         
         setIsSubmitting(true);
         try {
             let finalProductId = values.productId;
             if (values.productSelection === 'new' && !isEditMode) {
-                const newProductData = { name: values.newProductName!, description: values.newProductDescription || "", userId: user.uid };
-                const newProductRef = await addDoc(collection(db, `users/${user.uid}/products`), newProductData);
+                const newProductData = { name: values.newProductName!, description: values.newProductDescription || "", userId: user.id };
+                const newProductRef = await addDoc(collection(db, `users/${user.id}/products`), newProductData);
                 finalProductId = newProductRef.id;
                 toast({ title: "Produto Criado!", description: `O produto "${newProductData.name}" foi adicionado.` });
             }
 
             let finalInfluencerId = values.influencerId;
             if (values.influencerSelection === 'new' && !isEditMode) {
-                const newInfluencerData = { name: values.newInfluencerName!, instagram: values.newInfluencerInstagram || "", userId: user.uid };
-                const newInfluencerRef = await addDoc(collection(db, `users/${user.uid}/influencers`), newInfluencerData);
+                const newInfluencerData = { name: values.newInfluencerName!, instagram: values.newInfluencerInstagram || "", userId: user.id };
+                const newInfluencerRef = await addDoc(collection(db, `users/${user.id}/influencers`), newInfluencerData);
                 finalInfluencerId = newInfluencerRef.id;
                 toast({ title: "Influenciador Criado!", description: `O influenciador "${newInfluencerData.name}" foi adicionado.` });
             }
@@ -188,7 +191,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 ...values,
                 productId: finalProductId!,
                 influencerId: finalInfluencerId!,
-                userId: user.uid,
+                userId: user.id,
                 postDate: Timestamp.fromDate(values.postDate)
             };
 
@@ -202,11 +205,11 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
 
 
             if (isEditMode && postToEdit) {
-                const postRef = doc(db, `users/${user.uid}/posts`, postToEdit.id);
+                const postRef = doc(db, `users/${user.id}/posts`, postToEdit.id);
                 await updateDoc(postRef, postData);
                 toast({ title: "Sucesso!", description: "Post atualizado." });
             } else {
-                await addDoc(collection(db, `users/${user.uid}/posts`), postData);
+                await addDoc(collection(db, `users/${user.id}/posts`), postData);
                 toast({ title: "Sucesso!", description: "Novo post adicionado." });
             }
             onSuccess();
@@ -408,9 +411,9 @@ export function PostsManager() {
         if (!user) return;
         if(showLoading) setLoading(true);
         try {
-            const postsCol = collection(db, `users/${user.uid}/posts`);
-            const influencersCol = collection(db, `users/${user.uid}/influencers`);
-            const productsCol = collection(db, `users/${user.uid}/products`);
+            const postsCol = collection(db, `users/${user.id}/posts`);
+            const influencersCol = collection(db, `users/${user.id}/influencers`);
+            const productsCol = collection(db, `users/${user.id}/products`);
 
             const [postsSnapshot, influencersSnapshot, productsSnapshot] = await Promise.all([
                 getDocs(query(postsCol, orderBy("postDate", "desc"))),
@@ -466,7 +469,7 @@ export function PostsManager() {
     const handleDelete = async (postId: string) => {
         if (!user) return;
         try {
-            await deleteDoc(doc(db, `users/${user.uid}/posts`, postId));
+            await deleteDoc(doc(db, `users/${user.id}/posts`, postId));
             toast({ title: "Sucesso!", description: "Post removido." });
             fetchData();
         } catch (error) {
@@ -723,3 +726,5 @@ export function PostsManager() {
         </>
     )
 }
+
+    

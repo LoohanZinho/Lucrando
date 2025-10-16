@@ -68,11 +68,11 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
         setIsSubmitting(true);
         try {
             if (isEditMode && influencerToEdit) {
-                const influencerRef = doc(db, `users/${user.uid}/influencers`, influencerToEdit.id);
-                await updateDoc(influencerRef, { ...values, userId: user.uid });
+                const influencerRef = doc(db, `users/${user.id}/influencers`, influencerToEdit.id);
+                await updateDoc(influencerRef, { ...values, userId: user.id });
                 toast({ title: "Sucesso!", description: "Influenciador atualizado." });
             } else {
-                await addDoc(collection(db, `users/${user.uid}/influencers`), { ...values, userId: user.uid });
+                await addDoc(collection(db, `users/${user.id}/influencers`), { ...values, userId: user.id });
                 toast({ title: "Sucesso!", description: "Novo influenciador adicionado." });
             }
             onSuccess();
@@ -163,7 +163,7 @@ export function InfluencersManager() {
         if (!user) return;
         setLoading(true);
         try {
-            const influencersCol = collection(db, `users/${user.uid}/influencers`);
+            const influencersCol = collection(db, `users/${user.id}/influencers`);
             const q = query(influencersCol, orderBy("name", "asc"));
             const querySnapshot = await getDocs(q);
             const fetchedInfluencers = querySnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Influencer));
@@ -183,7 +183,7 @@ export function InfluencersManager() {
     const handleDelete = async (influencerId: string) => {
         if (!user) return;
         try {
-            await deleteDoc(doc(db, `users/${user.uid}/influencers`, influencerId));
+            await deleteDoc(doc(db, `users/${user.id}/influencers`, influencerId));
             toast({ title: "Sucesso!", description: "Influenciador removido." });
             fetchInfluencers();
         } catch (error) {
