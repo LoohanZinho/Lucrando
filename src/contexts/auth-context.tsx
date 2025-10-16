@@ -2,6 +2,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
 import { useLoader } from './loader-context';
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { showLoader, hideLoader } = useLoader();
   const { toast } = useToast();
   const { showSubscriptionModal } = useSubscription();
+  const pathname = usePathname();
   
   const logout = useCallback(() => {
     showLoader();
@@ -45,6 +47,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const verifyUserSession = async () => {
+       // Se estiver na página de admin, não faz a verificação de sessão de usuário comum.
+      if (pathname === '/admin') {
+        setLoading(false);
+        return;
+      }
+      
       let storedUser;
       try {
         const storedUserJSON = localStorage.getItem('lci-user');
@@ -93,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     verifyUserSession();
-  }, [logout, showSubscriptionModal]);
+  }, [logout, showSubscriptionModal, pathname]);
 
 
   const login = async (email: string, pass: string): Promise<boolean> => {
