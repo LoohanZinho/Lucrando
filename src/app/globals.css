@@ -11,32 +11,32 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 35 100% 63%; /* Orange */
+    --primary: 45 95% 58%; /* Yellow */
     --primary-foreground: 240 5.9% 10%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 35 100% 63%; /* Orange */
+    --accent: 45 95% 58%; /* Yellow */
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 35 100% 63%; /* Orange */
+    --ring: 45 95% 58%; /* Yellow */
     --radius: 1rem;
-    --chart-1: 35 100% 63%; /* Orange */
+    --chart-1: 45 95% 58%; /* Yellow */
     --chart-2: 210 40% 96.1%;
     --chart-3: 220 80% 60%; /* Blue */
 
     --sidebar-background: 240 4.8% 95.9%;
     --sidebar-foreground: 240 5.9% 10%;
     --sidebar-border: 240 5.9% 90%;
-    --sidebar-primary: 35 100% 63%;
+    --sidebar-primary: 45 95% 58%;
     --sidebar-primary-foreground: 240 5.9% 10%;
-    --sidebar-accent: 35 100% 63%;
+    --sidebar-accent: 45 95% 58%;
     --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-ring: 35 100% 63%;
+    --sidebar-ring: 45 95% 58%;
   }
 
   .dark {
@@ -46,20 +46,20 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 35 100% 63%; /* Orange */
+    --primary: 45 95% 58%; /* Yellow */
     --primary-foreground: 240 5.9% 10%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 35 100% 63%; /* Orange */
+    --accent: 45 95% 58%; /* Yellow */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 35 100% 63%; /* Orange */
-    --chart-1: 35 100% 63%; /* Orange */
+    --ring: 45 95% 58%; /* Yellow */
+    --chart-1: 45 95% 58%; /* Yellow */
     --chart-2: 240 3.7% 15.9%;
     --chart-3: 220 80% 60%; /* Blue */
     --radius: 1rem;
@@ -67,11 +67,11 @@
     --sidebar-background: 240 3.7% 15.9%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-primary: 35 100% 63%;
+    --sidebar-primary: 45 95% 58%;
     --sidebar-primary-foreground: 240 5.9% 10%;
-    --sidebar-accent: 35 100% 63%;
+    --sidebar-accent: 45 95% 58%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-ring: 35 100% 63%;
+    --sidebar-ring: 45 95% 58%;
   }
 }
 
