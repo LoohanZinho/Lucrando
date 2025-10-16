@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Loader2, Edit, Trash2 } from "lucide-react";
 import { type User } from "@/lib/data-types";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData } from "firebase/firestore/lite";
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -305,3 +306,5 @@ export default function AdminDashboardPage() {
         </>
     );
 }
+
+    
