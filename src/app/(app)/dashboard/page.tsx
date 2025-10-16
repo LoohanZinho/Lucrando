@@ -75,9 +75,9 @@ const getPeriodDates = (period: Period, customDateRange?: DateRange, allPosts: P
         case 'this_month':
             currentStart = new Date(today.getFullYear(), today.getMonth(), 1);
             currentEnd = endOfToday;
-            previousStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
             const lastDayOfPreviousMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-            previousEnd = new Date(previousStart.getFullYear(), previousStart.getMonth(), Math.min(today.getDate(), lastDayOfPreviousMonth.getDate()), 23, 59, 59, 999);
+            previousStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            previousEnd = new Date(previousStart.getFullYear(), previousStart.getMonth(), lastDayOfPreviousMonth.getDate(), 23, 59, 59, 999);
             break;
         case 'custom':
             if (customDateRange?.from && customDateRange?.to) {
@@ -552,7 +552,13 @@ export default function DashboardPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMetrics.profit)}</div>
+                        <div className={cn(
+                            "text-2xl font-bold",
+                            currentMetrics.profit > 0 && "text-green-500",
+                            currentMetrics.profit < 0 && "text-red-500"
+                        )}>
+                            {formatCurrency(currentMetrics.profit)}
+                        </div>
                         <p className="text-xs text-muted-foreground h-4">
                             {formatPercentageChange(profitChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
@@ -564,7 +570,13 @@ export default function DashboardPage() {
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatPercentage(roi)}</div>
+                         <div className={cn(
+                            "text-2xl font-bold",
+                            roi > 0 && "text-green-500",
+                            roi < 0 && "text-red-500"
+                        )}>
+                            {formatPercentage(roi)}
+                        </div>
                         <p className="text-xs text-muted-foreground h-4">
                             {formatPercentageChange(roiChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
@@ -590,5 +602,7 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
 
     
