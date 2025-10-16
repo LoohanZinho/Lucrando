@@ -2,10 +2,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { collection, addDoc, query, where, getDocs, doc, updateDoc } from 'firebase/firestore/lite';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, Timestamp } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
 import { useLoader } from './loader-context';
 import { type User } from '@/lib/data-types';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -29,12 +30,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { showLoader, hideLoader } = useLoader();
+  const { toast } = useToast();
 
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('lci-user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        // Firestore Timestamps são convertidos para strings, precisamos convertê-los de volta
+        if (parsedUser.paidAt) {
+          parsedUser.paidAt = new Timestamp(parsedUser.paidAt.seconds, parsedUser.paidAt.nanoseconds);
+        }
+        if (parsedUser.subscriptionExpiresAt) {
+          parsedUser.subscriptionExpiresAt = new Timestamp(parsedUser.subscriptionExpiresAt.seconds, parsedUser.subscriptionExpiresAt.nanoseconds);
+        }
+        setUser(parsedUser);
       }
     } catch (error) {
       console.error("Failed to parse user from localStorage", error);
@@ -51,11 +61,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
+         toast({
+          variant: "destructive",
+          title: "Erro de Login",
+          description: "Credenciais inválidas.",
+        });
         return false;
       }
       
-      const userData = querySnapshot.docs[0].data() as Omit<User, 'id'>;
-      const loggedUser: User = { id: querySnapshot.docs[0].id, ...userData };
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data() as Omit<User, 'id'>;
+
+      // Validação de Assinatura
+      if (userData.subscriptionExpiresAt) {
+        const expiresDate = (userData.subscriptionExpiresAt as Timestamp).toDate();
+        if (new Date() > expiresDate) {
+          toast({
+            variant: "destructive",
+            title: "Assinatura Expirada",
+            description: "Sua assinatura expirou. Por favor, renove para continuar.",
+          });
+          return false;
+        }
+      } else {
+        // Se não houver data de expiração, significa que nunca pagou
+        toast({
+            variant: "destructive",
+            title: "Sem Assinatura Ativa",
+            description: "Você não possui uma assinatura ativa.",
+          });
+        return false;
+      }
+
+      const loggedUser: User = { id: userDoc.id, ...userData };
       
       setUser(loggedUser);
       localStorage.setItem('lci-user', JSON.stringify(loggedUser));
@@ -63,6 +101,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     } catch (error) {
       console.error("Login error:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro Inesperado",
+        description: "Ocorreu um erro durante o login.",
+      });
       return false;
     } finally {
       hideLoader();
@@ -77,11 +120,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            // User already exists
+            toast({
+              variant: "destructive",
+              title: "Erro de Cadastro",
+              description: "Este e-mail já está em uso.",
+            });
             return false;
         }
 
-        const newUser: Omit<User, 'id'> = {
+        // Não define `paidAt` ou `subscriptionExpiresAt` no cadastro.
+        // Isso será feito pelo webhook.
+        const newUser: Omit<User, 'id' | 'paidAt' | 'subscriptionExpiresAt'> = {
             displayName: username,
             email,
             password: pass, // Storing password in plain text
@@ -89,15 +138,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
 
         const docRef = await addDoc(usersCol, newUser);
-
-        const loggedUser: User = { id: docRef.id, ...newUser };
         
-        setUser(loggedUser);
-        localStorage.setItem('lci-user', JSON.stringify(loggedUser));
-        return true;
+        // Exibe um toast para o usuário ir para o checkout
+        toast({
+          title: "Conta Criada!",
+          description: "Agora você precisa fazer o pagamento para ativar sua conta.",
+          duration: 10000,
+        });
+        
+        // Não loga o usuário automaticamente, ele precisa pagar primeiro.
+        // O fluxo ideal é redirecioná-lo para a página de vendas/checkout.
+        // Por enquanto, apenas retornamos false para ele permanecer na tela de signup/login.
+        return false;
+
 
      } catch (error) {
         console.error("Signup error:", error);
+         toast({
+          variant: "destructive",
+          title: "Erro Inesperado",
+          description: "Ocorreu um erro durante o cadastro.",
+        });
         return false;
      } finally {
         hideLoader();

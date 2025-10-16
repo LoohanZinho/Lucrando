@@ -38,18 +38,13 @@ export default function SignupPage() {
 
     setLoading(true);
     
-    const success = await signup(username, email, password);
+    // A função signup agora retorna false mesmo em sucesso, para não redirecionar
+    // e permitir que o usuário veja a mensagem para ir ao checkout.
+    await signup(username, email, password);
 
-    if (success) {
-      router.push('/dashboard');
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Erro ao criar conta",
-        description: "Este e-mail já está em uso. Tente outro.",
-      });
-      setLoading(false);
-    }
+    // Como o usuário não é logado automaticamente, mantemos ele na tela
+    // e o toast informará o próximo passo.
+    setLoading(false);
   };
 
   return (

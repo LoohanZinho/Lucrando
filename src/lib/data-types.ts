@@ -7,6 +7,8 @@ export interface User {
     email: string;
     photoURL?: string;
     password?: string; // Should be handled securely
+    paidAt?: Timestamp;
+    subscriptionExpiresAt?: Timestamp;
 }
 
 export interface Influencer {
