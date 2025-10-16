@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { doc, updateDoc } from "firebase/firestore/lite";
+import { doc, updateDoc, Timestamp } from "firebase/firestore/lite";
 import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useForm } from "react-hook-form";
@@ -14,9 +14,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera } from "lucide-react";
+import { Loader2, Camera, Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CropperImage } from "@/components/cropper-image";
+import { Progress } from "@/components/ui/progress";
+import { differenceInDays, formatDistanceToNowStrict } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "O nome de usuário é obrigatório."),
@@ -45,6 +48,7 @@ export default function ProfilePage() {
   
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<{ planName: string; remainingDays?: number; progress?: number }>({ planName: "Vitalício" });
 
   const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
@@ -70,6 +74,22 @@ export default function ProfilePage() {
         displayName: user.displayName || "",
       });
       setPhotoURL(user.photoURL || null);
+
+      if (user.subscriptionExpiresAt && user.paidAt) {
+          const expiresAt = (user.subscriptionExpiresAt as Timestamp).toDate();
+          const paidAt = (user.paidAt as Timestamp).toDate();
+          const totalDays = differenceInDays(expiresAt, paidAt);
+          const remainingDays = differenceInDays(expiresAt, new Date());
+          const progress = totalDays > 0 ? ((totalDays - remainingDays) / totalDays) * 100 : 0;
+          
+          setSubscriptionInfo({
+              planName: "Plano Mensal",
+              remainingDays: Math.max(0, remainingDays),
+              progress: Math.min(100, progress),
+          });
+      } else {
+          setSubscriptionInfo({ planName: "Plano Vitalício" });
+      }
     }
   }, [user, profileForm]);
 
@@ -196,9 +216,35 @@ export default function ProfilePage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Meu Perfil</h1>
           <p className="text-muted-foreground">
-            Gerencie as informações da sua conta.
+            Gerencie as informações da sua conta e assinatura.
           </p>
         </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Assinatura</CardTitle>
+            <CardDescription>Detalhes do seu plano atual.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                <Crown className="h-8 w-8 text-primary" />
+                <div>
+                    <p className="font-semibold">{subscriptionInfo.planName}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {subscriptionInfo.remainingDays !== undefined 
+                            ? `Restam ${formatDistanceToNowStrict(new Date(new Date().setDate(new Date().getDate() + subscriptionInfo.remainingDays)), { locale: ptBR, unit: 'day' })}`
+                            : 'Acesso por tempo ilimitado.'
+                        }
+                    </p>
+                </div>
+            </div>
+            {subscriptionInfo.progress !== undefined && (
+                <div>
+                    <Progress value={subscriptionInfo.progress} className="h-2" />
+                </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -340,5 +386,3 @@ export default function ProfilePage() {
     </>
   );
 }
-
-    
