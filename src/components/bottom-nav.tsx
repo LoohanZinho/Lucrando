@@ -13,13 +13,11 @@ export function BottomNav() {
         { href: '/dashboard', label: 'Dashboard', icon: Home },
         { href: '/posts', label: 'Posts', icon: Send },
         { href: '/calendar', label: 'Calendário', icon: Calendar },
-        { href: '/influencers', label: 'Influencers', icon: Users },
-        { href: '/products', label: 'Produtos', icon: Package },
     ];
 
     return (
         <div className="sm:hidden fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border">
-            <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
+            <div className="grid h-full max-w-lg grid-cols-3 mx-auto font-medium">
                 {navLinks.map(({ href, label, icon: Icon }) => (
                     <Link 
                         key={href} 

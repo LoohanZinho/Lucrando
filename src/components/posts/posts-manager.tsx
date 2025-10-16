@@ -30,15 +30,18 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import Link from "next/link";
 
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
     description: z.string().optional(),
     link: z.string().url("Link inválido").optional().or(z.literal('')),
     postDate: z.date({ required_error: "A data do post é obrigatória." }),
-    influencerId: z.string().min(1, "Selecione um influenciador"),
     
+    influencerSelection: z.enum(['existing', 'new']).default('existing'),
+    influencerId: z.string().optional(),
+    newInfluencerName: z.string().optional(),
+    newInfluencerInstagram: z.string().optional(),
+
     productSelection: z.enum(['existing', 'new']).default('existing'),
     productId: z.string().optional(),
     newProductName: z.string().optional(),
@@ -49,23 +52,24 @@ const postSchema = z.object({
     views: z.coerce.number().int("Views deve ser um número inteiro").min(0).optional(),
     clicks: z.coerce.number().int("Cliques deve ser um número inteiro").min(0).optional(),
     sales: z.coerce.number().int("Vendas deve ser um número inteiro").min(0).optional(),
-}).refine((data) => {
-    if (data.productSelection === 'existing') {
-        return !!data.productId;
-    }
+})
+.refine((data) => {
+    if (data.productSelection === 'existing') return !!data.productId;
     return true;
-}, {
-    message: "Selecione um produto existente.",
-    path: ['productId']
-}).refine((data) => {
-     if (data.productSelection === 'new') {
-        return data.newProductName && data.newProductName.length >= 2;
-    }
+}, { message: "Selecione um produto existente.", path: ['productId']})
+.refine((data) => {
+     if (data.productSelection === 'new') return data.newProductName && data.newProductName.length >= 2;
     return true;
-}, {
-    message: "O nome do novo produto é obrigatório.",
-    path: ['newProductName']
-});
+}, { message: "O nome do novo produto é obrigatório.", path: ['newProductName']})
+.refine((data) => {
+    if (data.influencerSelection === 'existing') return !!data.influencerId;
+    return true;
+}, { message: "Selecione um influenciador existente.", path: ['influencerId']})
+.refine((data) => {
+    if (data.influencerSelection === 'new') return data.newInfluencerName && data.newInfluencerName.length >= 2;
+    return true;
+}, { message: "O nome do novo influenciador é obrigatório.", path: ['newInfluencerName']});
+
 
 type PostFormData = z.infer<typeof postSchema>;
 
@@ -75,11 +79,11 @@ type PostFormProps = {
   onCancel: () => void;
   influencers: Influencer[];
   products: Product[];
-  onProductCreated: () => void;
+  onDataCreated: () => void;
   initialDate?: Date;
 };
 
-function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onProductCreated, initialDate }: PostFormProps) {
+function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDataCreated, initialDate }: PostFormProps) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,7 +96,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
             description: "",
             link: "",
             postDate: initialDate || new Date(),
+            influencerSelection: 'existing',
             influencerId: "",
+            newInfluencerName: "",
+            newInfluencerInstagram: "",
             productSelection: 'existing',
             productId: "",
             newProductName: "",
@@ -105,10 +112,8 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
         }
     });
 
-    const productSelection = useWatch({
-        control: form.control,
-        name: 'productSelection'
-    });
+    const productSelection = useWatch({ control: form.control, name: 'productSelection' });
+    const influencerSelection = useWatch({ control: form.control, name: 'influencerSelection' });
 
     useEffect(() => {
         if (postToEdit) {
@@ -122,6 +127,8 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                 sales: postToEdit.sales ?? undefined,
                 productSelection: 'existing', 
                 productId: postToEdit.productId,
+                influencerSelection: 'existing',
+                influencerId: postToEdit.influencerId
             });
         } else {
             form.reset({
@@ -129,7 +136,10 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                 description: "",
                 link: "",
                 postDate: initialDate || new Date(),
+                influencerSelection: 'existing',
                 influencerId: "",
+                newInfluencerName: "",
+                newInfluencerInstagram: "",
                 productSelection: 'existing',
                 productId: "",
                 newProductName: "",
@@ -145,49 +155,51 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
 
     async function onSubmit(values: PostFormData) {
         if (!user) return;
-        if (influencers.length === 0) {
-            toast({ variant: "destructive", title: "Erro", description: "Não é possível criar um post sem influenciadores cadastrados." });
-            return;
-        }
-
+        
         setIsSubmitting(true);
         try {
-
             let finalProductId = values.productId;
-
             if (values.productSelection === 'new' && !isEditMode) {
-                if (!values.newProductName || values.newProductName.length < 2) {
-                     toast({ variant: "destructive", title: "Erro", description: "O nome do novo produto é obrigatório." });
-                     setIsSubmitting(false);
-                     return;
-                }
-                const newProductData = {
-                    name: values.newProductName!,
-                    description: values.newProductDescription || "",
-                    userId: user.uid,
-                };
+                const newProductData = { name: values.newProductName!, description: values.newProductDescription || "", userId: user.uid };
                 const newProductRef = await addDoc(collection(db, `users/${user.uid}/products`), newProductData);
                 finalProductId = newProductRef.id;
-                onProductCreated();
-                 toast({ title: "Produto Criado!", description: `O produto "${newProductData.name}" foi adicionado.` });
+                toast({ title: "Produto Criado!", description: `O produto "${newProductData.name}" foi adicionado.` });
             }
-             if (!finalProductId) {
-                toast({ variant: "destructive", title: "Erro", description: "É necessário selecionar ou criar um produto." });
+
+            let finalInfluencerId = values.influencerId;
+            if (values.influencerSelection === 'new' && !isEditMode) {
+                const newInfluencerData = { name: values.newInfluencerName!, instagram: values.newInfluencerInstagram || "", userId: user.uid };
+                const newInfluencerRef = await addDoc(collection(db, `users/${user.uid}/influencers`), newInfluencerData);
+                finalInfluencerId = newInfluencerRef.id;
+                toast({ title: "Influenciador Criado!", description: `O influenciador "${newInfluencerData.name}" foi adicionado.` });
+            }
+            
+            if (!finalProductId || !finalInfluencerId) {
+                toast({ variant: "destructive", title: "Erro", description: "É necessário selecionar ou criar um produto e um influenciador." });
                 setIsSubmitting(false);
                 return;
             }
 
+            if (values.productSelection === 'new' || values.influencerSelection === 'new') {
+                onDataCreated();
+            }
 
-            const postData: Omit<Post, 'id'> & { [key: string]: any } = {
+            const postData: Omit<Post, 'id' | 'postDate'> & { [key: string]: any } = {
                 ...values,
                 productId: finalProductId!,
+                influencerId: finalInfluencerId!,
                 userId: user.uid,
                 postDate: Timestamp.fromDate(values.postDate)
             };
 
+            // Clean up temporary form fields
             delete postData.productSelection;
             delete postData.newProductName;
             delete postData.newProductDescription;
+            delete postData.influencerSelection;
+            delete postData.newInfluencerName;
+            delete postData.newInfluencerInstagram;
+
 
             if (isEditMode && postToEdit) {
                 const postRef = doc(db, `users/${user.uid}/posts`, postToEdit.id);
@@ -206,10 +218,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
         }
     }
 
-    const influencerOptions = influencers.map(i => ({
-        label: `${i.name} ${i.instagram ? `(${i.instagram})` : ''}`,
-        value: i.id
-    }));
+    const influencerOptions = influencers.map(i => ({ label: `${i.name} ${i.instagram ? `(${i.instagram})` : ''}`, value: i.id }));
     const productOptions = products.map(p => ({ label: p.name, value: p.id }));
 
     return (
@@ -224,109 +233,100 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                         </FormItem>
                     )} />
 
-                     <FormField
-                        control={form.control}
-                        name="postDate"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
+                     <FormField control={form.control} name="postDate" render={({ field }) => (
+                        <FormItem className="flex flex-col">
                             <FormLabel>Data do Post</FormLabel>
                             <Popover>
                                 <PopoverTrigger asChild>
                                 <FormControl>
-                                    <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, "PPP", { locale: ptBR })
-                                    ) : (
-                                        <span>Escolha uma data</span>
-                                    )}
+                                    <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                    {field.value ? format(field.value, "PPP", { locale: ptBR }) : <span>Escolha uma data</span>}
                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                     </Button>
                                 </FormControl>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                    locale={ptBR}
-                                />
+                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus locale={ptBR} />
                                 </PopoverContent>
                             </Popover>
                             <FormMessage />
-                            </FormItem>
-                        )}
-                        />
+                        </FormItem>
+                    )}/>
 
                     <div className="md:col-span-2 space-y-4 p-4 border rounded-lg">
-                        <FormField
-                            control={form.control}
-                            name="productSelection"
-                            render={({ field }) => (
+                        <FormField control={form.control} name="influencerSelection" render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel>Produto Divulgado</FormLabel>
+                                <FormLabel>Influenciador</FormLabel>
                                 <FormControl>
-                                <RadioGroup
-                                    onValueChange={(value) => {
-                                        field.onChange(value)
-                                        form.setValue('productId', undefined)
-                                        form.setValue('newProductName', undefined)
-                                    }}
-                                    value={field.value}
-                                    className="flex gap-4"
-                                    disabled={isEditMode}
-                                >
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                        <FormControl>
-                                            <RadioGroupItem value="existing" />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">
-                                            Produto Existente
-                                        </FormLabel>
-                                    </FormItem>
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                        <FormControl>
-                                            <RadioGroupItem value="new" />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">
-                                            Novo Produto
-                                        </FormLabel>
-                                    </FormItem>
-                                </RadioGroup>
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4" disabled={isEditMode}>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl><RadioGroupItem value="existing" /></FormControl>
+                                            <FormLabel className="font-normal">Existente</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl><RadioGroupItem value="new" /></FormControl>
+                                            <FormLabel className="font-normal">Novo</FormLabel>
+                                        </FormItem>
+                                    </RadioGroup>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
-                            )}
-                        />
+                        )} />
+                        {influencerSelection === 'existing' && (
+                            <FormField control={form.control} name="influencerId" render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Selecione o Influenciador</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={influencers.length === 0}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador" : "Selecione..."} /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            {influencerOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        )}
+                        {influencerSelection === 'new' && !isEditMode && (
+                            <div className="space-y-4 pt-4 border-t">
+                                <FormField control={form.control} name="newInfluencerName" render={({ field }) => (
+                                    <FormItem><FormLabel>Nome do Novo Influenciador</FormLabel><FormControl><Input placeholder="Ex: Maria Souza" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                                )} />
+                                <FormField control={form.control} name="newInfluencerInstagram" render={({ field }) => (
+                                    <FormItem><FormLabel>Instagram (Opcional)</FormLabel><FormControl><Input placeholder="@username" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                                )} />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="md:col-span-2 space-y-4 p-4 border rounded-lg">
+                        <FormField control={form.control} name="productSelection" render={({ field }) => (
+                            <FormItem className="space-y-3">
+                                <FormLabel>Produto Divulgado</FormLabel>
+                                <FormControl>
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4" disabled={isEditMode}>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl><RadioGroupItem value="existing" /></FormControl>
+                                            <FormLabel className="font-normal">Existente</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl><RadioGroupItem value="new" /></FormControl>
+                                            <FormLabel className="font-normal">Novo</FormLabel>
+                                        </FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
                         {productSelection === 'existing' && (
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={products.length === 0}>
-                                        <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione o produto"} />
-                                        </SelectTrigger>
-                                        </FormControl>
+                                        <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
-                                        {productOptions.map(option => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                            </SelectItem>
-                                        ))}
+                                            {productOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
-                                     {products.length === 0 && (
-                                        <FormDescription>
-                                            Crie um produto para poder selecioná-lo.
-                                        </FormDescription>
-                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )} />
@@ -334,51 +334,15 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                         {productSelection === 'new' && !isEditMode && (
                             <div className="space-y-4 pt-4 border-t">
                                 <FormField control={form.control} name="newProductName" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Nome do Novo Produto</FormLabel>
-                                        <FormControl><Input placeholder="Ex: Curso de Finanças" {...field} value={field.value ?? ''} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                    <FormItem><FormLabel>Nome do Novo Produto</FormLabel><FormControl><Input placeholder="Ex: Curso de Finanças" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                                 )} />
                                 <FormField control={form.control} name="newProductDescription" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Descrição do Novo Produto (Opcional)</FormLabel>
-                                        <FormControl><Textarea placeholder="Descreva brevemente o novo produto" {...field} value={field.value ?? ''} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                    <FormItem><FormLabel>Descrição (Opcional)</FormLabel><FormControl><Textarea placeholder="Descreva o novo produto" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                                 )} />
                             </div>
                         )}
                     </div>
-                     <FormField control={form.control} name="influencerId" render={({ field }) => (
-                        <FormItem className="flex flex-col md:col-span-2">
-                            <FormLabel>Influenciador</FormLabel>
-                             <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={influencers.length === 0}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador cadastrado" : "Selecione o influenciador"} />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {influencerOptions.map(option => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                             {influencers.length === 0 ? (
-                                 <FormDescription className="text-destructive">
-                                     Sem influenciadores cadastrados.{" "}
-                                     <Link href="/influencers" className="underline hover:text-primary transition-colors flex items-center gap-1">
-                                        Adicionar um agora <ExternalLink className="h-3 w-3" />
-                                     </Link>
-                                 </FormDescription>
-                            ) : (
-                                <FormMessage />
-                            )}
-                        </FormItem>
-                    )} />
+                    
                     <FormField control={form.control} name="description" render={({ field }) => (
                         <FormItem className="md:col-span-2">
                             <FormLabel>Descrição</FormLabel>
@@ -398,39 +362,19 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                     <h3 className="text-lg font-medium">Métricas</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="investment" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Investimento (R$)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 1500.00" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
+                            <FormItem><FormLabel>Investimento (R$)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="Ex: 1500.00" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="revenue" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Receita (R$)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" placeholder="Ex: 5000.00" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
+                            <FormItem><FormLabel>Receita (R$)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="Ex: 5000.00" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl><FormMessage /></FormItem>
                         )} />
                          <FormField control={form.control} name="views" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Views (Stories)</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 25000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
+                            <FormItem><FormLabel>Views (Stories)</FormLabel><FormControl><Input type="number" placeholder="Ex: 25000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="clicks" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Cliques (Link)</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 1200" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
+                            <FormItem><FormLabel>Cliques (Link)</FormLabel><FormControl><Input type="number" placeholder="Ex: 1200" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl><FormMessage /></FormItem>
                         )} />
                          <FormField control={form.control} name="sales" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Conversões (Vendas)</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 50" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
+                            <FormItem><FormLabel>Conversões (Vendas)</FormLabel><FormControl><Input type="number" placeholder="Ex: 50" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
                  </div>
@@ -451,7 +395,6 @@ export function PostsManager() {
     const { user } = useAuth();
     const { toast } = useToast();
     const searchParams = useSearchParams();
-    const router = useRouter();
     const [posts, setPosts] = useState<Post[]>([]);
     const [influencers, setInfluencers] = useState<Influencer[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
@@ -762,7 +705,7 @@ export function PostsManager() {
                         onCancel={() => setIsSheetOpen(false)}
                         influencers={influencers}
                         products={products}
-                        onProductCreated={() => fetchData(false)}
+                        onDataCreated={() => fetchData(false)}
                         initialDate={initialDate}
                     />
                 </SheetContent>

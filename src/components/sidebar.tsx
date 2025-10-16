@@ -13,8 +13,6 @@ export function Sidebar() {
         { href: '/dashboard', label: 'Dashboard', icon: Home },
         { href: '/posts', label: 'Posts', icon: Send },
         { href: '/calendar', label: 'Calendário', icon: Calendar },
-        { href: '/influencers', label: 'Influenciadores', icon: Users },
-        { href: '/products', label: 'Produtos', icon: Package },
     ];
 
     return (
