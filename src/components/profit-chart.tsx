@@ -70,35 +70,29 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
             labelFormatter={(value, payload) => {
               return payload?.[0]?.payload?.month;
             }}
-            formatter={(value, name, item, index, payload) => {
-              const originalProfit = item?.payload?.profit;
+            formatter={(value, name, item) => {
+              const originalProfit = item?.payload?.profit as number | undefined;
               
-              if (name === 'positive' && originalProfit > 0) {
-                const color = "hsl(var(--chart-1))";
-                return (
-                    <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: color}} />
-                        <span className="capitalize">Lucro</span>
-                        <span className="font-bold text-foreground ml-auto">
-                            {typeof originalProfit === 'number' ? `R$ ${originalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
-                        </span>
-                    </div>
-                )
-              }
-               if (name === 'negative' && originalProfit < 0) {
-                const color = "hsl(var(--destructive))";
-                return (
-                    <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: color}} />
-                        <span className="capitalize">Lucro</span>
-                        <span className="font-bold text-foreground ml-auto">
-                            {typeof originalProfit === 'number' ? `R$ ${originalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
-                        </span>
-                    </div>
-                )
-              }
+              if (originalProfit === undefined) return null;
 
-              return null;
+              // Only render the tooltip content for one of the areas to avoid duplication
+              if (name !== 'positive') return null;
+              
+              const color = originalProfit > 0 
+                ? "hsl(var(--chart-1))" 
+                : originalProfit < 0 
+                ? "hsl(var(--destructive))" 
+                : "hsl(var(--muted-foreground))";
+
+              return (
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: color}} />
+                  <span className="capitalize">Lucro</span>
+                  <span className="font-bold text-foreground ml-auto">
+                    {`R$ ${originalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  </span>
+                </div>
+              );
             }}
           />}
         />
