@@ -3,7 +3,7 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Timestamp } from "firebase/firestore/lite";
 import { differenceInDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -34,7 +34,7 @@ export function SubscriptionWarning() {
 
     return (
         <Alert variant={remainingDays < 0 ? "destructive" : "default"} className="mb-6 bg-primary/10 border-primary/50 text-primary-foreground">
-            <Terminal className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4 text-primary" />
             <AlertTitle className="font-bold text-primary">Atenção!</AlertTitle>
             <AlertDescription className="flex justify-between items-center text-primary/90">
                 {message}
