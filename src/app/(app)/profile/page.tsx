@@ -20,6 +20,7 @@ import { CropperImage } from "@/components/cropper-image";
 import { Progress } from "@/components/ui/progress";
 import { differenceInDays, differenceInSeconds, format, formatDuration, intervalToDuration } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "O nome de usuário é obrigatório."),
@@ -95,38 +96,54 @@ export default function ProfilePage() {
           ? new Date(paidAtTimestamp.seconds * 1000)
           : new Date(expiresAt.getTime() - 30 * 24 * 60 * 60 * 1000); // Assume 30 days if paidAt is missing
 
-        const totalDays = differenceInDays(expiresAt, paidAt);
-        const remainingSeconds = differenceInSeconds(expiresAt, new Date());
-        const remainingDays = Math.max(0, Math.ceil(remainingSeconds / (60 * 60 * 24)));
-        const progress = totalDays > 0 ? ((totalDays - remainingDays) / totalDays) * 100 : 0;
-        const isExpiringSoon = remainingSeconds > 0 && remainingSeconds < 24 * 60 * 60;
-
+        const totalDaysInPeriod = differenceInDays(expiresAt, paidAt);
+        const isExpiringSoon = differenceInSeconds(expiresAt, new Date()) < 24 * 60 * 60;
+        
         const updateCountdown = () => {
-          const secondsLeft = differenceInSeconds(expiresAt, new Date());
+          const now = new Date();
+          const secondsLeft = differenceInSeconds(expiresAt, now);
+
           if (secondsLeft > 0) {
-            const duration = intervalToDuration({ start: 0, end: secondsLeft * 1000 });
-            const paddedHours = String(duration.hours ?? 0).padStart(2, '0');
-            const paddedMinutes = String(duration.minutes ?? 0).padStart(2, '0');
-            const paddedSeconds = String(duration.seconds ?? 0).padStart(2, '0');
-            setSubscriptionInfo(prev => ({ ...prev, countdown: `${paddedHours}:${paddedMinutes}:${paddedSeconds}` }));
+            const remainingDays = Math.ceil(secondsLeft / (60 * 60 * 24));
+            
+            if (isExpiringSoon) {
+              const duration = intervalToDuration({ start: 0, end: secondsLeft * 1000 });
+              const paddedHours = String(duration.hours ?? 0).padStart(2, '0');
+              const paddedMinutes = String(duration.minutes ?? 0).padStart(2, '0');
+              const paddedSeconds = String(duration.seconds ?? 0).padStart(2, '0');
+              const progressForLastDay = (secondsLeft / (24 * 60 * 60)) * 100;
+              setSubscriptionInfo({
+                planName: "Plano Mensal",
+                expiresAt,
+                remainingDays,
+                isExpiringSoon,
+                countdown: `${paddedHours}:${paddedMinutes}:${paddedSeconds}`,
+                progress: progressForLastDay,
+              });
+            } else {
+              const daysPassed = differenceInDays(now, paidAt);
+              const progress = totalDaysInPeriod > 0 ? (daysPassed / totalDaysInPeriod) * 100 : 0;
+              setSubscriptionInfo({
+                planName: "Plano Mensal",
+                expiresAt,
+                remainingDays,
+                isExpiringSoon,
+                progress: 100 - Math.max(0, Math.min(100, progress)), // Invert progress to show depletion
+              });
+            }
           } else {
-             setSubscriptionInfo(prev => ({ ...prev, countdown: "00:00:00" }));
-             clearInterval(countdownInterval);
+            setSubscriptionInfo(prev => ({
+              ...prev,
+              countdown: "00:00:00",
+              progress: 0,
+              remainingDays: 0,
+            }));
+            clearInterval(countdownInterval);
           }
         };
-        
-        if (isExpiringSoon) {
-          updateCountdown();
-          countdownInterval = setInterval(updateCountdown, 1000);
-        }
 
-        setSubscriptionInfo({
-          planName: "Plano Mensal",
-          expiresAt: expiresAt,
-          progress: Math.max(0, Math.min(100, progress)),
-          remainingDays: remainingDays,
-          isExpiringSoon: isExpiringSoon,
-        });
+        updateCountdown(); // Initial call
+        countdownInterval = setInterval(updateCountdown, 1000);
 
       } else {
         setSubscriptionInfo({ planName: "Plano Vitalício" });
@@ -301,7 +318,10 @@ export default function ProfilePage() {
             </div>
             {subscriptionInfo.progress !== undefined && (
                 <div>
-                    <Progress value={subscriptionInfo.progress} className="h-2" />
+                     <Progress 
+                        value={subscriptionInfo.progress} 
+                        className={cn("h-2", subscriptionInfo.isExpiringSoon && "[&>div]:bg-destructive")} 
+                    />
                 </div>
             )}
              {subscriptionInfo.expiresAt && subscriptionInfo.remainingDays !== undefined && subscriptionInfo.remainingDays <= 5 && (
