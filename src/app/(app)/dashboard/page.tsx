@@ -217,9 +217,8 @@ export default function DashboardPage() {
             acc.sales += post.sales || 0;
             acc.clicks += post.clicks || 0;
             acc.views += post.views || 0;
-            acc.pageVisits += post.pageVisits || 0;
             return acc;
-        }, { revenue: 0, investment: 0, profit: 0, sales: 0, clicks: 0, views: 0, pageVisits: 0 });
+        }, { revenue: 0, investment: 0, profit: 0, sales: 0, clicks: 0, views: 0 });
     };
 
     const currentMetrics = calculateMetrics(periodPosts);
@@ -243,7 +242,6 @@ export default function DashboardPage() {
     
     const roas = currentMetrics.investment > 0 ? currentMetrics.revenue / currentMetrics.investment : 0;
     const conversionRate = currentMetrics.clicks > 0 ? (currentMetrics.sales / currentMetrics.clicks) * 100 : 0;
-    const cpa = currentMetrics.sales > 0 ? currentMetrics.investment / currentMetrics.sales : 0;
     const averageTicket = currentMetrics.sales > 0 ? currentMetrics.revenue / currentMetrics.sales : 0;
 
     const profitTrendData = useMemo(() => {
@@ -296,10 +294,9 @@ export default function DashboardPage() {
         const totalMetrics = chartPosts.reduce((acc, post) => {
             acc.views += post.views || 0;
             acc.clicks += post.clicks || 0;
-            acc.pageVisits += post.pageVisits || 0;
             acc.sales += post.sales || 0;
             return acc;
-        }, { views: 0, clicks: 0, pageVisits: 0, sales: 0 });
+        }, { views: 0, clicks: 0, sales: 0 });
 
         const baseValue = totalMetrics.views;
         
@@ -307,14 +304,12 @@ export default function DashboardPage() {
             return [
                 { label: "Views nos Stories", value: 0, percentage: 0 },
                 { label: "Cliques no Link", value: 0, percentage: 0 },
-                { label: "Visitas na Página", value: 0, percentage: 0 },
                 { label: "Conversões", value: 0, percentage: 0 },
             ];
         }
         return [
             { label: "Views nos Stories", value: totalMetrics.views, percentage: 100 },
             { label: "Cliques no Link", value: totalMetrics.clicks, percentage: (totalMetrics.clicks / baseValue) * 100 },
-            { label: "Visitas na Página", value: totalMetrics.pageVisits, percentage: (totalMetrics.pageVisits / baseValue) * 100 },
             { label: "Conversões", value: totalMetrics.sales, percentage: (totalMetrics.sales / baseValue) * 100 },
         ];
     }, [chartPosts]);
@@ -590,7 +585,6 @@ export default function DashboardPage() {
                 />
                 <PerformanceAnalysis 
                     roas={roas}
-                    cpa={cpa}
                     conversionRate={conversionRate}
                     averageTicket={averageTicket}
                     periodLabel={getPeriodLabel(selectedPeriod, customDateRange)}
@@ -602,7 +596,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    
-
-    

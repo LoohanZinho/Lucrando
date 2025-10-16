@@ -142,5 +142,3 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
         </Card>
     );
 }
-
-    

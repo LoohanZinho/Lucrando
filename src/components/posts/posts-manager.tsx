@@ -48,7 +48,6 @@ const postSchema = z.object({
     revenue: z.coerce.number().min(0, "Receita não pode ser negativa").optional(),
     views: z.coerce.number().int("Views deve ser um número inteiro").min(0).optional(),
     clicks: z.coerce.number().int("Cliques deve ser um número inteiro").min(0).optional(),
-    pageVisits: z.coerce.number().int("Visitas deve ser um número inteiro").min(0).optional(),
     sales: z.coerce.number().int("Vendas deve ser um número inteiro").min(0).optional(),
 }).refine((data) => {
     if (data.productSelection === 'existing') {
@@ -102,7 +101,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
             revenue: undefined,
             views: undefined,
             clicks: undefined,
-            pageVisits: undefined,
             sales: undefined,
         }
     });
@@ -121,7 +119,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                 revenue: postToEdit.revenue ?? undefined,
                 views: postToEdit.views ?? undefined,
                 clicks: postToEdit.clicks ?? undefined,
-                pageVisits: postToEdit.pageVisits ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 productSelection: 'existing', 
                 productId: postToEdit.productId,
@@ -141,7 +138,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                 revenue: undefined,
                 views: undefined,
                 clicks: undefined,
-                pageVisits: undefined,
                 sales: undefined,
             });
         }
@@ -426,13 +422,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onPr
                             <FormItem>
                                 <FormLabel>Cliques (Link)</FormLabel>
                                 <FormControl><Input type="number" placeholder="Ex: 1200" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                         <FormField control={form.control} name="pageVisits" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Visitas na Página</FormLabel>
-                                <FormControl><Input type="number" placeholder="Ex: 800" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />

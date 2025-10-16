@@ -88,7 +88,6 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
                 <TableHead className="text-right">Lucro</TableHead>
                 <TableHead className="text-right">Views</TableHead>
                 <TableHead className="text-right">Cliques</TableHead>
-                <TableHead className="text-right">Visitas</TableHead>
                 <TableHead className="text-right">Vendas</TableHead>
               </TableRow>
             </TableHeader>
@@ -102,7 +101,6 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
                   <TableCell><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
                 </TableRow>
               ))}
               {!loading && posts.map(post => (
@@ -113,13 +111,12 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
                   <TableCell className="text-right font-medium">{calculateProfit(post)}</TableCell>
                   <TableCell className="text-right">{formatNumber(post.views)}</TableCell>
                   <TableCell className="text-right">{formatNumber(post.clicks)}</TableCell>
-                  <TableCell className="text-right">{formatNumber(post.pageVisits)}</TableCell>
                   <TableCell className="text-right">{formatNumber(post.sales)}</TableCell>
                 </TableRow>
               ))}
               {!loading && posts.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     Nenhum post encontrado para este influenciador.
                   </TableCell>
                 </TableRow>

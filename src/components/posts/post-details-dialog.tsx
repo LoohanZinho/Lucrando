@@ -85,7 +85,6 @@ export function PostDetailsDialog({ post, influencer, product, open, onOpenChang
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                  <DetailItem label="Views" value={formatNumber(post.views)} />
                  <DetailItem label="Cliques" value={formatNumber(post.clicks)} />
-                 <DetailItem label="Visitas na Página" value={formatNumber(post.pageVisits)} />
                  <DetailItem label="Vendas" value={formatNumber(post.sales)} />
             </div>
 

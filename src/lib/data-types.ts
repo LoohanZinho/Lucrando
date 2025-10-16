@@ -28,7 +28,6 @@ export interface Post {
     revenue?: number;
     views?: number;
     clicks?: number;
-    pageVisits?: number;
     sales?: number;
     postDate: Date | Timestamp;
     userId: string;

@@ -7,7 +7,6 @@ import { DollarSign, Target, Percent, ShoppingCart } from "lucide-react";
 
 interface PerformanceAnalysisProps {
     roas: number;
-    cpa: number;
     conversionRate: number;
     averageTicket: number;
     periodLabel: string;
@@ -17,7 +16,7 @@ const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { 
 const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
 
 
-export function PerformanceAnalysis({ roas, cpa, conversionRate, averageTicket, periodLabel }: PerformanceAnalysisProps) {
+export function PerformanceAnalysis({ roas, conversionRate, averageTicket, periodLabel }: PerformanceAnalysisProps) {
     type KpiInfo = {
         title: string;
         description: string;
@@ -37,11 +36,6 @@ export function PerformanceAnalysis({ roas, cpa, conversionRate, averageTicket, 
             description: "Percentual de cliques que resultaram em uma venda.",
             formula: "Fórmula: (Vendas / Cliques) * 100"
         },
-        cpa: {
-            title: "Custo Por Aquisição (CPA)",
-            description: "O custo médio para adquirir um cliente (realizar uma venda).",
-            formula: "Fórmula: (Investimento / Vendas)"
-        },
         ticket: {
             title: "Ticket Médio",
             description: "O valor médio gasto por cliente em cada compra.",
@@ -56,7 +50,7 @@ export function PerformanceAnalysis({ roas, cpa, conversionRate, averageTicket, 
                 <p className="text-sm text-muted-foreground">Métricas chave para: {periodLabel}.</p>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
                     <div
                         className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
                         onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
@@ -67,18 +61,6 @@ export function PerformanceAnalysis({ roas, cpa, conversionRate, averageTicket, 
                             <span>ROAS</span>
                         </div>
                         <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
-                    </div>
-
-                    <div
-                        className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                        onMouseEnter={() => setHoveredKpi(kpiDetails.cpa)}
-                        onMouseLeave={() => setHoveredKpi(null)}
-                    >
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span>CPA</span>
-                        </div>
-                        <div className="text-3xl font-bold">{formatCurrency(cpa)}</div>
                     </div>
 
                     <div
@@ -106,7 +88,7 @@ export function PerformanceAnalysis({ roas, cpa, conversionRate, averageTicket, 
                     </div>
                 </div>
 
-                <div className="col-span-1 sm:col-span-2 lg:col-span-1 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
+                <div className="col-span-1 sm:col-span-3 lg:col-span-1 min-h-[100px] p-4 rounded-lg bg-muted/20 flex flex-col justify-center">
                     {hoveredKpi ? (
                         <>
                             <h3 className="font-bold mb-1">{hoveredKpi.title}</h3>

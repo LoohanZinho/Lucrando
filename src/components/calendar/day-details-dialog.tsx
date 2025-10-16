@@ -121,7 +121,6 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
                         <h4 className="font-semibold">Engajamento</h4>
                         <DetailItemMobile label="Views" value={post.views?.toLocaleString('pt-BR') || '0'} />
                         <DetailItemMobile label="Cliques" value={post.clicks?.toLocaleString('pt-BR') || '0'} />
-                        <DetailItemMobile label="Visitas na Página" value={post.pageVisits?.toLocaleString('pt-BR') || '0'} />
                         <DetailItemMobile label="Vendas" value={post.sales?.toLocaleString('pt-BR') || '0'} />
                     </div>
                 </div>
@@ -133,4 +132,3 @@ export function DayDetailsDialog({ date, posts, influencers, products, open, onO
     </Dialog>
   );
 }
-
