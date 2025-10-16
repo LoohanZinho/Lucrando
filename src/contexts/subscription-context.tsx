@@ -29,7 +29,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }
       setModalState({ open: true, expirationDate, paymentLink });
     } catch (error) {
-      console.error("Error fetching payment link:", error);
+      console.error("Erro ao buscar link de pagamento:", error);
       // Still show the modal, but without the link
       setModalState({ open: true, expirationDate, paymentLink: null });
     }
@@ -50,7 +50,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 export const useSubscription = (): SubscriptionContextType => {
   const context = useContext(SubscriptionContext);
   if (context === undefined) {
-    throw new Error('useSubscription must be used within a SubscriptionProvider');
+    throw new Error('useSubscription deve ser usado dentro de um SubscriptionProvider');
   }
   return context;
 };

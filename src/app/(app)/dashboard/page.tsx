@@ -165,7 +165,7 @@ export default function DashboardPage() {
                 setAllProducts(fetchedProducts);
 
             } catch (error) {
-                console.error("Error fetching dashboard data: ", error);
+                console.error("Erro ao buscar dados do dashboard: ", error);
             }
         };
 
@@ -596,5 +596,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    

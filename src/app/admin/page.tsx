@@ -97,7 +97,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
             form.setValue('photoURL', downloadURL);
             toast({ title: "Upload Concluído", description: "A imagem foi enviada." });
         } catch (error) {
-            console.error("Upload error:", error);
+            console.error("Erro no upload:", error);
             toast({ variant: "destructive", title: "Erro de Upload", description: "Não foi possível enviar a imagem." });
         } finally {
             setIsUploading(false);
@@ -108,7 +108,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     async function onSubmit(values: UserFormData) {
         setIsSubmitting(true);
         try {
-            const dataToSave: { [key: string]: any; } = { 
+            const dataToSave: { [key: string]: any } = { 
                 ...values,
                 subscriptionExpiresAt: values.subscriptionExpiresAt ? Timestamp.fromDate(values.subscriptionExpiresAt) : null,
              };
@@ -137,7 +137,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
             }
             onSuccess();
         } catch (error) {
-            console.error("Error saving user: ", error);
+            console.error("Erro ao salvar usuário: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar o usuário." });
         } finally {
             setIsSubmitting(false);
@@ -270,7 +270,7 @@ function SettingsCard() {
                     setPaymentLink(docSnap.data().paymentLink || '');
                 }
             } catch (error) {
-                console.error("Error fetching settings:", error);
+                console.error("Erro ao buscar configurações:", error);
                 toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar as configurações." });
             } finally {
                 setIsLoading(false);
@@ -285,7 +285,7 @@ function SettingsCard() {
             await setDoc(settingsRef, { paymentLink }, { merge: true });
             toast({ title: "Sucesso!", description: "Configurações salvas." });
         } catch (error) {
-            console.error("Error saving settings:", error);
+            console.error("Erro ao salvar configurações:", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as configurações." });
         } finally {
             setIsSaving(false);
@@ -346,7 +346,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             const fetchedUsers = querySnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as UserType));
             setUsers(fetchedUsers);
         } catch (error) {
-            console.error("Error fetching users: ", error);
+            console.error("Erro ao buscar usuários: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar a lista de usuários." });
         } finally {
             setLoading(false);
@@ -526,7 +526,7 @@ export default function AdminPage() {
                 setIsAuthenticated(true);
             }
         } catch (e) {
-            console.error("Could not access localStorage.", e);
+            console.error("Não foi possível acessar o localStorage.", e);
         }
         setIsLoading(false);
     }, []);
@@ -598,5 +598,3 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
-
-    

@@ -45,7 +45,7 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
         });
         setPosts(fetchedPosts);
       } catch (error) {
-        console.error("Error fetching influencer posts: ", error);
+        console.error("Erro ao buscar posts do influenciador: ", error);
       } finally {
         setLoading(false);
       }
@@ -128,5 +128,3 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
     </Dialog>
   );
 }
-
-    

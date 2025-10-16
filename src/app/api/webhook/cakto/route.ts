@@ -12,7 +12,7 @@ const LOGIN_URL = process.env.NEXT_PUBLIC_LOGIN_URL || 'http://localhost:9002/lo
 
 async function sendWelcomeEmail(customerName: string, customerEmail: string, password: string): Promise<boolean> {
     if (!GMAIL_EMAIL || !GMAIL_APP_PASSWORD) {
-        console.error("Gmail credentials are not configured in environment variables.");
+        console.error("As credenciais do Gmail não estão configuradas nas variáveis de ambiente.");
         return false;
     }
 
@@ -52,7 +52,7 @@ async function sendWelcomeEmail(customerName: string, customerEmail: string, pas
         console.log('Email enviado com sucesso para:', customerEmail);
         return true;
     } catch (error) {
-        console.error(`Failed to send email to ${customerEmail}:`, error);
+        console.error(`Falha ao enviar email para ${customerEmail}:`, error);
         return false;
     }
 }
@@ -61,21 +61,21 @@ async function sendWelcomeEmail(customerName: string, customerEmail: string, pas
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
-    console.log("Webhook payload received:", payload);
+    console.log("Payload do webhook recebido:", payload);
 
 
     if (!CAKTO_WEBHOOK_SECRET) {
-      console.error("CAKTO_WEBHOOK_SECRET is not set in environment variables.");
-      return NextResponse.json({ error: "Webhook secret is not configured." }, { status: 500 });
+      console.error("O segredo do webhook (CAKTO_WEBHOOK_SECRET) não está configurado nas variáveis de ambiente.");
+      return NextResponse.json({ error: "O segredo do webhook não está configurado." }, { status: 500 });
     }
     
     if (payload.secret !== CAKTO_WEBHOOK_SECRET) {
-      console.warn("Webhook secret mismatch");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      console.warn("Segredo do webhook não corresponde.");
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
     if (payload.event !== 'charge_paid') {
-      return NextResponse.json({ message: `Event ${payload.event} received, but not processed.` }, { status: 200 });
+      return NextResponse.json({ message: `Evento ${payload.event} recebido, mas não processado.` }, { status: 200 });
     }
     
     const { data } = payload;
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     const paidAt = data?.paidAt;
 
     if (!customerEmail || !paidAt || !customerName) {
-      return NextResponse.json({ error: "Missing customer name, email or payment date" }, { status: 400 });
+      return NextResponse.json({ error: "Nome, email do cliente ou data de pagamento ausentes" }, { status: 400 });
     }
 
     const usersCol = collection(db, 'users');
@@ -119,16 +119,16 @@ export async function POST(req: NextRequest) {
         paidAt: Timestamp.fromDate(paidAtDate),
         subscriptionExpiresAt: Timestamp.fromDate(subscriptionExpiresAt),
       });
-      console.log(`Subscription updated for existing user: ${customerEmail}`);
+      console.log(`Assinatura atualizada para o usuário existente: ${customerEmail}`);
     }
 
-    return NextResponse.json({ message: "Webhook processed successfully" }, { status: 200 });
+    return NextResponse.json({ message: "Webhook processado com sucesso" }, { status: 200 });
 
   } catch (error) {
-    console.error("Error processing webhook:", error);
+    console.error("Erro ao processar o webhook:", error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
+    return NextResponse.json({ error: "Ocorreu um erro desconhecido" }, { status: 500 });
   }
 }

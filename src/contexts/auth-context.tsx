@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         storedUser = JSON.parse(storedUserJSON);
       } catch (error) {
-        console.error("Failed to parse user from localStorage", error);
+        console.error("Falha ao analisar o usuário do localStorage", error);
         setLoading(false);
         return;
       }
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (freshUserData.subscriptionExpiresAt) {
               const expiresAt = (freshUserData.subscriptionExpiresAt as Timestamp).toDate();
               if (new Date() > expiresAt) {
-                console.log("Subscription expired on load, logging out.");
+                console.log("A assinatura expirou durante o carregamento, fazendo logout.");
                 showSubscriptionModal(expiresAt);
                 logout();
                 return;
@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             logout();
           }
         } catch (error) {
-            console.error("Error verifying user session against Firestore:", error);
+            console.error("Erro ao verificar a sessão do usuário no Firestore:", error);
             // In case of DB error, trust local data for a bit but might be stale
             setUser(storedUser);
         }
@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
 
     } catch (error) {
-        console.error("Login error:", error);
+        console.error("Erro de login:", error);
         toast({
             variant: "destructive",
             title: "Erro Inesperado",

@@ -77,7 +77,7 @@ function InfluencerForm({ onSuccess, influencerToEdit, onCancel }: { onSuccess: 
             }
             onSuccess();
         } catch (error) {
-            console.error("Error saving influencer: ", error);
+            console.error("Erro ao salvar influenciador: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar o influenciador." });
         } finally {
             setIsSubmitting(false);
@@ -169,7 +169,7 @@ export function InfluencersManager() {
             const fetchedInfluencers = querySnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Influencer));
             setInfluencers(fetchedInfluencers);
         } catch (error) {
-            console.error("Error fetching influencers: ", error);
+            console.error("Erro ao buscar influenciadores: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar a lista de influenciadores." });
         } finally {
             setLoading(false);
@@ -339,5 +339,3 @@ export function InfluencersManager() {
         </>
     )
 }
-
-    

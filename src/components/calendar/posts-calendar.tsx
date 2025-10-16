@@ -59,7 +59,7 @@ export function PostsCalendar() {
       setProducts(fetchedProducts);
 
     } catch (error) {
-      console.error("Error fetching calendar data:", error);
+      console.error("Erro ao buscar dados do calendário:", error);
       toast({
         variant: "destructive",
         title: "Erro ao carregar dados",

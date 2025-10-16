@@ -214,7 +214,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
             }
             onSuccess();
         } catch (error) {
-            console.error("Error saving post: ", error);
+            console.error("Erro ao salvar post: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar o post." });
         } finally {
             setIsSubmitting(false);
@@ -430,7 +430,7 @@ export function PostsManager() {
             setProducts(fetchedProducts);
 
         } catch (error) {
-            console.error("Error fetching data: ", error);
+            console.error("Erro ao buscar dados: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar os dados." });
         } finally {
             if(showLoading) setLoading(false);
@@ -726,5 +726,3 @@ export function PostsManager() {
         </>
     )
 }
-
-    

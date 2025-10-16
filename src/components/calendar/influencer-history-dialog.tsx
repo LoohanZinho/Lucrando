@@ -60,7 +60,7 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
         setProducts(fetchedProducts);
 
       } catch (error) {
-        console.error("Error fetching influencer history: ", error);
+        console.error("Erro ao buscar histórico do influenciador: ", error);
       } finally {
         setLoading(false);
       }
@@ -179,5 +179,3 @@ export function InfluencerHistoryDialog({ influencer, open, onOpenChange }: Infl
     </Dialog>
   );
 }
-
-    

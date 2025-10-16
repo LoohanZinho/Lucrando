@@ -64,7 +64,7 @@ function ProductForm({ onSuccess, productToEdit, onCancel }: { onSuccess: () => 
             }
             onSuccess();
         } catch (error) {
-            console.error("Error saving product: ", error);
+            console.error("Erro ao salvar produto: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar o produto." });
         } finally {
             setIsSubmitting(false);
@@ -118,7 +118,7 @@ export function ProductsManager() {
             const fetchedProducts = querySnapshot.docs.map((doc: DocumentData) => ({ id: doc.id, ...doc.data() } as Product));
             setProducts(fetchedProducts);
         } catch (error) {
-            console.error("Error fetching products: ", error);
+            console.error("Erro ao buscar produtos: ", error);
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar a lista de produtos." });
         } finally {
             setLoading(false);
@@ -254,5 +254,3 @@ export function ProductsManager() {
         </>
     )
 }
-
-    
