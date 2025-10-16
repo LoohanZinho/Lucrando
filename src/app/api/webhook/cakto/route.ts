@@ -10,6 +10,18 @@ const GMAIL_EMAIL = process.env.GMAIL_EMAIL;
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 const LOGIN_URL = process.env.NEXT_PUBLIC_LOGIN_URL || 'http://localhost:9002/login';
 
+const appBenefits = `
+    <ul style="padding-left: 20px;">
+        <li><strong>Dashboard Analítico:</strong> Visão completa com Receita, Lucro, ROI e mais.</li>
+        <li><strong>Gráficos Interativos:</strong> Análise de tendência de lucro e funil de conversão.</li>
+        <li><strong>Gerenciamento de Posts:</strong> Cadastro detalhado de cada campanha.</li>
+        <li><strong>Cadastro de Entidades:</strong> Gerencie seus Influenciadores e Produtos.</li>
+        <li>
+<strong>Filtragem Avançada:</strong> Filtre os dados por período, influenciador ou produto.</li>
+    </ul>
+`;
+
+
 async function sendWelcomeEmail(customerName: string, customerEmail: string, password: string): Promise<boolean> {
     if (!GMAIL_EMAIL || !GMAIL_APP_PASSWORD) {
         console.error("As credenciais do Gmail não estão configuradas nas variáveis de ambiente.");
@@ -36,6 +48,8 @@ async function sendWelcomeEmail(customerName: string, customerEmail: string, pas
             </ul>
             <p>Você pode acessar a plataforma através do link abaixo:</p>
             <a href="${LOGIN_URL}" style="background-color: #facc15; color: #1f2937; padding: 12px 20px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Acessar Plataforma</a>
+            <p style="margin-top: 20px;">Explore alguns dos benefícios que você tem acesso:</p>
+            ${appBenefits}
             <p style="margin-top: 20px; font-size: 0.9em; color: #555;">Recomendamos que você altere sua senha no primeiro acesso.</p>
         </div>
     `;
@@ -49,10 +63,53 @@ async function sendWelcomeEmail(customerName: string, customerEmail: string, pas
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log('Email enviado com sucesso para:', customerEmail);
+        console.log('Email de boas-vindas enviado com sucesso para:', customerEmail);
         return true;
     } catch (error) {
-        console.error(`Falha ao enviar email para ${customerEmail}:`, error);
+        console.error(`Falha ao enviar email de boas-vindas para ${customerEmail}:`, error);
+        return false;
+    }
+}
+
+async function sendRenewalEmail(customerName: string, customerEmail: string): Promise<boolean> {
+    if (!GMAIL_EMAIL || !GMAIL_APP_PASSWORD) {
+        console.error("As credenciais do Gmail não estão configuradas.");
+        return false;
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: GMAIL_EMAIL,
+            pass: GMAIL_APP_PASSWORD,
+        },
+    });
+
+    const emailHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2>Pagamento Confirmado!</h2>
+            <p>Olá, ${customerName}!</p>
+            <p>Recebemos o seu pagamento e sua assinatura foi renovada com sucesso. Obrigado por continuar conosco!</p>
+            <h3>Continue aproveitando todos os benefícios:</h3>
+            ${appBenefits}
+            <p>Acesse a plataforma a qualquer momento para gerenciar suas campanhas:</p>
+            <a href="${LOGIN_URL}" style="background-color: #facc15; color: #1f2937; padding: 12px 20px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Acessar Plataforma</a>
+        </div>
+    `;
+
+    const mailOptions = {
+        from: `"LCI HUB" <${GMAIL_EMAIL}>`,
+        to: customerEmail,
+        subject: 'Recebemos o seu pagamento!',
+        html: emailHtml,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('Email de renovação enviado com sucesso para:', customerEmail);
+        return true;
+    } catch (error) {
+        console.error(`Falha ao enviar email de renovação para ${customerEmail}:`, error);
         return false;
     }
 }
@@ -108,7 +165,7 @@ export async function POST(req: NextRequest) {
       await addDoc(usersCol, newUserDoc);
       console.log('Usuário criado com sucesso:', customerName);
       
-      console.log('Enviando email para o usuário:', customerName, customerEmail);
+      console.log('Enviando email de boas-vindas para o usuário:', customerName, customerEmail);
       await sendWelcomeEmail(customerName, customerEmail, defaultPassword);
 
     } else {
@@ -120,6 +177,9 @@ export async function POST(req: NextRequest) {
         subscriptionExpiresAt: Timestamp.fromDate(subscriptionExpiresAt),
       });
       console.log(`Assinatura atualizada para o usuário existente: ${customerEmail}`);
+      
+      console.log('Enviando email de renovação para o usuário:', customerName, customerEmail);
+      await sendRenewalEmail(customerName, customerEmail);
     }
 
     return NextResponse.json({ message: "Webhook processado com sucesso" }, { status: 200 });
