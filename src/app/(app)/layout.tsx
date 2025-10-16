@@ -8,6 +8,7 @@ import { useLoader } from '@/contexts/loader-context';
 import { BottomNav } from '@/components/bottom-nav';
 import { Header } from '@/components/header';
 import { Loader2 } from 'lucide-react';
+import { SubscriptionWarning } from '@/components/subscription-warning';
 
 export default function AppLayout({
   children,
@@ -39,6 +40,7 @@ export default function AppLayout({
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <Header />
         <main className="flex-1 items-start gap-4 p-4 md:gap-8 pb-20 sm:pb-4">
+            <SubscriptionWarning />
             {children}
         </main>
       </div>
