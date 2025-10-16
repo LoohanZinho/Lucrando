@@ -62,6 +62,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (querySnapshot.empty) {
         // This is the only place we should return "invalid credentials"
+        toast({
+          variant: "destructive",
+          title: "Erro de Login",
+          description: "As credenciais fornecidas estão incorretas. Por favor, tente novamente.",
+        });
         return false;
       }
       
@@ -109,42 +114,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (username: string, email: string, pass: string): Promise<boolean> => {
-     showLoader();
-     try {
-        const usersCol = collection(db, 'users');
-        const q = query(usersCol, where("email", "==", email));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            toast({
-              variant: "destructive",
-              title: "Erro de Cadastro",
-              description: "Este e-mail já está em uso.",
-            });
-            return false;
-        }
-
-        // Não cria o usuário, apenas mostra o toast
-        toast({
-          title: "Quase lá!",
-          description: "Agora realize o pagamento para receber suas credenciais de acesso por e-mail.",
-          duration: 10000,
-        });
-        
-        // Retorna false para manter o usuário na tela atual e redirecioná-lo para o checkout (se aplicável).
-        return false;
-
-     } catch (error) {
-        console.error("Signup check error:", error);
-         toast({
-          variant: "destructive",
-          title: "Erro Inesperado",
-          description: "Ocorreu um erro durante a verificação do cadastro.",
-        });
-        return false;
-     } finally {
-        hideLoader();
-     }
+     // This function is deprecated as user creation is handled by the Cakto webhook.
+     // It now just provides feedback to the user.
+    toast({
+        title: "Acesso via Pagamento",
+        description: "As credenciais de acesso são enviadas por e-mail após a confirmação do pagamento.",
+        duration: 8000,
+    });
+    return false;
   };
 
   const logout = () => {

@@ -7,11 +7,18 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn } from "lucide-react";
+import { LogIn, HelpCircle } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,11 +37,7 @@ export default function LoginPage() {
     if (success) {
       router.push('/dashboard');
     } else {
-       toast({
-        variant: "destructive",
-        title: "Erro de Login",
-        description: "As credenciais fornecidas estão incorretas. Por favor, tente novamente.",
-      });
+      // O toast de erro já é mostrado dentro da função de login
       setLoading(false);
     }
   };
@@ -80,11 +83,18 @@ export default function LoginPage() {
               {loading ? "Entrando..." : "Entrar"}
               <LogIn className="ml-2 h-4 w-4" />
             </Button>
-            <div className="text-sm text-center">
-                <span className="text-muted-foreground">Não tem uma conta? </span>
-                <Link href="/signup" className="underline font-medium text-primary hover:text-primary/90">
-                    Criar nova conta
-                </Link>
+            <div className="text-sm text-center text-muted-foreground flex items-center justify-center gap-2">
+                <span>Não tem uma conta?</span>
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                           <HelpCircle className="h-4 w-4 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>As credenciais são enviadas por e-mail após o pagamento.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
           </CardFooter>
         </form>
