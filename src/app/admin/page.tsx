@@ -108,7 +108,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     async function onSubmit(values: UserFormData) {
         setIsSubmitting(true);
         try {
-            let dataToSave: Partial<UserFormData> & { [key: string]: any } = { 
+            const dataToSave: { [key: string]: any; } = { 
                 ...values,
                 subscriptionExpiresAt: values.subscriptionExpiresAt ? Timestamp.fromDate(values.subscriptionExpiresAt) : null,
              };
@@ -129,7 +129,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
                 if (dataToSave.password === '******') {
                     delete dataToSave.password;
                 }
-                await updateDoc(userRef, dataToSave as { [x: string]: any; });
+                await updateDoc(userRef, dataToSave);
                 toast({ title: "Sucesso!", description: "Usuário atualizado." });
             } else {
                 await addDoc(collection(db, 'users'), dataToSave);
