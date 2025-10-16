@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts";
@@ -72,21 +73,32 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
             formatter={(value, name, item, index, payload) => {
               const originalProfit = item?.payload?.profit;
               
-              // This is the key change: only render the tooltip for one of the series.
-              // We choose 'positive' but it could be 'negative'. This prevents duplicate entries.
-              if (name !== 'positive') return null;
+              if (name === 'positive' && originalProfit > 0) {
+                const color = "hsl(var(--chart-1))";
+                return (
+                    <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: color}} />
+                        <span className="capitalize">Lucro</span>
+                        <span className="font-bold text-foreground ml-auto">
+                            {typeof originalProfit === 'number' ? `R$ ${originalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
+                        </span>
+                    </div>
+                )
+              }
+               if (name === 'negative' && originalProfit < 0) {
+                const color = "hsl(var(--destructive))";
+                return (
+                    <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: color}} />
+                        <span className="capitalize">Lucro</span>
+                        <span className="font-bold text-foreground ml-auto">
+                            {typeof originalProfit === 'number' ? `R$ ${originalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
+                        </span>
+                    </div>
+                )
+              }
 
-              const color = originalProfit >= 0 ? "hsl(var(--chart-1))" : "hsl(var(--destructive))";
-
-              return (
-                <div className="flex items-center gap-2" key="profit-tooltip">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: color}} />
-                    <span className="capitalize">Lucro</span>
-                    <span className="font-bold text-foreground ml-auto">
-                        {typeof originalProfit === 'number' ? `R$ ${originalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
-                    </span>
-                </div>
-              )
+              return null;
             }}
           />}
         />
@@ -122,14 +134,14 @@ export function ProfitChart({ data }: { data: { month: string, profit: number }[
         
         <Area
           dataKey="positive"
-          type="natural"
+          type="monotone"
           fill="url(#fillPositive)"
           stroke="var(--color-positive)"
           stackId="a"
         />
          <Area
           dataKey="negative"
-          type="natural"
+          type="monotone"
           fill="url(#fillNegative)"
           stroke="var(--color-negative)"
           stackId="a"
