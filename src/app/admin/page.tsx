@@ -108,7 +108,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     async function onSubmit(values: UserFormData) {
         setIsSubmitting(true);
         try {
-            let dataToSave: Partial<UserFormData> & { photoURL?: string, subscriptionExpiresAt?: Timestamp | null } = { 
+            let dataToSave: Partial<UserFormData> & { [key: string]: any } = { 
                 ...values,
                 subscriptionExpiresAt: values.subscriptionExpiresAt ? Timestamp.fromDate(values.subscriptionExpiresAt) : null,
              };
@@ -598,3 +598,5 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
+
+    
