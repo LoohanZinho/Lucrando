@@ -112,7 +112,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
     const productSelection = useWatch({ control: form.control, name: 'productSelection' });
     const influencerSelection = useWatch({ control: form.control, name: 'influencerSelection' });
 
-    // ### INÍCIO DA CORREÇÃO ###
     useEffect(() => {
         if (postToEdit) {
             // Mapeamento explícito dos campos para garantir a pré-seleção correta
@@ -160,8 +159,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 sales: undefined,
             });
         }
-    }, [postToEdit, form, initialDate]);
-    // ### FIM DA CORREÇÃO ###
+    }, [postToEdit, form, initialDate, products, influencers]);
 
 
     async function onSubmit(values: PostFormData) {
