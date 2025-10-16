@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -5,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Loader2, Eye, Pencil, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { PlusCircle, Loader2, Eye, Pencil, Trash2, Calendar as CalendarIcon, ExternalLink } from "lucide-react";
 import { type Post, type Influencer, type Product } from "@/lib/data-types";
 import { useAuth } from "@/contexts/auth-context";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, Timestamp } from "firebase/firestore/lite";
@@ -288,12 +289,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                             <FormField control={form.control} name="influencerId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Influenciador</FormLabel>
-                                    <Select 
-                                      onValueChange={field.onChange} 
-                                      value={isEditMode ? undefined : field.value}
-                                      defaultValue={isEditMode ? field.value : undefined}
-                                      disabled={influencers.length === 0}
-                                    >
+                                    <Select key={postToEdit?.id || 'influencer-new'} onValueChange={field.onChange} value={field.value} disabled={influencers.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {influencerOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -338,12 +334,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select 
-                                      onValueChange={field.onChange} 
-                                      value={isEditMode ? undefined : field.value}
-                                      defaultValue={isEditMode ? field.value : undefined}
-                                      disabled={products.length === 0}
-                                    >
+                                    <Select key={postToEdit?.id || 'product-new'} onValueChange={field.onChange} value={field.value} disabled={products.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {productOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -738,3 +729,5 @@ export function PostsManager() {
         </>
     )
 }
+
+    
