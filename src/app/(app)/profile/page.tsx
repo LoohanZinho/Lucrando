@@ -304,7 +304,7 @@ export default function ProfilePage() {
                     <Progress value={subscriptionInfo.progress} className="h-2" />
                 </div>
             )}
-             {subscriptionInfo.expiresAt && (
+             {subscriptionInfo.expiresAt && subscriptionInfo.remainingDays !== undefined && subscriptionInfo.remainingDays <= 5 && (
                 <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500 bg-amber-500/10 p-3 rounded-md">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
                     <p>Ao final deste período, seu acesso à plataforma será suspenso até a renovação.</p>

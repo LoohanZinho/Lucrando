@@ -21,16 +21,23 @@ export function SubscriptionWarning() {
     const today = new Date();
     const remainingDays = differenceInDays(expiresAt, today);
 
-    if (remainingDays > 1) {
+    if (remainingDays > 5) {
         return null;
     }
     
     const formattedDate = format(expiresAt, "dd 'de' MMMM", { locale: ptBR });
-    const message = remainingDays < 0 
-        ? "Sua assinatura expirou." 
-        : remainingDays === 0
-        ? "Sua assinatura expira hoje."
-        : `Sua assinatura expira amanhã, dia ${formattedDate}.`;
+    
+    let message;
+    if (remainingDays < 0) {
+        message = "Sua assinatura expirou.";
+    } else if (remainingDays === 0) {
+        message = "Sua assinatura expira hoje.";
+    } else if (remainingDays === 1) {
+        message = "Sua assinatura expira amanhã.";
+    } else {
+        message = `Sua assinatura expira em ${remainingDays} dias, em ${formattedDate}.`;
+    }
+
 
     return (
         <Alert variant={remainingDays < 0 ? "destructive" : "default"} className="mb-6 bg-primary/10 border-primary/50 text-primary-foreground">
