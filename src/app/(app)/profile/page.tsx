@@ -18,7 +18,7 @@ import { Loader2, Camera, Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CropperImage } from "@/components/cropper-image";
 import { Progress } from "@/components/ui/progress";
-import { differenceInDays, formatDistanceToNowStrict } from "date-fns";
+import { differenceInDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const profileSchema = z.object({
@@ -48,7 +48,7 @@ export default function ProfilePage() {
   
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [subscriptionInfo, setSubscriptionInfo] = useState<{ planName: string; remainingDays?: number; progress?: number }>({ planName: "Vitalício" });
+  const [subscriptionInfo, setSubscriptionInfo] = useState<{ planName: string; expiresAt?: Date; progress?: number }>({ planName: "Vitalício" });
 
   const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
@@ -75,8 +75,6 @@ export default function ProfilePage() {
       });
       setPhotoURL(user.photoURL || null);
 
-      // A data pode vir como um objeto com `seconds` e `nanoseconds` do localStorage
-      // ou como um `Timestamp` do Firestore.
       const expiresAtTimestamp = user.subscriptionExpiresAt as Timestamp | { seconds: number, nanoseconds: number };
       const paidAtTimestamp = user.paidAt as Timestamp | { seconds: number, nanoseconds: number };
 
@@ -90,7 +88,7 @@ export default function ProfilePage() {
           
           setSubscriptionInfo({
               planName: "Plano Mensal",
-              remainingDays: Math.max(0, remainingDays),
+              expiresAt: expiresAt,
               progress: Math.min(100, progress),
           });
       } else {
@@ -237,8 +235,8 @@ export default function ProfilePage() {
                 <div>
                     <p className="font-semibold">{subscriptionInfo.planName}</p>
                     <p className="text-sm text-muted-foreground">
-                        {subscriptionInfo.remainingDays !== undefined 
-                            ? `Restam ${formatDistanceToNowStrict(new Date(new Date().setDate(new Date().getDate() + subscriptionInfo.remainingDays)), { locale: ptBR, unit: 'day' })}`
+                        {subscriptionInfo.expiresAt
+                            ? `Sua assinatura expira em ${format(subscriptionInfo.expiresAt, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`
                             : 'Acesso por tempo ilimitado.'
                         }
                     </p>
