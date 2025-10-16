@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/sidebar';
 import { useLoader } from '@/contexts/loader-context';
 import { BottomNav } from '@/components/bottom-nav';
 import { Header } from '@/components/header';
+import { Loader2 } from 'lucide-react';
 
 export default function AppLayout({
   children,
