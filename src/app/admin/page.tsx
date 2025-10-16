@@ -20,8 +20,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CropperImage } from "@/components/cropper-image";
 
-// Schema para o formulário de usuário
 const userSchema = z.object({
     displayName: z.string().min(2, "Nome é obrigatório"),
     email: z.string().email("Email inválido"),
@@ -30,13 +30,15 @@ const userSchema = z.object({
 });
 type UserFormData = z.infer<typeof userSchema>;
 
-// --- Componente do Formulário de Usuário ---
 function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, userToEdit?: UserType | null, onCancel: () => void }) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isEditMode = !!userToEdit;
+
+    const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
 
     const form = useForm<UserFormData>({
         resolver: zodResolver(userSchema),
@@ -49,23 +51,35 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
         if (userToEdit) {
             form.reset({
                 ...userToEdit,
-                password: userToEdit.password || '******', // mascarar senha
+                password: userToEdit.password || '******',
             });
         } else {
             form.reset({ displayName: "", email: "", password: "", photoURL: "" });
         }
     }, [userToEdit, form]);
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        const reader = new FileReader();
+        reader.onload = () => {
+            setImageToCrop(reader.result as string);
+            setIsCropperOpen(true);
+        };
+        reader.readAsDataURL(file);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+    
+    const handleCropComplete = async (croppedBlob: Blob) => {
         setIsUploading(true);
         const userIdForUpload = userToEdit?.id || new Date().getTime().toString();
-        
         try {
-            const storageRef = ref(storage, `profile_pictures/${userIdForUpload}/${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
+            const storageRef = ref(storage, `profile_pictures/${userIdForUpload}/profile.jpg`);
+            const snapshot = await uploadBytes(storageRef, croppedBlob, { contentType: 'image/jpeg' });
             const downloadURL = await getDownloadURL(snapshot.ref);
             form.setValue('photoURL', downloadURL);
             toast({ title: "Upload Concluído", description: "A imagem foi enviada." });
@@ -74,16 +88,15 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
             toast({ variant: "destructive", title: "Erro de Upload", description: "Não foi possível enviar a imagem." });
         } finally {
             setIsUploading(false);
+            setImageToCrop(null);
         }
     };
-
 
     async function onSubmit(values: UserFormData) {
         setIsSubmitting(true);
         try {
             let dataToSave: Partial<UserFormData> & { photoURL?: string } = { ...values };
 
-            // Verifica se o email já existe ao criar novo usuário
             if (!isEditMode) {
                 const usersCol = collection(db, 'users');
                 const q = query(usersCol, where("email", "==", values.email));
@@ -116,6 +129,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     }
 
     return (
+        <>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4">
                 
@@ -169,10 +183,16 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
                 </div>
             </form>
         </Form>
+        <CropperImage
+            imageSrc={imageToCrop}
+            open={isCropperOpen}
+            onOpenChange={setIsCropperOpen}
+            onCropComplete={handleCropComplete}
+        />
+        </>
     );
 }
 
-// --- Componente do Dashboard de Admin ---
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const { toast } = useToast();
     const [users, setUsers] = useState<UserType[]>([]);
@@ -327,8 +347,6 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     );
 }
 
-
-// --- Componente Principal da Página ---
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -339,7 +357,6 @@ export default function AdminPage() {
     const AUTH_KEY = "lci-admin-auth-v2";
 
     useEffect(() => {
-        // Verificar o localStorage apenas no cliente
         try {
             const authStatus = localStorage.getItem(AUTH_KEY);
             if (authStatus === 'true') {

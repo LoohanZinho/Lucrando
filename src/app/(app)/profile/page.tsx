@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Camera } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CropperImage } from "@/components/cropper-image";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "O nome de usuário é obrigatório."),
@@ -32,6 +33,10 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // State for image cropper
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+
   const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
   const form = useForm<ProfileFormData>({
@@ -52,12 +57,28 @@ export default function ProfilePage() {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setIsCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset file input to allow re-selection of the same file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user) return;
     setIsUploading(true);
+
     try {
-      const storageRef = ref(storage, `profile_pictures/${user.id}/${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
+      const storageRef = ref(storage, `profile_pictures/${user.id}/profile.jpg`);
+      const snapshot = await uploadBytes(storageRef, croppedBlob, { contentType: 'image/jpeg' });
       const downloadURL = await getDownloadURL(snapshot.ref);
 
       setPhotoURL(downloadURL);
@@ -79,9 +100,9 @@ export default function ProfilePage() {
       });
     } finally {
       setIsUploading(false);
+      setImageToCrop(null);
     }
   };
-
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!user) {
@@ -122,80 +143,89 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Meu Perfil</h1>
-        <p className="text-muted-foreground">
-          Gerencie as informações da sua conta.
-        </p>
+    <>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Meu Perfil</h1>
+          <p className="text-muted-foreground">
+            Gerencie as informações da sua conta.
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalhes do Perfil</CardTitle>
+            <CardDescription>
+              Atualize seu nome de usuário e foto de perfil.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="flex flex-col items-center gap-4">
+                      <div className="relative group">
+                          <Avatar className="h-32 w-32">
+                              <AvatarImage src={photoURL || undefined} alt={user?.displayName || "Avatar"} />
+                              <AvatarFallback className="text-4xl">{userInitial}</AvatarFallback>
+                          </Avatar>
+                          <div 
+                              className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                              onClick={() => fileInputRef.current?.click()}
+                          >
+                              {isUploading ? (
+                                  <Loader2 className="h-8 w-8 text-white animate-spin" />
+                              ) : (
+                                  <Camera className="h-8 w-8 text-white" />
+                              )}
+                          </div>
+                      </div>
+                      <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileChange}
+                          className="hidden"
+                          accept="image/png, image/jpeg, image/gif"
+                          disabled={isUploading}
+                      />
+                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                          {isUploading ? "Enviando..." : "Trocar Foto"}
+                      </Button>
+                  </div>
+
+                <FormField
+                  control={form.control}
+                  name="displayName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome de Usuário</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Seu nome" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Salvar Alterações
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalhes do Perfil</CardTitle>
-          <CardDescription>
-            Atualize seu nome de usuário e foto de perfil.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="relative group">
-                        <Avatar className="h-32 w-32">
-                            <AvatarImage src={photoURL || undefined} alt={user?.displayName || "Avatar"} />
-                            <AvatarFallback className="text-4xl">{userInitial}</AvatarFallback>
-                        </Avatar>
-                        <div 
-                            className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            {isUploading ? (
-                                <Loader2 className="h-8 w-8 text-white animate-spin" />
-                            ) : (
-                                <Camera className="h-8 w-8 text-white" />
-                            )}
-                        </div>
-                    </div>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        className="hidden"
-                        accept="image/png, image/jpeg, image/gif"
-                        disabled={isUploading}
-                    />
-                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                        {isUploading ? "Enviando..." : "Trocar Foto"}
-                    </Button>
-                </div>
-
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome de Usuário</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Seu nome" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Salvar Alterações
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+      <CropperImage
+        imageSrc={imageToCrop}
+        open={isCropperOpen}
+        onOpenChange={setIsCropperOpen}
+        onCropComplete={handleCropComplete}
+      />
+    </>
   );
 }
