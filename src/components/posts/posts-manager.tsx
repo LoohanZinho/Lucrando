@@ -126,9 +126,9 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 clicks: postToEdit.clicks ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 productSelection: 'existing', 
-                productId: postToEdit.productId,
+                productId: String(postToEdit.productId || ''),
                 influencerSelection: 'existing',
-                influencerId: postToEdit.influencerId
+                influencerId: String(postToEdit.influencerId || '')
             });
         } else {
             form.reset({
@@ -325,7 +325,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={products.length === 0}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto" : "Selecione..."} /></SelectTrigger></FormControl>
+                                        <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {productOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                                         </SelectContent>
