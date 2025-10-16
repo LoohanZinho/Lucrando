@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -34,7 +33,6 @@ import { ptBR } from "date-fns/locale";
 const postSchema = z.object({
     title: z.string().min(2, "Título é obrigatório"),
     description: z.string().optional(),
-    link: z.string().url("Link inválido").optional().or(z.literal('')),
     postDate: z.date({ required_error: "A data do post é obrigatória." }),
     
     influencerSelection: z.enum(['existing', 'new']).default('existing'),
@@ -94,7 +92,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
         defaultValues: {
             title: "",
             description: "",
-            link: "",
             postDate: initialDate || new Date(),
             influencerSelection: 'existing',
             influencerId: undefined,
@@ -115,42 +112,38 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
     const productSelection = useWatch({ control: form.control, name: 'productSelection' });
     const influencerSelection = useWatch({ control: form.control, name: 'influencerSelection' });
 
+    // ### INÍCIO DA CORREÇÃO ###
     useEffect(() => {
         if (postToEdit) {
-            // Mapeamento explícito dos campos para evitar inconsistências
+            // Mapeamento explícito dos campos para garantir a pré-seleção correta
             form.reset({
                 title: postToEdit.title,
                 description: postToEdit.description || "",
-                link: postToEdit.link || "",
                 postDate: postToEdit.postDate instanceof Timestamp ? postToEdit.postDate.toDate() : postToEdit.postDate,
                 
-                // Define que a seleção é 'existente' e passa o ID correto
                 influencerSelection: 'existing',
                 influencerId: postToEdit.influencerId,
 
-                // Define que a seleção é 'existente' e passa o ID correto
                 productSelection: 'existing',
                 productId: postToEdit.productId,
 
-                // Mapeia as métricas, garantindo 'undefined' se forem nulas
                 investment: postToEdit.investment ?? undefined,
                 revenue: postToEdit.revenue ?? undefined,
                 views: postToEdit.views ?? undefined,
                 clicks: postToEdit.clicks ?? undefined,
                 sales: postToEdit.sales ?? undefined,
 
-                // Campos de 'novo' item ficam vazios no modo de edição
+                // Limpa os campos de "novo" item no modo de edição
                 newInfluencerName: "",
                 newInfluencerInstagram: "",
                 newProductName: "",
                 newProductDescription: "",
             });
         } else {
-            // Lógica para criar um novo post (permanece igual)
+            // Lógica para criar um novo post (permanece a mesma)
             form.reset({
                 title: "",
                 description: "",
-                link: "",
                 postDate: initialDate || new Date(),
                 influencerSelection: 'existing',
                 influencerId: undefined,
@@ -168,6 +161,8 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
             });
         }
     }, [postToEdit, form, initialDate]);
+    // ### FIM DA CORREÇÃO ###
+
 
     async function onSubmit(values: PostFormData) {
         if (!user) {
@@ -366,13 +361,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                         <FormItem className="md:col-span-2">
                             <FormLabel>Descrição</FormLabel>
                             <FormControl><Textarea placeholder="Detalhes sobre o post..." {...field} value={field.value ?? ''}/></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                     <FormField control={form.control} name="link" render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                            <FormLabel>Link de Divulgação</FormLabel>
-                            <FormControl><Input placeholder="https://..." {...field} value={field.value ?? ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />

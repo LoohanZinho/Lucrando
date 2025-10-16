@@ -31,7 +31,6 @@ export interface Post {
     id: string;
     title: string;
     description?: string;
-    link?: string;
     influencerId: string;
     productId: string;
     investment?: number;

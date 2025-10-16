@@ -57,12 +57,6 @@ export function PostDetailsDialog({ post, influencer, product, open, onOpenChang
                      <p className="text-sm bg-muted/50 p-3 rounded-md">{post.description}</p>
                 </div>
             )}
-             {post.link && (
-                <div>
-                     <p className="text-sm font-medium text-muted-foreground mb-1">Link</p>
-                     <a href={post.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate block">{post.link}</a>
-                </div>
-            )}
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <DetailItem label="Produto" value={product?.name} />
