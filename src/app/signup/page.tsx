@@ -57,9 +57,8 @@ export default function SignupPage() {
       <Card className="w-full max-w-sm">
         <form onSubmit={handleSignup}>
           <CardHeader className="text-center">
-             <Link href="/" className="flex flex-col items-center justify-center gap-2 mb-4" title="LCI Home">
-                <Image src="https://i.imgur.com/bgXDxQU.png" alt="LCI Logo" width={48} height={48} />
-                <span className="font-bold text-lg">LCI</span>
+             <Link href="/" className="flex flex-col items-center justify-center gap-4 mb-4" title="LCI Home">
+                <Image src="https://i.imgur.com/bgXDxQU.png" alt="LCI Logo" width={64} height={64} />
             </Link>
             <CardTitle>Criar Nova Conta</CardTitle>
             <CardDescription>
