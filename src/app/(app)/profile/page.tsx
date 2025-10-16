@@ -48,7 +48,7 @@ export default function ProfilePage() {
   
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [subscriptionInfo, setSubscriptionInfo] = useState<{ planName: string; expiresAt?: Date; progress?: number }>({ planName: "Vitalício" });
+  const [subscriptionInfo, setSubscriptionInfo] = useState<{ planName: string; expiresAt?: Date; progress?: number, remainingDays?: number }>({ planName: "Vitalício" });
 
   const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
@@ -89,7 +89,8 @@ export default function ProfilePage() {
           setSubscriptionInfo({
               planName: "Plano Mensal",
               expiresAt: expiresAt,
-              progress: Math.min(100, progress),
+              progress: Math.max(0, Math.min(100, progress)),
+              remainingDays: Math.max(0, remainingDays),
           });
       } else {
           setSubscriptionInfo({ planName: "Plano Vitalício" });
@@ -230,17 +231,25 @@ export default function ProfilePage() {
             <CardDescription>Detalhes do seu plano atual.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-                <Crown className="h-8 w-8 text-primary" />
-                <div>
-                    <p className="font-semibold">{subscriptionInfo.planName}</p>
-                    <p className="text-sm text-muted-foreground">
-                        {subscriptionInfo.expiresAt
-                            ? `Sua assinatura expira em ${format(subscriptionInfo.expiresAt, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`
-                            : 'Acesso por tempo ilimitado.'
-                        }
-                    </p>
+            <div className="flex items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-4">
+                    <Crown className="h-8 w-8 text-primary" />
+                    <div>
+                        <p className="font-semibold">{subscriptionInfo.planName}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {subscriptionInfo.expiresAt
+                                ? `Sua assinatura expira em ${format(subscriptionInfo.expiresAt, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`
+                                : 'Acesso por tempo ilimitado.'
+                            }
+                        </p>
+                    </div>
                 </div>
+                {subscriptionInfo.remainingDays !== undefined && (
+                    <div className="text-right">
+                        <p className="text-sm font-semibold">{subscriptionInfo.remainingDays} dias</p>
+                        <p className="text-xs text-muted-foreground">Restantes</p>
+                    </div>
+                )}
             </div>
             {subscriptionInfo.progress !== undefined && (
                 <div>
