@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { showLoader, hideLoader } = useLoader();
+  const { showLoader } = useLoader();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -37,9 +37,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await signOut(auth);
     } catch (error) {
         console.error("Error signing out: ", error);
-    } finally {
-        // The onAuthStateChanged listener will handle hiding the loader
     }
+    // The onAuthStateChanged listener will handle routing and hiding the loader
   };
 
   const value = { user, loading, logout };

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BarChart3, Home, Users, Calendar, Send, Settings, Package } from 'lucide-react';
+import { BarChart3, Home, Calendar, Send, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
@@ -40,12 +40,12 @@ export function Sidebar() {
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Link href="#" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8">
-                                <Settings className="h-5 w-5" />
-                                <span className="sr-only">Configurações</span>
+                            <Link href="/profile" className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8", { "bg-accent text-accent-foreground": pathname.startsWith('/profile') })}>
+                                <User className="h-5 w-5" />
+                                <span className="sr-only">Perfil</span>
                             </Link>
                         </TooltipTrigger>
-                        <TooltipContent side="right">Configurações</TooltipContent>
+                        <TooltipContent side="right">Perfil</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
             </nav>
