@@ -97,11 +97,11 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
             link: "",
             postDate: initialDate || new Date(),
             influencerSelection: 'existing',
-            influencerId: "",
+            influencerId: undefined,
             newInfluencerName: "",
             newInfluencerInstagram: "",
             productSelection: 'existing',
-            productId: "",
+            productId: undefined,
             newProductName: "",
             newProductDescription: "",
             investment: undefined,
@@ -126,9 +126,9 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 clicks: postToEdit.clicks ?? undefined,
                 sales: postToEdit.sales ?? undefined,
                 productSelection: 'existing', 
-                productId: String(postToEdit.productId || ''),
+                productId: postToEdit.productId || undefined,
                 influencerSelection: 'existing',
-                influencerId: String(postToEdit.influencerId || '')
+                influencerId: postToEdit.influencerId || undefined
             });
         } else {
             form.reset({
@@ -137,11 +137,11 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 link: "",
                 postDate: initialDate || new Date(),
                 influencerSelection: 'existing',
-                influencerId: "",
+                influencerId: undefined,
                 newInfluencerName: "",
                 newInfluencerInstagram: "",
                 productSelection: 'existing',
-                productId: "",
+                productId: undefined,
                 newProductName: "",
                 newProductDescription: "",
                 investment: undefined,
@@ -279,8 +279,8 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                             <FormField control={form.control} name="influencerId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Influenciador</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={influencers.length === 0}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador" : "Selecione..."} /></SelectTrigger></FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={influencers.length === 0}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {influencerOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
                                         </SelectContent>
@@ -324,7 +324,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ?? ''} disabled={products.length === 0}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={products.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {productOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -726,3 +726,5 @@ export function PostsManager() {
         </>
     )
 }
+
+    
