@@ -117,20 +117,36 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
 
     useEffect(() => {
         if (postToEdit) {
+            // Mapeamento explícito dos campos para evitar inconsistências
             form.reset({
-                ...postToEdit,
+                title: postToEdit.title,
+                description: postToEdit.description || "",
+                link: postToEdit.link || "",
                 postDate: postToEdit.postDate instanceof Timestamp ? postToEdit.postDate.toDate() : postToEdit.postDate,
+                
+                // Define que a seleção é 'existente' e passa o ID correto
+                influencerSelection: 'existing',
+                influencerId: postToEdit.influencerId,
+
+                // Define que a seleção é 'existente' e passa o ID correto
+                productSelection: 'existing',
+                productId: postToEdit.productId,
+
+                // Mapeia as métricas, garantindo 'undefined' se forem nulas
                 investment: postToEdit.investment ?? undefined,
                 revenue: postToEdit.revenue ?? undefined,
                 views: postToEdit.views ?? undefined,
                 clicks: postToEdit.clicks ?? undefined,
                 sales: postToEdit.sales ?? undefined,
-                productSelection: 'existing', 
-                productId: postToEdit.productId || undefined,
-                influencerSelection: 'existing',
-                influencerId: postToEdit.influencerId || undefined
+
+                // Campos de 'novo' item ficam vazios no modo de edição
+                newInfluencerName: "",
+                newInfluencerInstagram: "",
+                newProductName: "",
+                newProductDescription: "",
             });
         } else {
+            // Lógica para criar um novo post (permanece igual)
             form.reset({
                 title: "",
                 description: "",
@@ -726,5 +742,3 @@ export function PostsManager() {
         </>
     )
 }
-
-    
