@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon, Badge } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
 import { type User as UserType } from "@/lib/data-types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where, Timestamp } from "firebase/firestore/lite";
@@ -26,6 +26,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 
 const userSchema = z.object({
@@ -208,7 +209,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
                             <PopoverTrigger asChild>
                                 <FormControl>
                                 <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                    {field.value ? format(field.value, "PPP", { locale: ptBR }) : <span>Sem data de expiração</span>}
+                                    {field.value ? format(field.value, "PPP", { locale: ptBR }) : <span>Plano Vitalício / Sem data</span>}
                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
                                 </FormControl>
@@ -304,15 +305,15 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         fetchUsers();
     };
 
-    const getSubscriptionStatus = (user: UserType): { text: string, variant: "default" | "secondary" | "destructive" } => {
+    const getSubscriptionStatus = (user: UserType): { text: string, variant: "default" | "secondary" | "destructive" | "outline" } => {
         if (!user.subscriptionExpiresAt) {
-            return { text: 'Sem Assinatura', variant: 'secondary' };
+            return { text: 'Vitalício', variant: 'default' };
         }
         const expiresDate = (user.subscriptionExpiresAt as Timestamp).toDate();
         if (isBefore(expiresDate, new Date())) {
             return { text: `Expirou em ${format(expiresDate, 'dd/MM/yy')}`, variant: 'destructive' };
         }
-        return { text: `Ativo até ${format(expiresDate, 'dd/MM/yy')}`, variant: 'default' };
+        return { text: `Ativo até ${format(expiresDate, 'dd/MM/yy')}`, variant: 'outline' };
     }
 
     return (

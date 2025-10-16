@@ -61,7 +61,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        // This is the only place we should return "invalid credentials"
         toast({
           variant: "destructive",
           title: "Erro de Login",
@@ -73,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userDoc = querySnapshot.docs[0];
       const userData = userDoc.data() as Omit<User, 'id'>;
 
-      // Subscription validation happens AFTER we know the credentials are correct.
+      // Se o usuário tem uma data de expiração, verifique-a.
       if (userData.subscriptionExpiresAt) {
         const expiresDate = (userData.subscriptionExpiresAt as Timestamp).toDate();
         if (new Date() > expiresDate) {
@@ -82,18 +81,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             title: "Assinatura Expirada",
             description: "Sua assinatura expirou. Por favor, renove para continuar.",
           });
-          return false; // Return false but with a specific toast.
+          return false;
         }
-      } else {
-        // If there's no expiration date, they never paid.
-        toast({
-            variant: "destructive",
-            title: "Sem Assinatura Ativa",
-            description: "Você não possui uma assinatura ativa.",
-          });
-        return false; // Return false but with a specific toast.
       }
-
+      // Se não houver data de expiração (null ou undefined), o acesso é permitido (vitalício).
+      
       const loggedUser: User = { id: userDoc.id, ...userData };
       
       setUser(loggedUser);
@@ -146,3 +138,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+    
