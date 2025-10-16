@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon, Badge } from "lucide-react";
 import { type User as UserType } from "@/lib/data-types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where } from "firebase/firestore/lite";
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where, Timestamp } from "firebase/firestore/lite";
 import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
@@ -21,12 +21,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CropperImage } from "@/components/cropper-image";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, isBefore } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
 
 const userSchema = z.object({
     displayName: z.string().min(2, "Nome é obrigatório"),
     email: z.string().email("Email inválido"),
     password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
     photoURL: z.string().optional(),
+    subscriptionExpiresAt: z.date().nullable().optional(),
 });
 type UserFormData = z.infer<typeof userSchema>;
 
@@ -43,7 +50,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
 
     const form = useForm<UserFormData>({
         resolver: zodResolver(userSchema),
-        defaultValues: { displayName: "", email: "", password: "", photoURL: "" }
+        defaultValues: { displayName: "", email: "", password: "", photoURL: "", subscriptionExpiresAt: null }
     });
 
     const photoUrlValue = form.watch("photoURL");
@@ -53,9 +60,12 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
             form.reset({
                 ...userToEdit,
                 password: userToEdit.password || '******',
+                subscriptionExpiresAt: userToEdit.subscriptionExpiresAt instanceof Timestamp 
+                    ? userToEdit.subscriptionExpiresAt.toDate() 
+                    : null
             });
         } else {
-            form.reset({ displayName: "", email: "", password: "", photoURL: "" });
+            form.reset({ displayName: "", email: "", password: "", photoURL: "", subscriptionExpiresAt: null });
         }
     }, [userToEdit, form]);
 
@@ -96,7 +106,10 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     async function onSubmit(values: UserFormData) {
         setIsSubmitting(true);
         try {
-            let dataToSave: Partial<UserFormData> & { photoURL?: string } = { ...values };
+            let dataToSave: Partial<UserFormData> & { photoURL?: string, subscriptionExpiresAt?: Timestamp | null } = { 
+                ...values,
+                subscriptionExpiresAt: values.subscriptionExpiresAt ? Timestamp.fromDate(values.subscriptionExpiresAt) : null,
+             };
 
             if (!isEditMode) {
                 const usersCol = collection(db, 'users');
@@ -188,6 +201,36 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
                         <FormMessage />
                     </FormItem>
                 )} />
+                <FormField control={form.control} name="subscriptionExpiresAt" render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                        <FormLabel>A Assinatura Expira em</FormLabel>
+                         <Popover>
+                            <PopoverTrigger asChild>
+                                <FormControl>
+                                <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                    {field.value ? format(field.value, "PPP", { locale: ptBR }) : <span>Sem data de expiração</span>}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                                </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value ?? undefined}
+                                    onSelect={(date) => field.onChange(date ?? null)}
+                                    initialFocus
+                                    locale={ptBR}
+                                />
+                                 <div className="p-2 border-t">
+                                    <Button variant="ghost" size="sm" className="w-full justify-center" onClick={() => field.onChange(null)}>
+                                        Limpar data
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                    </FormItem>
+                )} />
                
                 <div className="flex gap-2 justify-end">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
@@ -261,6 +304,17 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         fetchUsers();
     };
 
+    const getSubscriptionStatus = (user: UserType): { text: string, variant: "default" | "secondary" | "destructive" } => {
+        if (!user.subscriptionExpiresAt) {
+            return { text: 'Sem Assinatura', variant: 'secondary' };
+        }
+        const expiresDate = (user.subscriptionExpiresAt as Timestamp).toDate();
+        if (isBefore(expiresDate, new Date())) {
+            return { text: `Expirou em ${format(expiresDate, 'dd/MM/yy')}`, variant: 'destructive' };
+        }
+        return { text: `Ativo até ${format(expiresDate, 'dd/MM/yy')}`, variant: 'default' };
+    }
+
     return (
         <>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -302,44 +356,50 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                         </div>
                                     </div>
                                 ))}
-                                {!loading && users.map(user => (
-                                    <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                                            <Avatar>
-                                                <AvatarImage src={user.photoURL} alt={user.displayName} />
-                                                <AvatarFallback>{user.displayName.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium truncate">{user.displayName}</p>
-                                                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                                {!loading && users.map(user => {
+                                    const status = getSubscriptionStatus(user);
+                                    return (
+                                        <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                <Avatar>
+                                                    <AvatarImage src={user.photoURL} alt={user.displayName} />
+                                                    <AvatarFallback>{user.displayName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium truncate">{user.displayName}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                                                        <Badge variant={status.variant} className="hidden sm:inline-flex">{status.text}</Badge>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(user)}>
+                                                    <Edit className="h-4 w-4"/>
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4"/>
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Tem certeza que deseja excluir <strong>{user.displayName}</strong>? Esta ação não pode ser desfeita.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(user.id)} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(user)}>
-                                                <Edit className="h-4 w-4"/>
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                                        <Trash2 className="h-4 w-4"/>
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Tem certeza que deseja excluir <strong>{user.displayName}</strong>? Esta ação não pode ser desfeita.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDelete(user.id)} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 {!loading && users.length === 0 && (
                                     <p className="text-sm text-muted-foreground text-center py-4">Nenhum usuário encontrado.</p>
                                 )}
