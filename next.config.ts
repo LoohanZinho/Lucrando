@@ -33,6 +33,12 @@ const nextConfig = {
         hostname: 'i.imgur.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lci-dash.firebasestorage.app',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
