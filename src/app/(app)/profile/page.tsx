@@ -12,7 +12,6 @@ import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Camera } from "lucide-react";
@@ -23,37 +22,56 @@ const profileSchema = z.object({
   displayName: z.string().min(2, "O nome de usuário é obrigatório."),
 });
 
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "Senha atual é obrigatória."),
+  newPassword: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres."),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "As novas senhas não coincidem.",
+  path: ["confirmPassword"],
+});
+
 type ProfileFormData = z.infer<typeof profileSchema>;
+type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function ProfilePage() {
   const { user, loading: authLoading, updateUserInContext } = useAuth();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // State for image cropper
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
-  const form = useForm<ProfileFormData>({
+  const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       displayName: "",
     },
   });
 
+  const passwordForm = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
   useEffect(() => {
     if (user) {
-      form.reset({
+      profileForm.reset({
         displayName: user.displayName || "",
       });
       setPhotoURL(user.photoURL || null);
     }
-  }, [user, form]);
+  }, [user, profileForm]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -66,7 +84,6 @@ export default function ProfilePage() {
     };
     reader.readAsDataURL(file);
     
-    // Reset file input to allow re-selection of the same file
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -104,17 +121,10 @@ export default function ProfilePage() {
     }
   };
 
-  const onSubmit = async (data: ProfileFormData) => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Você precisa estar logado para atualizar o perfil.",
-      });
-      return;
-    }
+  const onProfileSubmit = async (data: ProfileFormData) => {
+    if (!user) return;
 
-    setIsSubmitting(true);
+    setIsSubmittingProfile(true);
     try {
       const userRef = doc(db, "users", user.id);
       await updateDoc(userRef, {
@@ -134,9 +144,47 @@ export default function ProfilePage() {
         description: error.message || "Não foi possível atualizar o perfil.",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingProfile(false);
     }
   };
+  
+  const onPasswordSubmit = async (data: PasswordFormData) => {
+      if (!user) return;
+      
+      if (data.currentPassword !== user.password) {
+          toast({
+              variant: "destructive",
+              title: "Erro",
+              description: "A senha atual está incorreta."
+          });
+          return;
+      }
+      
+      setIsSubmittingPassword(true);
+      try {
+          const userRef = doc(db, "users", user.id);
+          await updateDoc(userRef, {
+              password: data.newPassword,
+          });
+
+          updateUserInContext({ password: data.newPassword });
+          passwordForm.reset();
+
+          toast({
+              title: "Sucesso!",
+              description: "Sua senha foi alterada."
+          });
+          
+      } catch (error: any) {
+          toast({
+              variant: "destructive",
+              title: "Erro ao alterar senha",
+              description: error.message || "Não foi possível alterar sua senha."
+          });
+      } finally {
+          setIsSubmittingPassword(false);
+      }
+  }
 
   if (authLoading) {
     return <p>Carregando perfil...</p>;
@@ -160,8 +208,8 @@ export default function ProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Form {...profileForm}>
+              <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
                   <div className="flex flex-col items-center gap-4">
                       <div className="relative group">
                           <Avatar className="h-32 w-32">
@@ -193,7 +241,7 @@ export default function ProfilePage() {
                   </div>
 
                 <FormField
-                  control={form.control}
+                  control={profileForm.control}
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
@@ -207,8 +255,8 @@ export default function ProfilePage() {
                 />
 
                 <div className="flex justify-end">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting && (
+                  <Button type="submit" disabled={isSubmittingProfile}>
+                    {isSubmittingProfile && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Salvar Alterações
@@ -218,6 +266,69 @@ export default function ProfilePage() {
             </Form>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Alterar Senha</CardTitle>
+            <CardDescription>
+              Para sua segurança, escolha uma senha forte.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+             <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                    <FormField
+                        control={passwordForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Senha Atual</FormLabel>
+                                <FormControl>
+                                    <Input type="password" placeholder="Sua senha atual" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={passwordForm.control}
+                        name="newPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nova Senha</FormLabel>
+                                <FormControl>
+                                    <Input type="password" placeholder="Sua nova senha" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={passwordForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Confirmar Nova Senha</FormLabel>
+                                <FormControl>
+                                    <Input type="password" placeholder="Confirme sua nova senha" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <div className="flex justify-end pt-2">
+                        <Button type="submit" disabled={isSubmittingPassword}>
+                            {isSubmittingPassword && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            Alterar Senha
+                        </Button>
+                    </div>
+                </form>
+            </Form>
+          </CardContent>
+        </Card>
+
       </div>
 
       <CropperImage
@@ -229,3 +340,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    
