@@ -1,10 +1,11 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { collection, getDocs, query, where, updateDoc, addDoc, Timestamp, doc } from 'firebase/firestore/lite';
 import { db } from '@/lib/firebase';
 import { add } from 'date-fns';
 import nodemailer from 'nodemailer';
 
-const CAKTO_WEBHOOK_SECRET = process.env.CAKTO_WEBHOOK_SECRET || "15edd2d5-d662-418a-93ff-d1ba6a631272";
+const CAKTO_WEBHOOK_SECRET = process.env.CAKTO_WEBHOOK_SECRET;
 const GMAIL_EMAIL = process.env.GMAIL_EMAIL;
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 const LOGIN_URL = process.env.NEXT_PUBLIC_LOGIN_URL || 'http://localhost:9002/login';
@@ -61,6 +62,11 @@ export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
 
+    if (!CAKTO_WEBHOOK_SECRET) {
+      console.error("CAKTO_WEBHOOK_SECRET is not set in environment variables.");
+      return NextResponse.json({ error: "Webhook secret is not configured." }, { status: 500 });
+    }
+    
     if (payload.secret !== CAKTO_WEBHOOK_SECRET) {
       console.warn("Webhook secret mismatch");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
