@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff } from "lucide-react";
 import { type User as UserType } from "@/lib/data-types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where } from "firebase/firestore/lite";
@@ -36,6 +36,7 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isEditMode = !!userToEdit;
+    const [showPassword, setShowPassword] = useState(false);
 
     const [imageToCrop, setImageToCrop] = useState<string | null>(null);
     const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -169,7 +170,21 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
                 <FormField control={form.control} name="password" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Senha</FormLabel>
-                        <FormControl><Input type="password" {...field} /></FormControl>
+                        <div className="relative">
+                            <FormControl>
+                                <Input type={showPassword ? 'text' : 'password'} {...field} />
+                            </FormControl>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute inset-y-0 right-0 h-full px-3 text-muted-foreground"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                            >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                <span className="sr-only">{showPassword ? 'Esconder senha' : 'Mostrar senha'}</span>
+                            </Button>
+                        </div>
                         <FormMessage />
                     </FormItem>
                 )} />
