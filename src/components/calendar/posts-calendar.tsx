@@ -35,9 +35,9 @@ export function PostsCalendar() {
     if (!user) return;
     setLoading(true);
     try {
-      const postsCol = collection(db, `users/${user.uid}/posts`);
-      const influencersCol = collection(db, `users/${user.uid}/influencers`);
-      const productsCol = collection(db, `users/${user.uid}/products`);
+      const postsCol = collection(db, `users/${user.id}/posts`);
+      const influencersCol = collection(db, `users/${user.id}/influencers`);
+      const productsCol = collection(db, `users/${user.id}/products`);
 
       const [postsSnapshot, influencersSnapshot, productsSnapshot] = await Promise.all([
         getDocs(query(postsCol)),
@@ -73,11 +73,15 @@ export function PostsCalendar() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+  
+  const getDateToFormat = (date: Date | Timestamp): Date => {
+      return date instanceof Timestamp ? date.toDate() : date;
+  }
 
   const postsByDate = useMemo(() => {
     const grouped: { [key: string]: Post[] } = {};
     posts.forEach(post => {
-      const dateKey = format(post.postDate, 'yyyy-MM-dd');
+      const dateKey = format(getDateToFormat(post.postDate), 'yyyy-MM-dd');
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
