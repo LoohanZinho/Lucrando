@@ -236,11 +236,10 @@ export default function DashboardPage() {
     const expensesChange = getPercentageChange(currentMetrics.investment, previousMetrics.investment);
     const profitChange = getPercentageChange(currentMetrics.profit, previousMetrics.profit);
     
-    const roi = currentMetrics.investment > 0 ? (currentMetrics.profit / currentMetrics.investment) * 100 : 0;
-    const prevRoi = previousMetrics.investment > 0 ? (previousMetrics.profit / previousMetrics.investment) * 100 : 0;
-    const roiChange = getPercentageChange(roi, prevRoi);
-    
     const roas = currentMetrics.investment > 0 ? currentMetrics.revenue / currentMetrics.investment : 0;
+    const prevRoas = previousMetrics.investment > 0 ? previousMetrics.revenue / previousMetrics.investment : 0;
+    const roasChange = getPercentageChange(roas, prevRoas);
+    
     const conversionRate = currentMetrics.clicks > 0 ? (currentMetrics.sales / currentMetrics.clicks) * 100 : 0;
     const averageTicket = currentMetrics.sales > 0 ? currentMetrics.revenue / currentMetrics.sales : 0;
 
@@ -316,6 +315,7 @@ export default function DashboardPage() {
 
     const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
+    const formatAsNumber = (value: number) => value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formatPercentageChange = (value: number) => {
         if (selectedPeriod === 'all_time') return null;
         if (!isFinite(value)) return <span className="text-green-500">Novo</span>;
@@ -567,13 +567,13 @@ export default function DashboardPage() {
                     <CardContent>
                          <div className={cn(
                             "text-2xl font-bold",
-                            roi > 0 && "text-green-500",
-                            roi < 0 && "text-red-500"
+                            roas > 1 && "text-green-500",
+                            roas < 1 && "text-red-500"
                         )}>
-                            {formatPercentage(roi)}
+                            {formatAsNumber(roas)}
                         </div>
                         <p className="text-xs text-muted-foreground h-4">
-                            {formatPercentageChange(roiChange)} {selectedPeriod !== 'all_time' && comparisonText}
+                            {formatPercentageChange(roasChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
                     </CardContent>
                 </Card>
@@ -596,3 +596,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
