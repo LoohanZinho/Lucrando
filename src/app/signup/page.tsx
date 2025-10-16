@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, BarChart3 } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import Link from 'next/link';
+import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -56,10 +57,8 @@ export default function SignupPage() {
       <Card className="w-full max-w-sm">
         <form onSubmit={handleSignup}>
           <CardHeader className="text-center">
-             <Link href="/" className="flex items-center justify-center gap-2 mb-4" title="LCI Home">
-                <div className="p-2 bg-primary rounded-lg">
-                    <BarChart3 className="h-6 w-6 text-primary-foreground" />
-                </div>
+             <Link href="/" className="flex flex-col items-center justify-center gap-2 mb-4" title="LCI Home">
+                <Image src="https://i.imgur.com/bgXDxQU.png" alt="LCI Logo" width={48} height={48} />
                 <span className="font-bold text-lg">LCI</span>
             </Link>
             <CardTitle>Criar Nova Conta</CardTitle>

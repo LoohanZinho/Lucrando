@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: 'https://i.imgur.com/bgXDxQU.png',
+    shortcut: 'https://i.imgur.com/bgXDxQU.png',
+    apple: 'https://i.imgur.com/bgXDxQU.png',
   },
 };
 

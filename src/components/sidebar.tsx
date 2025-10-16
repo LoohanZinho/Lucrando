@@ -1,9 +1,10 @@
 
 "use client"
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BarChart3, Home, Calendar, Send, User } from 'lucide-react';
+import { Home, Calendar, Send, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
@@ -19,7 +20,7 @@ export function Sidebar() {
         <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
             <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
                 <Link href="#" className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base">
-                    <BarChart3 className="h-4 w-4 transition-all group-hover:scale-110" />
+                    <Image src="https://i.imgur.com/bgXDxQU.png" alt="LCI Logo" width={24} height={24} />
                     <span className="sr-only">LCI</span>
                 </Link>
                 <TooltipProvider>
