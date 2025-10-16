@@ -8,16 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, BarChart3 } from "lucide-react";
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useLoader } from '@/contexts/loader-context';
+import { useAuth } from '@/contexts/auth-context';
+
 
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { showLoader } = useLoader();
+  const { signup } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,23 +36,18 @@ export default function SignupPage() {
     }
 
     setLoading(true);
-    showLoader();
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-            displayName: username,
-        });
-      }
-      router.push('/');
-    } catch (error: any) {
-       toast({
+    
+    const success = await signup(username, email, password);
+
+    if (success) {
+      router.push('/dashboard');
+    } else {
+      toast({
         variant: "destructive",
         title: "Erro ao criar conta",
-        description: error.message,
+        description: "Este e-mail já está em uso. Tente outro.",
       });
-    } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 

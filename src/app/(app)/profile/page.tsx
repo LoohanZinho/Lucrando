@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore/lite";
+import { db } from "@/lib/firebase";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,7 +25,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, updateUserInContext } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -61,15 +62,18 @@ export default function ProfilePage() {
 
     setIsSubmitting(true);
     try {
-      await updateProfile(auth.currentUser!, {
+      const userRef = doc(db, "users", user.id);
+      await updateDoc(userRef, {
         displayName: data.displayName,
         photoURL: data.photoURL,
       });
+
+      updateUserInContext({ displayName: data.displayName, photoURL: data.photoURL });
+
       toast({
         title: "Sucesso!",
         description: "Seu perfil foi atualizado.",
       });
-       // Force a re-render or state update if needed to show new data immediately
     } catch (error: any) {
       toast({
         variant: "destructive",

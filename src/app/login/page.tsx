@@ -8,16 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, BarChart3 } from "lucide-react";
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useLoader } from '@/contexts/loader-context';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { showLoader } = useLoader();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,19 +23,18 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    showLoader();
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+    
+    const success = await login(email, password);
+
+    if (success) {
       router.push('/dashboard');
-    } catch (error: any) {
+    } else {
        toast({
         variant: "destructive",
         title: "Erro de Login",
         description: "As credenciais fornecidas estão incorretas. Por favor, tente novamente.",
       });
-    } finally {
       setLoading(false);
-      // The loader will be hidden by the auth context listener when navigation completes
     }
   };
 

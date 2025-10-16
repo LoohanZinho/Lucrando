@@ -1,6 +1,14 @@
 
 import { Timestamp } from "firebase/firestore/lite";
 
+export interface User {
+    id: string;
+    displayName: string;
+    email: string;
+    photoURL?: string;
+    password?: string; // Should be handled securely
+}
+
 export interface Influencer {
     id: string;
     name: string;
