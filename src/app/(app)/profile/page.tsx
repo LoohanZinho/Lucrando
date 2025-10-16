@@ -14,11 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera, Crown } from "lucide-react";
+import { Loader2, Camera, Crown, AlertTriangle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CropperImage } from "@/components/cropper-image";
 import { Progress } from "@/components/ui/progress";
-import { differenceInDays, format } from "date-fns";
+import { differenceInDays, differenceInSeconds, format, formatDuration, intervalToDuration } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const profileSchema = z.object({
@@ -48,7 +48,16 @@ export default function ProfilePage() {
   
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [subscriptionInfo, setSubscriptionInfo] = useState<{ planName: string; expiresAt?: Date; progress?: number, remainingDays?: number }>({ planName: "Vitalício" });
+
+  type SubscriptionInfo = {
+    planName: string;
+    expiresAt?: Date;
+    progress?: number;
+    remainingDays?: number;
+    isExpiringSoon?: boolean;
+    countdown?: string;
+  };
+  const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo>({ planName: "Vitalício" });
 
   const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
@@ -69,6 +78,8 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
+    let countdownInterval: NodeJS.Timeout | undefined;
+
     if (user) {
       profileForm.reset({
         displayName: user.displayName || "",
@@ -78,24 +89,55 @@ export default function ProfilePage() {
       const expiresAtTimestamp = user.subscriptionExpiresAt as Timestamp | { seconds: number, nanoseconds: number };
       const paidAtTimestamp = user.paidAt as Timestamp | { seconds: number, nanoseconds: number };
 
-      if (expiresAtTimestamp && typeof expiresAtTimestamp.seconds === 'number' && paidAtTimestamp && typeof paidAtTimestamp.seconds === 'number') {
-          const expiresAt = new Date(expiresAtTimestamp.seconds * 1000);
-          const paidAt = new Date(paidAtTimestamp.seconds * 1000);
+      if (expiresAtTimestamp && typeof expiresAtTimestamp.seconds === 'number') {
+        const expiresAt = new Date(expiresAtTimestamp.seconds * 1000);
+        const paidAt = paidAtTimestamp && typeof paidAtTimestamp.seconds === 'number'
+          ? new Date(paidAtTimestamp.seconds * 1000)
+          : new Date(expiresAt.getTime() - 30 * 24 * 60 * 60 * 1000); // Assume 30 days if paidAt is missing
 
-          const totalDays = differenceInDays(expiresAt, paidAt);
-          const remainingDays = differenceInDays(expiresAt, new Date());
-          const progress = totalDays > 0 ? ((totalDays - remainingDays) / totalDays) * 100 : 0;
-          
-          setSubscriptionInfo({
-              planName: "Plano Mensal",
-              expiresAt: expiresAt,
-              progress: Math.max(0, Math.min(100, progress)),
-              remainingDays: Math.max(0, remainingDays),
-          });
+        const totalDays = differenceInDays(expiresAt, paidAt);
+        const remainingSeconds = differenceInSeconds(expiresAt, new Date());
+        const remainingDays = Math.max(0, Math.ceil(remainingSeconds / (60 * 60 * 24)));
+        const progress = totalDays > 0 ? ((totalDays - remainingDays) / totalDays) * 100 : 0;
+        const isExpiringSoon = remainingSeconds > 0 && remainingSeconds < 24 * 60 * 60;
+
+        const updateCountdown = () => {
+          const secondsLeft = differenceInSeconds(expiresAt, new Date());
+          if (secondsLeft > 0) {
+            const duration = intervalToDuration({ start: 0, end: secondsLeft * 1000 });
+            const paddedHours = String(duration.hours ?? 0).padStart(2, '0');
+            const paddedMinutes = String(duration.minutes ?? 0).padStart(2, '0');
+            const paddedSeconds = String(duration.seconds ?? 0).padStart(2, '0');
+            setSubscriptionInfo(prev => ({ ...prev, countdown: `${paddedHours}:${paddedMinutes}:${paddedSeconds}` }));
+          } else {
+             setSubscriptionInfo(prev => ({ ...prev, countdown: "00:00:00" }));
+             clearInterval(countdownInterval);
+          }
+        };
+        
+        if (isExpiringSoon) {
+          updateCountdown();
+          countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        setSubscriptionInfo({
+          planName: "Plano Mensal",
+          expiresAt: expiresAt,
+          progress: Math.max(0, Math.min(100, progress)),
+          remainingDays: remainingDays,
+          isExpiringSoon: isExpiringSoon,
+        });
+
       } else {
-          setSubscriptionInfo({ planName: "Plano Vitalício" });
+        setSubscriptionInfo({ planName: "Plano Vitalício" });
       }
     }
+    
+    return () => {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    };
   }, [user, profileForm]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,9 +286,15 @@ export default function ProfilePage() {
                         </p>
                     </div>
                 </div>
-                {subscriptionInfo.remainingDays !== undefined && (
+                {(subscriptionInfo.remainingDays !== undefined && !subscriptionInfo.isExpiringSoon) && (
                     <div className="text-right">
                         <p className="text-sm font-semibold">{subscriptionInfo.remainingDays} dias</p>
+                        <p className="text-xs text-muted-foreground">Restantes</p>
+                    </div>
+                )}
+                 {subscriptionInfo.isExpiringSoon && (
+                    <div className="text-right">
+                        <p className="text-sm font-semibold tabular-nums">{subscriptionInfo.countdown}</p>
                         <p className="text-xs text-muted-foreground">Restantes</p>
                     </div>
                 )}
@@ -256,6 +304,12 @@ export default function ProfilePage() {
                     <Progress value={subscriptionInfo.progress} className="h-2" />
                 </div>
             )}
+             {subscriptionInfo.expiresAt && (
+                <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500 bg-amber-500/10 p-3 rounded-md">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <p>Ao final deste período, seu acesso à plataforma será suspenso até a renovação.</p>
+                </div>
+             )}
           </CardContent>
         </Card>
 
@@ -399,3 +453,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    
