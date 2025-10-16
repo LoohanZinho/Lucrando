@@ -37,16 +37,12 @@ export default function AdminLayout({
     router.push('/admin/login');
   };
 
-  if (loading) {
+  if (loading || !isAuth) {
     return (
       <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
         <Loader2 className="h-16 w-16 text-primary animate-spin" />
       </div>
     );
-  }
-
-  if (!isAuth) {
-    return null; // A lógica no useEffect já está tratando do redirecionamento
   }
 
   return (
