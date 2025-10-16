@@ -3,7 +3,6 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -12,6 +11,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface SubscriptionExpiredDialogProps {
   open: boolean;
@@ -39,18 +40,18 @@ export function SubscriptionExpiredDialog({ open, expirationDate, paymentLink, s
             Sua assinatura expirou em <strong>{formattedDate}</strong>. Para continuar utilizando a plataforma, por favor, renove sua assinatura.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col gap-4">
-          <AlertDialogAction onClick={handleRenew} disabled={!paymentLink}>
-            Renovar Assinatura
-          </AlertDialogAction>
-          <a
-            href={supportLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-center text-muted-foreground underline hover:text-primary"
-          >
-            Falar com suporte
-          </a>
+        <AlertDialogFooter className="flex-col items-center gap-2 pt-4">
+            <Button onClick={handleRenew} disabled={!paymentLink} className="w-full">
+                Renovar Assinatura
+            </Button>
+            <Link
+                href={supportLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-center text-muted-foreground underline hover:text-primary mt-2"
+            >
+                Falar com suporte
+            </Link>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
