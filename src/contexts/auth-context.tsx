@@ -128,36 +128,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return false;
         }
 
-        // Não define `paidAt` ou `subscriptionExpiresAt` no cadastro.
-        // Isso será feito pelo webhook.
-        const newUser: Omit<User, 'id' | 'paidAt' | 'subscriptionExpiresAt'> = {
-            displayName: username,
-            email,
-            password: pass, // Storing password in plain text
-            photoURL: '',
-        };
-
-        const docRef = await addDoc(usersCol, newUser);
-        
-        // Exibe um toast para o usuário ir para o checkout
+        // Não cria o usuário, apenas mostra o toast
         toast({
-          title: "Conta Criada!",
-          description: "Agora você precisa fazer o pagamento para ativar sua conta.",
+          title: "Quase lá!",
+          description: "Agora realize o pagamento para receber suas credenciais de acesso por e-mail.",
           duration: 10000,
         });
         
-        // Não loga o usuário automaticamente, ele precisa pagar primeiro.
-        // O fluxo ideal é redirecioná-lo para a página de vendas/checkout.
-        // Por enquanto, apenas retornamos false para ele permanecer na tela de signup/login.
+        // Retorna false para manter o usuário na tela atual e redirecioná-lo para o checkout (se aplicável).
         return false;
 
-
      } catch (error) {
-        console.error("Signup error:", error);
+        console.error("Signup check error:", error);
          toast({
           variant: "destructive",
           title: "Erro Inesperado",
-          description: "Ocorreu um erro durante o cadastro.",
+          description: "Ocorreu um erro durante a verificação do cadastro.",
         });
         return false;
      } finally {
