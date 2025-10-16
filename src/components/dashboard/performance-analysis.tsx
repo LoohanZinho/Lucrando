@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Target, Percent, ShoppingCart } from "lucide-react";
 
 interface PerformanceAnalysisProps {
-    roas: number;
+    roi: number;
     conversionRate: number;
     averageTicket: number;
     periodLabel: string;
@@ -16,7 +16,7 @@ const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { 
 const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
 
 
-export function PerformanceAnalysis({ roas, conversionRate, averageTicket, periodLabel }: PerformanceAnalysisProps) {
+export function PerformanceAnalysis({ roi, conversionRate, averageTicket, periodLabel }: PerformanceAnalysisProps) {
     type KpiInfo = {
         title: string;
         description: string;
@@ -26,10 +26,10 @@ export function PerformanceAnalysis({ roas, conversionRate, averageTicket, perio
     const [hoveredKpi, setHoveredKpi] = useState<KpiInfo>(null);
 
     const kpiDetails = {
-        roas: {
-            title: "Return on Ad Spend (ROAS)",
-            description: "Retorno sobre o Investimento em Anúncios. Mostra quanto você lucrou para cada real investido.",
-            formula: "Fórmula: (Receita / Investimento)"
+        roi: {
+            title: "Retorno sobre Investimento (ROI)",
+            description: "Mede o lucro ou prejuízo em relação ao custo do investimento.",
+            formula: "Fórmula: ((Receita - Investimento) / Investimento) * 100",
         },
         conversion: {
             title: "Taxa de Conversão",
@@ -53,14 +53,14 @@ export function PerformanceAnalysis({ roas, conversionRate, averageTicket, perio
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
                     <div
                         className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                        onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
+                        onMouseEnter={() => setHoveredKpi(kpiDetails.roi)}
                         onMouseLeave={() => setHoveredKpi(null)}
                     >
                         <div className="flex items-center gap-2 text-sm font-medium">
                             <Target className="h-4 w-4 text-muted-foreground" />
-                            <span>ROAS</span>
+                            <span>ROI</span>
                         </div>
-                        <div className="text-3xl font-bold">{roas.toFixed(1)}x</div>
+                        <div className="text-3xl font-bold">{formatPercentage(roi)}</div>
                     </div>
 
                     <div

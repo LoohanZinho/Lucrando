@@ -240,6 +240,7 @@ export default function DashboardPage() {
     const prevRoas = previousMetrics.investment > 0 ? previousMetrics.revenue / previousMetrics.investment : 0;
     const roasChange = getPercentageChange(roas, prevRoas);
     
+    const roi = currentMetrics.investment > 0 ? (currentMetrics.profit / currentMetrics.investment) * 100 : 0;
     const conversionRate = currentMetrics.clicks > 0 ? (currentMetrics.sales / currentMetrics.clicks) * 100 : 0;
     const averageTicket = currentMetrics.sales > 0 ? currentMetrics.revenue / currentMetrics.sales : 0;
 
@@ -584,7 +585,7 @@ export default function DashboardPage() {
                     periodLabel={chartPeriodLabel}
                 />
                 <PerformanceAnalysis 
-                    roas={roas}
+                    roi={roi}
                     conversionRate={conversionRate}
                     averageTicket={averageTicket}
                     periodLabel={getPeriodLabel(selectedPeriod, customDateRange)}
@@ -596,5 +597,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    
