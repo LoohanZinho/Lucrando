@@ -6,14 +6,15 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCstZaRIU1hyIzjGvktfeuhbmX0HSwkTM0",
-  authDomain: "lci-dash.firebaseapp.com",
-  projectId: "lci-dash",
-  storageBucket: "lci-dash.firebasestorage.app",
-  messagingSenderId: "627350653326",
-  appId: "1:627350653326:web:60089372f6f44da5ffbcdf",
-  measurementId: "G-S4ZEW74QBL"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
+
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
