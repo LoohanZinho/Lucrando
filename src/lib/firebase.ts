@@ -3,6 +3,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
 // We keep getAuth in case it's needed for other Firebase services, but it's not used for login.
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCstZaRIU1hyIzjGvktfeuhbmX0HSwkTM0",
@@ -17,5 +18,6 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 const auth = getAuth(app); // Still initialized, but logic is handled in auth-context
+const storage = getStorage(app);
 
-export { app, db, auth };
+export { app, db, auth, storage };

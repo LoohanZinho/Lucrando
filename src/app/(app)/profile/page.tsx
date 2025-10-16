@@ -1,10 +1,11 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { doc, updateDoc } from "firebase/firestore/lite";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,12 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Camera } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "O nome de usuário é obrigatório."),
-  photoURL: z.string().url("Por favor, insira uma URL válida para a foto.").or(z.literal("")).optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -28,6 +28,9 @@ export default function ProfilePage() {
   const { user, loading: authLoading, updateUserInContext } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
@@ -35,20 +38,50 @@ export default function ProfilePage() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       displayName: "",
-      photoURL: "",
     },
   });
-  
-  const photoUrlValue = form.watch("photoURL");
 
   useEffect(() => {
     if (user) {
       form.reset({
         displayName: user.displayName || "",
-        photoURL: user.photoURL || "",
       });
+      setPhotoURL(user.photoURL || null);
     }
   }, [user, form]);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsUploading(true);
+    try {
+      const storageRef = ref(storage, `profile_pictures/${user.id}/${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      setPhotoURL(downloadURL);
+      const userRef = doc(db, "users", user.id);
+      await updateDoc(userRef, { photoURL: downloadURL });
+      
+      updateUserInContext({ photoURL: downloadURL });
+
+      toast({
+        title: "Foto atualizada!",
+        description: "Sua nova foto de perfil foi salva.",
+      });
+
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro de Upload",
+        description: error.message || "Não foi possível enviar sua foto.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!user) {
@@ -65,14 +98,13 @@ export default function ProfilePage() {
       const userRef = doc(db, "users", user.id);
       await updateDoc(userRef, {
         displayName: data.displayName,
-        photoURL: data.photoURL,
       });
 
-      updateUserInContext({ displayName: data.displayName, photoURL: data.photoURL });
+      updateUserInContext({ displayName: data.displayName });
 
       toast({
         title: "Sucesso!",
-        description: "Seu perfil foi atualizado.",
+        description: "Seu nome foi atualizado.",
       });
     } catch (error: any) {
       toast({
@@ -108,24 +140,34 @@ export default function ProfilePage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="flex items-center gap-4">
-                    <Avatar className="h-20 w-20">
-                        <AvatarImage src={photoUrlValue || user?.photoURL || undefined} alt={user?.displayName || "Avatar"} />
-                        <AvatarFallback>{userInitial}</AvatarFallback>
-                    </Avatar>
-                    <FormField
-                        control={form.control}
-                        name="photoURL"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                            <FormLabel>URL da Foto de Perfil</FormLabel>
-                            <FormControl>
-                                <Input placeholder="https://example.com/sua-foto.png" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
+                <div className="flex flex-col items-center gap-4">
+                    <div className="relative group">
+                        <Avatar className="h-32 w-32">
+                            <AvatarImage src={photoURL || undefined} alt={user?.displayName || "Avatar"} />
+                            <AvatarFallback className="text-4xl">{userInitial}</AvatarFallback>
+                        </Avatar>
+                        <div 
+                            className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            {isUploading ? (
+                                <Loader2 className="h-8 w-8 text-white animate-spin" />
+                            ) : (
+                                <Camera className="h-8 w-8 text-white" />
+                            )}
+                        </div>
+                    </div>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept="image/png, image/jpeg, image/gif"
+                        disabled={isUploading}
+                    />
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                        {isUploading ? "Enviando..." : "Trocar Foto"}
+                    </Button>
                 </div>
 
               <FormField

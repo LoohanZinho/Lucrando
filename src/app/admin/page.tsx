@@ -1,16 +1,17 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Trash2, Loader2, Edit, User, LogOut } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera } from "lucide-react";
 import { type User as UserType } from "@/lib/data-types";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where } from "firebase/firestore/lite";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -25,7 +26,7 @@ const userSchema = z.object({
     displayName: z.string().min(2, "Nome é obrigatório"),
     email: z.string().email("Email inválido"),
     password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
-    photoURL: z.string().url("URL da foto inválida").optional().or(z.literal('')),
+    photoURL: z.string().optional(),
 });
 type UserFormData = z.infer<typeof userSchema>;
 
@@ -33,12 +34,16 @@ type UserFormData = z.infer<typeof userSchema>;
 function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, userToEdit?: UserType | null, onCancel: () => void }) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const isEditMode = !!userToEdit;
 
     const form = useForm<UserFormData>({
         resolver: zodResolver(userSchema),
         defaultValues: { displayName: "", email: "", password: "", photoURL: "" }
     });
+
+    const photoUrlValue = form.watch("photoURL");
 
     useEffect(() => {
         if (userToEdit) {
@@ -51,9 +56,33 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
         }
     }, [userToEdit, form]);
 
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        const userIdForUpload = userToEdit?.id || new Date().getTime().toString();
+        
+        try {
+            const storageRef = ref(storage, `profile_pictures/${userIdForUpload}/${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            form.setValue('photoURL', downloadURL);
+            toast({ title: "Upload Concluído", description: "A imagem foi enviada." });
+        } catch (error) {
+            console.error("Upload error:", error);
+            toast({ variant: "destructive", title: "Erro de Upload", description: "Não foi possível enviar a imagem." });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+
     async function onSubmit(values: UserFormData) {
         setIsSubmitting(true);
         try {
+            let dataToSave: Partial<UserFormData> & { photoURL?: string } = { ...values };
+
             // Verifica se o email já existe ao criar novo usuário
             if (!isEditMode) {
                 const usersCol = collection(db, 'users');
@@ -68,15 +97,13 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
             
             if (isEditMode && userToEdit) {
                 const userRef = doc(db, 'users', userToEdit.id);
-                const dataToUpdate: Partial<UserFormData> = {...values};
-                // Não atualiza a senha se for a mascarada
-                if (dataToUpdate.password === '******') {
-                    delete dataToUpdate.password;
+                if (dataToSave.password === '******') {
+                    delete dataToSave.password;
                 }
-                await updateDoc(userRef, dataToUpdate);
+                await updateDoc(userRef, dataToSave);
                 toast({ title: "Sucesso!", description: "Usuário atualizado." });
             } else {
-                await addDoc(collection(db, 'users'), values);
+                await addDoc(collection(db, 'users'), dataToSave);
                 toast({ title: "Sucesso!", description: "Novo usuário criado." });
             }
             onSuccess();
@@ -91,6 +118,26 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4">
+                
+                <div className="flex flex-col items-center gap-4">
+                   <Avatar className="h-24 w-24">
+                        <AvatarImage src={photoUrlValue || undefined} />
+                        <AvatarFallback>
+                            <User className="h-10 w-10 text-muted-foreground" />
+                        </AvatarFallback>
+                    </Avatar>
+                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                        {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Enviando...</> : <><Camera className="mr-2 h-4 w-4"/> Carregar Foto</>}
+                    </Button>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept="image/png, image/jpeg, image/gif"
+                    />
+                </div>
+                
                 <FormField control={form.control} name="displayName" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Nome</FormLabel>
@@ -112,17 +159,11 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
                         <FormMessage />
                     </FormItem>
                 )} />
-                <FormField control={form.control} name="photoURL" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>URL da Foto (Opcional)</FormLabel>
-                        <FormControl><Input placeholder="https://..." {...field} value={field.value ?? ''} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )} />
+               
                 <div className="flex gap-2 justify-end">
                     <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type="submit" disabled={isSubmitting || isUploading}>
+                        {(isSubmitting || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isEditMode ? 'Salvar Alterações' : 'Criar Usuário'}
                     </Button>
                 </div>
@@ -192,7 +233,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     <h1 className="text-xl font-semibold text-primary">Painel do Gestor</h1>
                     <div className="ml-auto">
                         <Button variant="outline" onClick={onLogout}>
-                            <LogOut className="mr-2" />
+                            <LogOut className="mr-2 h-4 w-4" />
                             Sair
                         </Button>
                     </div>
@@ -205,7 +246,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                 <CardDescription>Adicione, edite ou remova usuários do sistema.</CardDescription>
                             </div>
                             <Button onClick={handleAddNew} className="w-full md:w-auto">
-                                <UserPlus className="mr-2" />
+                                <UserPlus className="mr-2 h-4 w-4" />
                                 Adicionar Usuário
                             </Button>
                         </CardHeader>
@@ -230,7 +271,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                     <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
                                         <div className="flex items-center gap-4 flex-1 min-w-0">
                                             <Avatar>
-                                                {user.photoURL && <img src={user.photoURL} alt={user.displayName} className="object-cover w-full h-full" />}
+                                                <AvatarImage src={user.photoURL} alt={user.displayName} />
                                                 <AvatarFallback>{user.displayName.substring(0, 2).toUpperCase()}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
@@ -240,12 +281,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(user)}>
-                                                <Edit />
+                                                <Edit className="h-4 w-4"/>
                                             </Button>
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                                        <Trash2 />
+                                                        <Trash2 className="h-4 w-4"/>
                                                     </Button>
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent>
@@ -274,7 +315,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent>
+                <SheetContent className="overflow-y-auto">
                     <SheetHeader>
                         <SheetTitle>{editingUser ? 'Editar Usuário' : 'Adicionar Novo Usuário'}</SheetTitle>
                         <SheetDescription>{editingUser ? 'Atualize os dados do usuário.' : 'Preencha os dados para criar um novo usuário.'}</SheetDescription>
@@ -377,5 +418,3 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
-
-    
