@@ -49,7 +49,7 @@ async function sendWelcomeEmail(customerName: string, customerEmail: string, pas
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Welcome email sent to ${customerEmail}`);
+        console.log('Email enviado com sucesso para:', customerEmail);
         return true;
     } catch (error) {
         console.error(`Failed to send email to ${customerEmail}:`, error);
@@ -61,6 +61,8 @@ async function sendWelcomeEmail(customerName: string, customerEmail: string, pas
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
+    console.log("Webhook payload received:", payload);
+
 
     if (!CAKTO_WEBHOOK_SECRET) {
       console.error("CAKTO_WEBHOOK_SECRET is not set in environment variables.");
@@ -104,9 +106,9 @@ export async function POST(req: NextRequest) {
         subscriptionExpiresAt: Timestamp.fromDate(subscriptionExpiresAt),
       };
       await addDoc(usersCol, newUserDoc);
-      console.log(`New user created and subscription activated for: ${customerEmail}`);
+      console.log('Usuário criado com sucesso:', customerName);
       
-      // Send welcome email with credentials
+      console.log('Enviando email para o usuário:', customerName, customerEmail);
       await sendWelcomeEmail(customerName, customerEmail, defaultPassword);
 
     } else {
