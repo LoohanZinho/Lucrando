@@ -2,11 +2,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon, LayoutDashboard } from "lucide-react";
 import { type User as UserType } from "@/lib/data-types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where, Timestamp } from "firebase/firestore/lite";
@@ -320,7 +321,15 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         <>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
-                    <h1 className="text-xl font-semibold text-primary">Painel LCI HUB</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-xl font-semibold text-primary">Painel LCI HUB</h1>
+                        <Link href="/dashboard">
+                           <Button variant="outline" size="sm">
+                               <LayoutDashboard className="mr-2 h-4 w-4" />
+                               Acessar Dashboard
+                           </Button>
+                        </Link>
+                    </div>
                     <div className="ml-auto">
                         <Button variant="outline" onClick={onLogout}>
                             <LogOut className="mr-2 h-4 w-4" />
@@ -511,5 +520,3 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
-
-    
