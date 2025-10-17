@@ -406,7 +406,7 @@ export default function DashboardPage() {
                         {greeting}, <span className="text-primary">{userName}!</span>
                     </h2>
                     <p className="text-muted-foreground">
-                        Visão geral do desempenho de suas campanhas.
+                        Visão geral do desempenho de suas publicidades.
                     </p>
                 </div>
                 <div className="flex w-full flex-col md:w-auto md:flex-row md:items-center gap-2">
