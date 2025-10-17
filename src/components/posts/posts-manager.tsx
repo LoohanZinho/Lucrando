@@ -290,7 +290,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                             <FormField control={form.control} name="influencerId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Influenciador</FormLabel>
-                                    <Select key={`influencer-${postToEdit?.id || 'new'}`} onValueChange={field.onChange} value={field.value} disabled={influencers.length === 0}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={influencers.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {influencerOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -335,7 +335,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select key={`product-${postToEdit?.id || 'new'}`} onValueChange={field.onChange} value={field.value} disabled={products.length === 0}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={products.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {productOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
