@@ -450,7 +450,7 @@ export function PostsManager() {
     };
     
     useEffect(() => {
-        if (editingPost !== null) {
+        if (editingPost) {
             setIsSheetOpen(true);
         }
     }, [editingPost]);
@@ -716,6 +716,7 @@ export function PostsManager() {
                     </SheetHeader>
                     {editingPost !== null && (
                         <PostForm 
+                            key={editingPost.id || 'new-post'}
                             onSuccess={handleFormSuccess} 
                             postToEdit={editingPost.id ? editingPost : null}
                             onCancel={() => handleSheetOpenChange(false)}
