@@ -445,6 +445,20 @@ export function PostsManager() {
         fetchData();
     }, [fetchData]);
 
+    // This effect ensures the sheet opens only after the editingPost state is set
+    useEffect(() => {
+        if (editingPost !== null) {
+            setIsSheetOpen(true);
+        }
+    }, [editingPost]);
+
+    const handleSheetOpenChange = (open: boolean) => {
+        setIsSheetOpen(open);
+        if (!open) {
+            setEditingPost(null);
+        }
+    };
+    
     useEffect(() => {
         const newParam = searchParams.get('new');
         const dateParam = searchParams.get('date');
@@ -483,7 +497,6 @@ export function PostsManager() {
     
     const handleEdit = (post: Post) => {
         setEditingPost(post);
-        setIsSheetOpen(true);
     }
 
     const handleViewDetails = (post: Post) => {
@@ -491,8 +504,8 @@ export function PostsManager() {
     }
     
     const handleAddNew = () => {
-        setEditingPost(null);
-        setIsSheetOpen(true);
+        // Setting postToEdit to an empty object signals "new" and triggers the useEffect
+        setEditingPost({} as Post);
     }
 
     const handleFormSuccess = () => {
@@ -698,23 +711,25 @@ export function PostsManager() {
                 </CardContent>
             </Card>
 
-             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+             <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
                 <SheetContent className="sm:max-w-2xl w-full overflow-y-auto">
                     <SheetHeader>
-                        <SheetTitle>{editingPost ? 'Editar Post' : 'Adicionar Novo Post'}</SheetTitle>
+                        <SheetTitle>{editingPost && editingPost.id ? 'Editar Post' : 'Adicionar Novo Post'}</SheetTitle>
                         <SheetDescription>
-                            {editingPost ? 'Atualize os dados do post abaixo.' : 'Preencha os dados para registrar um novo post.'}
+                            {editingPost && editingPost.id ? 'Atualize os dados do post abaixo.' : 'Preencha os dados para registrar um novo post.'}
                         </SheetDescription>
                     </SheetHeader>
-                    <PostForm 
-                        onSuccess={handleFormSuccess} 
-                        postToEdit={editingPost}
-                        onCancel={() => setIsSheetOpen(false)}
-                        influencers={influencers}
-                        products={products}
-                        onDataCreated={() => fetchData(false)}
-                        initialDate={initialDate}
-                    />
+                    {editingPost !== null && ( // Render PostForm only when editingPost is not null
+                        <PostForm 
+                            onSuccess={handleFormSuccess} 
+                            postToEdit={editingPost.id ? editingPost : null}
+                            onCancel={() => handleSheetOpenChange(false)}
+                            influencers={influencers}
+                            products={products}
+                            onDataCreated={() => fetchData(false)}
+                            initialDate={initialDate}
+                        />
+                    )}
                 </SheetContent>
             </Sheet>
 
