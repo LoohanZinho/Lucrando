@@ -2,7 +2,7 @@
   "name": "LCI - Lucrando com Influenciadores",
   "short_name": "LCI",
   "description": "Dashboard para análise de performance de marketing de influência.",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0A0A10",
   "theme_color": "#FF9E4D",
