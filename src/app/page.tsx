@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -183,7 +182,7 @@ export default function SalesPage() {
                   <CardHeader className="items-center text-center">
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-bold tracking-tighter">R${plan.price}</span>
+                      <span className="text-5xl font-bold tracking-tighter">R$ {plan.price}</span>
                       <span className="text-muted-foreground">/{plan.period}</span>
                     </div>
                   </CardHeader>
