@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: APP_DEFAULT_TITLE,
-    startupImage: 'https://i.imgur.com/FOiZFXt.png'
+    startupImage: 'https://i.imgur.com/Q38m7CN.jpeg'
   },
   formatDetection: {
     telephone: false,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   icons: {
     icon: 'https://i.imgur.com/avLJ3iN.png',
     shortcut: 'https://i.imgur.com/avLJ3iN.png',
-    apple: 'https://i.imgur.com/FOiZFXt.png',
+    apple: 'https://i.imgur.com/Q38m7CN.jpeg',
   },
 };
 
