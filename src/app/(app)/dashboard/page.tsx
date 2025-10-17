@@ -298,19 +298,21 @@ export default function DashboardPage() {
             return acc;
         }, { views: 0, clicks: 0, sales: 0 });
 
-        const baseValue = totalMetrics.views;
-        
-        if (baseValue === 0) {
+        if (totalMetrics.views === 0) {
             return [
                 { label: "Views nos Stories", value: 0, percentage: 0 },
                 { label: "Cliques no Link", value: 0, percentage: 0 },
                 { label: "Conversões", value: 0, percentage: 0 },
             ];
         }
+
+        const clickThroughRate = (totalMetrics.clicks / totalMetrics.views) * 100;
+        const conversionFromClicks = totalMetrics.clicks > 0 ? (totalMetrics.sales / totalMetrics.clicks) * 100 : 0;
+
         return [
             { label: "Views nos Stories", value: totalMetrics.views, percentage: 100 },
-            { label: "Cliques no Link", value: totalMetrics.clicks, percentage: (totalMetrics.clicks / baseValue) * 100 },
-            { label: "Conversões", value: totalMetrics.sales, percentage: (totalMetrics.sales / baseValue) * 100 },
+            { label: "Cliques no Link", value: totalMetrics.clicks, percentage: clickThroughRate },
+            { label: "Conversões", value: totalMetrics.sales, percentage: conversionFromClicks },
         ];
     }, [chartPosts]);
 
@@ -597,5 +599,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    
