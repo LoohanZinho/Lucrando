@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon, LayoutDashboard, Save } from "lucide-react";
+import { UserPlus, Trash2, Loader2, Edit, User, LogOut, Camera, Eye, EyeOff, Calendar as CalendarIcon, LayoutDashboard, Save, Mail } from "lucide-react";
 import { type User as UserType } from "@/lib/data-types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, DocumentData, where, Timestamp, setDoc, getDoc } from "firebase/firestore/lite";
@@ -28,6 +28,11 @@ import { format, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+
+const ADMIN_PASSWORD = "iamgestor";
+const AUTH_KEY = "lci-admin-auth-v2";
 
 
 const userSchema = z.object({
@@ -253,6 +258,150 @@ function UserForm({ onSuccess, userToEdit, onCancel }: { onSuccess: () => void, 
     );
 }
 
+const emailSchema = z.object({
+    emailType: z.enum(["welcome", "renewal", "custom"]),
+    subject: z.string().optional(),
+    message: z.string().optional(),
+}).refine(data => {
+    if (data.emailType === "custom") {
+        return !!data.subject && data.subject.length > 0 && !!data.message && data.message.length > 0;
+    }
+    return true;
+}, {
+    message: "Assunto e mensagem são obrigatórios para e-mails personalizados.",
+    path: ["message"],
+});
+
+type EmailFormData = z.infer<typeof emailSchema>;
+
+function EmailForm({ user, onCancel }: { user: UserType, onCancel: () => void }) {
+    const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const form = useForm<EmailFormData>({
+        resolver: zodResolver(emailSchema),
+        defaultValues: {
+            emailType: "welcome",
+            subject: "",
+            message: "",
+        },
+    });
+
+    const emailType = form.watch("emailType");
+    
+    async function onSubmit(values: EmailFormData) {
+        setIsSubmitting(true);
+        try {
+            const adminPassword = prompt("Por favor, digite sua senha de administrador para confirmar o envio do e-mail:");
+            if (adminPassword !== ADMIN_PASSWORD) {
+                toast({ variant: "destructive", title: "Erro", description: "Senha de administrador incorreta." });
+                setIsSubmitting(false);
+                return;
+            }
+
+            const response = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    adminPassword,
+                    user,
+                    emailType: values.emailType,
+                    subject: values.subject,
+                    message: values.message,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || "Falha ao enviar o e-mail");
+            }
+
+            toast({ title: "Sucesso!", description: `E-mail enviado para ${user.email}.` });
+            onCancel();
+
+        } catch (error: any) {
+            console.error("Erro ao enviar e-mail:", error);
+            toast({ variant: "destructive", title: "Erro", description: error.message || "Não foi possível enviar o e-mail." });
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4">
+                <p>Enviando e-mail para: <strong className="text-primary">{user.email}</strong></p>
+                <FormField
+                    control={form.control}
+                    name="emailType"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <FormLabel>Tipo de E-mail</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex flex-col space-y-1"
+                                >
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormControl><RadioGroupItem value="welcome" /></FormControl>
+                                        <FormLabel className="font-normal">Boas-vindas (com credenciais)</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormControl><RadioGroupItem value="renewal" /></FormControl>
+                                        <FormLabel className="font-normal">Confirmação de Renovação</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                        <FormControl><RadioGroupItem value="custom" /></FormControl>
+                                        <FormLabel className="font-normal">Personalizado</FormLabel>
+                                    </FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
+                {emailType === "custom" && (
+                    <div className="space-y-4 pt-4 border-t">
+                        <FormField
+                            control={form.control}
+                            name="subject"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Assunto</FormLabel>
+                                    <FormControl><Input placeholder="Assunto do e-mail" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="message"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Mensagem</FormLabel>
+                                    <FormControl><Textarea placeholder="Escreva sua mensagem aqui. Você pode usar HTML." {...field} rows={8} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
+                
+                <div className="flex gap-2 justify-end">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Enviar E-mail
+                    </Button>
+                </div>
+            </form>
+        </Form>
+    );
+}
+
 function SettingsCard() {
     const { toast } = useToast();
     const [paymentLink, setPaymentLink] = useState('');
@@ -335,7 +484,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const [users, setUsers] = useState<UserType[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isEmailSheetOpen, setIsEmailSheetOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<UserType | null>(null);
+    const [emailingUser, setEmailingUser] = useState<UserType | null>(null);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -371,6 +522,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         setEditingUser(user);
         setIsSheetOpen(true);
     };
+
+    const handleEmail = (user: UserType) => {
+        setEmailingUser(user);
+        setIsEmailSheetOpen(true);
+    };
     
     const handleAddNew = () => {
         setEditingUser(null);
@@ -382,6 +538,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         setEditingUser(null);
         fetchUsers();
     };
+
+    const handleEmailFormClose = () => {
+        setIsEmailSheetOpen(false);
+        setEmailingUser(null);
+    }
 
     const getSubscriptionStatus = (user: UserType): { text: string, variant: "default" | "secondary" | "destructive" | "outline" } => {
         if (!user.subscriptionExpiresAt) {
@@ -462,6 +623,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEmail(user)}>
+                                                    <Mail className="h-4 w-4"/>
+                                                </Button>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleEdit(user)}>
                                                     <Edit className="h-4 w-4"/>
                                                 </Button>
@@ -506,6 +670,16 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     <UserForm onSuccess={handleFormSuccess} userToEdit={editingUser} onCancel={() => setIsSheetOpen(false)} />
                 </SheetContent>
             </Sheet>
+
+            <Sheet open={isEmailSheetOpen} onOpenChange={setIsEmailSheetOpen}>
+                <SheetContent className="overflow-y-auto">
+                    <SheetHeader>
+                        <SheetTitle>Enviar E-mail</SheetTitle>
+                        <SheetDescription>Envie um e-mail para o usuário selecionado.</SheetDescription>
+                    </SheetHeader>
+                    {emailingUser && <EmailForm user={emailingUser} onCancel={handleEmailFormClose} />}
+                </SheetContent>
+            </Sheet>
         </>
     );
 }
@@ -516,8 +690,6 @@ export default function AdminPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { toast } = useToast();
-    const ADMIN_PASSWORD = "iamgestor";
-    const AUTH_KEY = "lci-admin-auth-v2";
 
     useEffect(() => {
         try {
@@ -598,3 +770,5 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
+
+    
