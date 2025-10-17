@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   icons: {
     icon: 'https://i.imgur.com/avLJ3iN.png',
     shortcut: 'https://i.imgur.com/avLJ3iN.png',
-    apple: 'https://i.imgur.com/avLJ3iN.png',
+    apple: 'https://i.imgur.com/FOiZFXt.png',
   },
 };
 
