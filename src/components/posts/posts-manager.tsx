@@ -158,7 +158,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 sales: undefined,
             });
         }
-    }, [postToEdit, form, initialDate]);
+    }, [postToEdit, form, initialDate, influencers, products]);
 
 
     async function onSubmit(values: PostFormData) {
