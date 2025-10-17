@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Target, Percent, ShoppingCart } from "lucide-react";
 
 interface PerformanceAnalysisProps {
-    roi: number;
+    roas: number;
     conversionRate: number;
     averageTicket: number;
     periodLabel: string;
@@ -14,9 +14,9 @@ interface PerformanceAnalysisProps {
 
 const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
+const formatAsNumber = (value: number) => value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-
-export function PerformanceAnalysis({ roi, conversionRate, averageTicket, periodLabel }: PerformanceAnalysisProps) {
+export function PerformanceAnalysis({ roas, conversionRate, averageTicket, periodLabel }: PerformanceAnalysisProps) {
     type KpiInfo = {
         title: string;
         description: string;
@@ -26,10 +26,10 @@ export function PerformanceAnalysis({ roi, conversionRate, averageTicket, period
     const [hoveredKpi, setHoveredKpi] = useState<KpiInfo>(null);
 
     const kpiDetails = {
-        roi: {
-            title: "Retorno sobre Investimento (ROI)",
-            description: "Mede o lucro ou prejuízo em relação ao custo do investimento.",
-            formula: "Fórmula: ((Receita - Investimento) / Investimento) * 100",
+        roas: {
+            title: "Retorno sobre Investimento em Ads (ROAS)",
+            description: "Mede a receita bruta gerada para cada real gasto em um anúncio.",
+            formula: "Fórmula: (Receita / Investimento)",
         },
         conversion: {
             title: "Taxa de Conversão",
@@ -53,14 +53,14 @@ export function PerformanceAnalysis({ roi, conversionRate, averageTicket, period
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
                     <div
                         className="flex flex-col gap-1 rounded-md bg-muted/50 p-4 transition-all duration-300 hover:shadow-md"
-                        onMouseEnter={() => setHoveredKpi(kpiDetails.roi)}
+                        onMouseEnter={() => setHoveredKpi(kpiDetails.roas)}
                         onMouseLeave={() => setHoveredKpi(null)}
                     >
                         <div className="flex items-center gap-2 text-sm font-medium">
                             <Target className="h-4 w-4 text-muted-foreground" />
-                            <span>ROI</span>
+                            <span>ROAS</span>
                         </div>
-                        <div className="text-3xl font-bold">{formatPercentage(roi)}</div>
+                        <div className="text-3xl font-bold">{`${formatAsNumber(roas)}x`}</div>
                     </div>
 
                     <div
@@ -106,3 +106,5 @@ export function PerformanceAnalysis({ roi, conversionRate, averageTicket, period
         </Card>
     );
 }
+
+    

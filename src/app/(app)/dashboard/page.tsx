@@ -524,7 +524,7 @@ export default function DashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMetrics.revenue)}</div>
+                        <div className="text-2xl font-bold text-primary">{formatCurrency(currentMetrics.revenue)}</div>
                         <p className="text-xs text-muted-foreground h-4">
                         {formatPercentageChange(revenueChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
@@ -536,7 +536,7 @@ export default function DashboardPage() {
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(currentMetrics.investment)}</div>
+                        <div className="text-2xl font-bold text-primary">{formatCurrency(currentMetrics.investment)}</div>
                         <p className="text-xs text-muted-foreground h-4">
                             {formatPercentageChange(expensesChange)} {selectedPeriod !== 'all_time' && comparisonText}
                         </p>
@@ -568,10 +568,10 @@ export default function DashboardPage() {
                     <CardContent>
                          <div className={cn(
                             "text-2xl font-bold",
-                            roas > 1 && "text-green-500",
+                            currentMetrics.profit > 0 && "text-green-500",
                             roas < 1 && "text-red-500"
                         )}>
-                            {formatAsNumber(roas)}
+                            {formatPercentage(roi)}
                         </div>
                         <p className="text-xs text-muted-foreground h-4">
                             {formatPercentageChange(roasChange)} {selectedPeriod !== 'all_time' && comparisonText}
@@ -585,7 +585,7 @@ export default function DashboardPage() {
                     periodLabel={chartPeriodLabel}
                 />
                 <PerformanceAnalysis 
-                    roi={roi}
+                    roas={roas}
                     conversionRate={conversionRate}
                     averageTicket={averageTicket}
                     periodLabel={getPeriodLabel(selectedPeriod, customDateRange)}
@@ -597,3 +597,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    
