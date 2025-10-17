@@ -5,6 +5,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  start_url: "/dashboard",
 });
 
 const nextConfig = {
@@ -41,7 +42,7 @@ const nextConfig = {
         source: "/sw.js",
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET, OPTIONS" },
+          { key: "Access-control-allow-methods", value: "GET, OPTIONS" },
           { key: "Access-Control-Allow-Headers", value: "*" },
         ],
       },

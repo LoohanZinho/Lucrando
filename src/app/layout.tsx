@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: APP_DEFAULT_TITLE,
+    startupImage: 'https://i.imgur.com/FOiZFXt.png'
   },
   formatDetection: {
     telephone: false,
