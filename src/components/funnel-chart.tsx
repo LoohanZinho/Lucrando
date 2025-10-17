@@ -98,7 +98,7 @@ export function FunnelChart({ data, title }: FunnelChartProps) {
                            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Este funil mostra a taxa de conversão em cada etapa, <br/> começando com o total de visualizações como 100%.</p>
+                            <p>Este funil mostra a taxa de conversão em cada etapa. <br/> Os cliques são baseados nas views, e as conversões nos cliques.</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
