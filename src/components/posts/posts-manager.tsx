@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -115,7 +116,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
 
     useEffect(() => {
         if (postToEdit) {
-            // Mapeamento explícito dos campos para garantir a pré-seleção correta
+            // Explicitly map fields to ensure correct pre-selection
             form.reset({
                 title: postToEdit.title,
                 description: postToEdit.description || "",
@@ -133,14 +134,14 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 clicks: postToEdit.clicks ?? undefined,
                 sales: postToEdit.sales ?? undefined,
 
-                // Limpa os campos de "novo" item no modo de edição
+                // Clear "new" item fields in edit mode
                 newInfluencerName: "",
                 newInfluencerInstagram: "",
                 newProductName: "",
                 newProductDescription: "",
             });
         } else {
-            // Lógica para criar um novo post (permanece a mesma)
+            // Logic for creating a new post
             form.reset({
                 title: "",
                 description: "",
@@ -160,7 +161,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 sales: undefined,
             });
         }
-    }, [postToEdit, form, initialDate, products, influencers]);
+    }, [postToEdit, form, initialDate]);
 
 
     async function onSubmit(values: PostFormData) {
@@ -289,7 +290,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                             <FormField control={form.control} name="influencerId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Influenciador</FormLabel>
-                                    <Select key={postToEdit?.id || 'influencer-new'} onValueChange={field.onChange} value={field.value} disabled={influencers.length === 0}>
+                                    <Select key={`influencer-${postToEdit?.id || 'new'}`} onValueChange={field.onChange} value={field.value} disabled={influencers.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {influencerOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -334,7 +335,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select key={postToEdit?.id || 'product-new'} onValueChange={field.onChange} value={field.value} disabled={products.length === 0}>
+                                    <Select key={`product-${postToEdit?.id || 'new'}`} onValueChange={field.onChange} value={field.value} disabled={products.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {productOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -729,5 +730,3 @@ export function PostsManager() {
         </>
     )
 }
-
-    
