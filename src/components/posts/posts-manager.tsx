@@ -116,7 +116,6 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
 
     useEffect(() => {
         if (postToEdit) {
-            // Explicitly map fields to ensure correct pre-selection
             form.reset({
                 title: postToEdit.title,
                 description: postToEdit.description || "",
@@ -134,14 +133,12 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                 clicks: postToEdit.clicks ?? undefined,
                 sales: postToEdit.sales ?? undefined,
 
-                // Clear "new" item fields in edit mode
                 newInfluencerName: "",
                 newInfluencerInstagram: "",
                 newProductName: "",
                 newProductDescription: "",
             });
         } else {
-            // Logic for creating a new post
             form.reset({
                 title: "",
                 description: "",
@@ -290,7 +287,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                             <FormField control={form.control} name="influencerId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Influenciador</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={influencers.length === 0}>
+                                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled={influencers.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={influencers.length === 0 ? "Nenhum influenciador cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {influencerOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -335,7 +332,7 @@ function PostForm({ onSuccess, postToEdit, onCancel, influencers, products, onDa
                              <FormField control={form.control} name="productId" render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Selecione o Produto</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={products.length === 0}>
+                                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled={products.length === 0}>
                                         <FormControl><SelectTrigger><SelectValue placeholder={products.length === 0 ? "Nenhum produto cadastrado" : "Selecione..."} /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {productOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
@@ -445,19 +442,18 @@ export function PostsManager() {
         fetchData();
     }, [fetchData]);
 
-    // This effect ensures the sheet opens only after the editingPost state is set
-    useEffect(() => {
-        if (editingPost !== null) {
-            setIsSheetOpen(true);
-        }
-    }, [editingPost]);
-
     const handleSheetOpenChange = (open: boolean) => {
         setIsSheetOpen(open);
         if (!open) {
             setEditingPost(null);
         }
     };
+    
+    useEffect(() => {
+        if (editingPost !== null) {
+            setIsSheetOpen(true);
+        }
+    }, [editingPost]);
     
     useEffect(() => {
         const newParam = searchParams.get('new');
@@ -504,8 +500,7 @@ export function PostsManager() {
     }
     
     const handleAddNew = () => {
-        // Setting postToEdit to an empty object signals "new" and triggers the useEffect
-        setEditingPost({} as Post);
+        setEditingPost({} as Post); // Use an empty object to trigger edit state, but form will use defaults
     }
 
     const handleFormSuccess = () => {
@@ -719,7 +714,7 @@ export function PostsManager() {
                             {editingPost && editingPost.id ? 'Atualize os dados do post abaixo.' : 'Preencha os dados para registrar um novo post.'}
                         </SheetDescription>
                     </SheetHeader>
-                    {editingPost !== null && ( // Render PostForm only when editingPost is not null
+                    {editingPost !== null && (
                         <PostForm 
                             onSuccess={handleFormSuccess} 
                             postToEdit={editingPost.id ? editingPost : null}
