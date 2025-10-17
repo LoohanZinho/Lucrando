@@ -27,7 +27,7 @@ const features = [
   {
     icon: <Users className="h-6 w-6 text-primary" />,
     title: 'Cadastro de Entidades',
-    description: 'Gerencie facilmente seus Influenciadores, Produtos e Sócios em um só lugar.',
+    description: 'Gerencie facilmente seus Influenciadores e Produtos em um só lugar.',
   },
     {
     icon: <Filter className="h-6 w-6 text-primary" />,
