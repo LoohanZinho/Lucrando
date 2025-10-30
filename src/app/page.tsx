@@ -57,9 +57,9 @@ const plans = [
   },
   {
     name: 'Plano Trimestral',
-    price: 197.00 / 3,
-    period: 'mês',
-    billingNotice: 'Cobrado R$ 197,00 a cada 3 meses',
+    price: 197.00,
+    period: 'trimestre',
+    billingNotice: 'Economia de 32% em relação ao plano mensal',
     features: [
       'Tudo do plano Mensal',
       'Desconto de 32%',
@@ -71,9 +71,9 @@ const plans = [
   },
   {
     name: 'Plano Anual',
-    price: 797.00 / 12,
-    period: 'mês',
-    billingNotice: 'Cobrado R$ 797,00 por ano',
+    price: 797.00,
+    period: 'ano',
+    billingNotice: 'Economia de 31% - equivale a 2 meses grátis',
     features: [
       'Tudo do plano Trimestral',
       'Desconto de 31%',
