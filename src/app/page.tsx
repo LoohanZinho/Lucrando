@@ -188,7 +188,7 @@ export default function SalesPage() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-bold">R$</span>
                       <span className="text-5xl font-bold tracking-tighter">{plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      <span className="text-muted-foreground">/{plan.period}</span>
+                      {plan.period === 'mês' && <span className="text-muted-foreground">/{plan.period}</span>}
                     </div>
                     {plan.billingNotice && (
                       <CardDescription className="text-xs">{plan.billingNotice}</CardDescription>
