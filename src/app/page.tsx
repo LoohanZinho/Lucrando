@@ -44,8 +44,9 @@ const features = [
 const plans = [
   {
     name: 'Plano Mensal',
-    price: '97,00',
+    price: 97.00,
     period: 'mês',
+    billingNotice: '',
     features: [
       'Acesso a todas as funcionalidades',
       'Dashboard analítico completo',
@@ -56,8 +57,9 @@ const plans = [
   },
   {
     name: 'Plano Trimestral',
-    price: '197,00',
-    period: 'trimestre',
+    price: 197.00 / 3,
+    period: 'mês',
+    billingNotice: 'Cobrado R$ 197,00 a cada 3 meses',
     features: [
       'Tudo do plano Mensal',
       'Desconto de 32%',
@@ -69,8 +71,9 @@ const plans = [
   },
   {
     name: 'Plano Anual',
-    price: '797,00',
-    period: 'ano',
+    price: 797.00 / 12,
+    period: 'mês',
+    billingNotice: 'Cobrado R$ 797,00 por ano',
     features: [
       'Tudo do plano Trimestral',
       'Desconto de 31%',
@@ -182,10 +185,14 @@ export default function SalesPage() {
                   )}
                   <CardHeader className="items-center text-center">
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-bold tracking-tighter">R$ {plan.price}</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold">R$</span>
+                      <span className="text-5xl font-bold tracking-tighter">{plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                       <span className="text-muted-foreground">/{plan.period}</span>
                     </div>
+                    {plan.billingNotice && (
+                      <CardDescription className="text-xs">{plan.billingNotice}</CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="flex-1">
                     <ul className="space-y-4">
