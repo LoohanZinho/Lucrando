@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -537,12 +538,18 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         <>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-semibold text-primary">Painel LCI HUB</h1>
-                        <Link href="/dashboard">
+                    <div className="flex flex-1 items-center gap-2">
+                        <h1 className="text-lg font-semibold text-primary sm:text-xl">Painel LCI HUB</h1>
+                        <Link href="/dashboard" className="hidden sm:inline-flex">
                            <Button variant="outline" size="sm">
                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                               Acessar Dashboard
+                               <span>Acessar Dashboard</span>
+                           </Button>
+                        </Link>
+                         <Link href="/dashboard" className="sm:hidden">
+                           <Button variant="outline" size="icon">
+                               <LayoutDashboard className="h-4 w-4" />
+                               <span className="sr-only">Acessar Dashboard</span>
                            </Button>
                         </Link>
                     </div>
@@ -747,5 +754,3 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
-
-      
