@@ -16,6 +16,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -274,9 +275,47 @@ const emailSchema = z.object({
 
 type EmailFormData = z.infer<typeof emailSchema>;
 
+function PasswordPromptDialog({ open, onOpenChange, onConfirm }: { open: boolean, onOpenChange: (open: boolean) => void, onConfirm: (password: string) => void }) {
+    const [password, setPassword] = useState('');
+
+    const handleConfirm = () => {
+        onConfirm(password);
+        setPassword('');
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Confirmação de Administrador</DialogTitle>
+                    <DialogDescription>
+                        Por favor, digite sua senha de administrador para confirmar o envio do e-mail.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Input 
+                        type="password"
+                        placeholder="Senha de administrador"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
+                    />
+                </div>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button onClick={handleConfirm}>Confirmar Envio</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
 function EmailForm({ user, onCancel }: { user: UserType, onCancel: () => void }) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [emailFormData, setEmailFormData] = useState<EmailFormData | null>(null);
     
     const form = useForm<EmailFormData>({
         resolver: zodResolver(emailSchema),
@@ -289,10 +328,17 @@ function EmailForm({ user, onCancel }: { user: UserType, onCancel: () => void })
 
     const emailType = form.watch("emailType");
     
-    async function onSubmit(values: EmailFormData) {
+    function handleFormSubmit(values: EmailFormData) {
+        setEmailFormData(values);
+        setIsPasswordModalOpen(true);
+    }
+    
+    async function handleConfirmSend(adminPassword: string) {
+        setIsPasswordModalOpen(false);
+        if (!emailFormData) return;
+        
         setIsSubmitting(true);
         try {
-            const adminPassword = prompt("Por favor, digite sua senha de administrador para confirmar o envio do e-mail:");
             if (adminPassword !== ADMIN_PASSWORD) {
                 toast({ variant: "destructive", title: "Erro", description: "Senha de administrador incorreta." });
                 setIsSubmitting(false);
@@ -305,9 +351,9 @@ function EmailForm({ user, onCancel }: { user: UserType, onCancel: () => void })
                 body: JSON.stringify({
                     adminPassword,
                     user,
-                    emailType: values.emailType,
-                    subject: values.subject,
-                    message: values.message,
+                    emailType: emailFormData.emailType,
+                    subject: emailFormData.subject,
+                    message: emailFormData.message,
                 }),
             });
 
@@ -325,80 +371,89 @@ function EmailForm({ user, onCancel }: { user: UserType, onCancel: () => void })
             toast({ variant: "destructive", title: "Erro", description: error.message || "Não foi possível enviar o e-mail." });
         } finally {
             setIsSubmitting(false);
+            setEmailFormData(null);
         }
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4">
-                <p>Enviando e-mail para: <strong className="text-primary">{user.email}</strong></p>
-                <FormField
-                    control={form.control}
-                    name="emailType"
-                    render={({ field }) => (
-                        <FormItem className="space-y-3">
-                            <FormLabel>Tipo de E-mail</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className="flex flex-col space-y-1"
-                                >
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><RadioGroupItem value="welcome" /></FormControl>
-                                        <FormLabel className="font-normal">Boas-vindas (com credenciais)</FormLabel>
+        <>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 p-4">
+                    <p>Enviando e-mail para: <strong className="text-primary">{user.email}</strong></p>
+                    <FormField
+                        control={form.control}
+                        name="emailType"
+                        render={({ field }) => (
+                            <FormItem className="space-y-3">
+                                <FormLabel>Tipo de E-mail</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-col space-y-1"
+                                    >
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl><RadioGroupItem value="welcome" /></FormControl>
+                                            <FormLabel className="font-normal">Boas-vindas (com credenciais)</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl><RadioGroupItem value="renewal" /></FormControl>
+                                            <FormLabel className="font-normal">Confirmação de Renovação</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl><RadioGroupItem value="custom" /></FormControl>
+                                            <FormLabel className="font-normal">Personalizado</FormLabel>
+                                        </FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    
+                    {emailType === "custom" && (
+                        <div className="space-y-4 pt-4 border-t">
+                            <FormField
+                                control={form.control}
+                                name="subject"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Assunto</FormLabel>
+                                        <FormControl><Input placeholder="Assunto do e-mail" {...field} /></FormControl>
+                                        <FormMessage />
                                     </FormItem>
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><RadioGroupItem value="renewal" /></FormControl>
-                                        <FormLabel className="font-normal">Confirmação de Renovação</FormLabel>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="message"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Mensagem</FormLabel>
+                                        <FormControl><Textarea placeholder="Escreva sua mensagem aqui. Você pode usar HTML." {...field} rows={8} /></FormControl>
+                                        <FormMessage />
                                     </FormItem>
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl><RadioGroupItem value="custom" /></FormControl>
-                                        <FormLabel className="font-normal">Personalizado</FormLabel>
-                                    </FormItem>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
+                                )}
+                            />
+                        </div>
                     )}
-                />
-                
-                {emailType === "custom" && (
-                    <div className="space-y-4 pt-4 border-t">
-                        <FormField
-                            control={form.control}
-                            name="subject"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Assunto</FormLabel>
-                                    <FormControl><Input placeholder="Assunto do e-mail" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="message"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Mensagem</FormLabel>
-                                    <FormControl><Textarea placeholder="Escreva sua mensagem aqui. Você pode usar HTML." {...field} rows={8} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                    
+                    <div className="flex gap-2 justify-end">
+                        <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Enviar E-mail
+                        </Button>
                     </div>
-                )}
-                
-                <div className="flex gap-2 justify-end">
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Enviar E-mail
-                    </Button>
-                </div>
-            </form>
-        </Form>
+                </form>
+            </Form>
+
+            <PasswordPromptDialog 
+                open={isPasswordModalOpen}
+                onOpenChange={setIsPasswordModalOpen}
+                onConfirm={handleConfirmSend}
+            />
+        </>
     );
 }
 
@@ -692,3 +747,5 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
+
+      
