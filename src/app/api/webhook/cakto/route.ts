@@ -118,8 +118,7 @@ async function sendRenewalEmail(customerName: string, customerEmail: string): Pr
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
-    console.log("Payload do webhook recebido:", payload);
-
+    console.log("Payload do webhook recebido:", JSON.stringify(payload, null, 2));
 
     if (!CAKTO_WEBHOOK_SECRET) {
       console.error("O segredo do webhook (CAKTO_WEBHOOK_SECRET) não está configurado nas variáveis de ambiente.");
@@ -139,9 +138,24 @@ export async function POST(req: NextRequest) {
     const customerEmail = data?.customer?.email;
     const customerName = data?.customer?.name;
     const paidAt = data?.paidAt;
+    const productName = data?.product?.name;
 
-    if (!customerEmail || !paidAt || !customerName) {
-      return NextResponse.json({ error: "Nome, email do cliente ou data de pagamento ausentes" }, { status: 400 });
+    if (!customerEmail || !paidAt || !customerName || !productName) {
+      return NextResponse.json({ error: "Dados essenciais (nome, email, data de pagamento, nome do produto) ausentes no payload." }, { status: 400 });
+    }
+
+    let subscriptionDays = 0;
+    if (productName === "LCI HUB") {
+        subscriptionDays = 30;
+    } else if (productName === "LCI HUB - Trimestral") {
+        subscriptionDays = 90;
+    } else if (productName === "LCI HUB - Anual") {
+        subscriptionDays = 365;
+    }
+
+    if (subscriptionDays === 0) {
+        console.warn(`Nome do produto "${productName}" não corresponde a nenhum plano configurado.`);
+        return NextResponse.json({ message: `Produto ${productName} não aciona a criação/atualização de assinatura.` }, { status: 200 });
     }
 
     const usersCol = collection(db, 'users');
@@ -153,7 +167,7 @@ export async function POST(req: NextRequest) {
     if (querySnapshot.empty) {
       // User does not exist, create a new one
       const defaultPassword = "123456";
-      const subscriptionExpiresAt = add(paidAtDate, { days: 30 });
+      const subscriptionExpiresAt = add(paidAtDate, { days: subscriptionDays });
       const newUserDoc = {
         displayName: customerName,
         email: customerEmail,
@@ -163,7 +177,7 @@ export async function POST(req: NextRequest) {
         subscriptionExpiresAt: Timestamp.fromDate(subscriptionExpiresAt),
       };
       await addDoc(usersCol, newUserDoc);
-      console.log('Usuário criado com sucesso:', customerName);
+      console.log(`Usuário criado com sucesso: ${customerName} com plano de ${subscriptionDays} dias.`);
       
       console.log('Enviando email de boas-vindas para o usuário:', customerName, customerEmail);
       await sendWelcomeEmail(customerName, customerEmail, defaultPassword);
@@ -177,18 +191,18 @@ export async function POST(req: NextRequest) {
       let newExpirationDate;
       const currentExpiration = userData.subscriptionExpiresAt ? (userData.subscriptionExpiresAt as Timestamp).toDate() : null;
 
-      // If current subscription is still active, add 30 days to it. Otherwise, add 30 days from now.
+      // If current subscription is still active, add days to it. Otherwise, add days from the payment date.
       if (currentExpiration && currentExpiration > new Date()) {
-        newExpirationDate = add(currentExpiration, { days: 30 });
+        newExpirationDate = add(currentExpiration, { days: subscriptionDays });
       } else {
-        newExpirationDate = add(paidAtDate, { days: 30 });
+        newExpirationDate = add(paidAtDate, { days: subscriptionDays });
       }
 
       await updateDoc(userRef, {
         paidAt: Timestamp.fromDate(paidAtDate),
         subscriptionExpiresAt: Timestamp.fromDate(newExpirationDate),
       });
-      console.log(`Assinatura atualizada para o usuário existente: ${customerEmail}. Nova data de expiração: ${newExpirationDate}`);
+      console.log(`Assinatura atualizada para ${customerEmail}. Adicionados ${subscriptionDays} dias. Nova expiração: ${newExpirationDate}`);
       
       console.log('Enviando email de renovação para o usuário:', customerName, customerEmail);
       await sendRenewalEmail(customerName, customerEmail);

@@ -402,83 +402,6 @@ function EmailForm({ user, onCancel }: { user: UserType, onCancel: () => void })
     );
 }
 
-function SettingsCard() {
-    const { toast } = useToast();
-    const [paymentLink, setPaymentLink] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
-
-    const settingsRef = doc(db, 'settings', 'app_config');
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            setIsLoading(true);
-            try {
-                const docSnap = await getDoc(settingsRef);
-                if (docSnap.exists()) {
-                    setPaymentLink(docSnap.data().paymentLink || '');
-                }
-            } catch (error) {
-                console.error("Erro ao buscar configurações:", error);
-                toast({ variant: "destructive", title: "Erro", description: "Não foi possível carregar as configurações." });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchSettings();
-    }, [toast]);
-
-    const handleSaveSettings = async () => {
-        setIsSaving(true);
-        try {
-            await setDoc(settingsRef, { paymentLink }, { merge: true });
-            toast({ title: "Sucesso!", description: "Configurações salvas." });
-        } catch (error) {
-            console.error("Erro ao salvar configurações:", error);
-            toast({ variant: "destructive", title: "Erro", description: "Não foi possível salvar as configurações." });
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Configurações Gerais</CardTitle>
-                <CardDescription>Defina as configurações globais do aplicativo.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {isLoading ? (
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-1/4" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                ) : (
-                    <div className="space-y-2">
-                        <Label htmlFor="payment-link">Link de Pagamento</Label>
-                        <Input
-                            id="payment-link"
-                            placeholder="https://seu-link-de-pagamento.com"
-                            value={paymentLink}
-                            onChange={(e) => setPaymentLink(e.target.value)}
-                        />
-                         <p className="text-sm text-muted-foreground">
-                            Este link será mostrado para usuários com assinatura expirada.
-                        </p>
-                    </div>
-                )}
-            </CardContent>
-            <CardFooter>
-                 <Button onClick={handleSaveSettings} disabled={isSaving || isLoading}>
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Salvar Configurações
-                </Button>
-            </CardFooter>
-        </Card>
-    );
-}
-
-
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const { toast } = useToast();
     const [users, setUsers] = useState<UserType[]>([]);
@@ -576,7 +499,6 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     </div>
                 </header>
                 <main className="flex-1 p-4 sm:p-6 space-y-6">
-                     <SettingsCard />
                     <Card>
                         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div>
@@ -770,5 +692,3 @@ export default function AdminPage() {
 
     return <AdminDashboard onLogout={handleLogout} />;
 }
-
-    

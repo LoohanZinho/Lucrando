@@ -45,8 +45,7 @@ const plans = [
   {
     name: 'Plano Mensal',
     price: 97.00,
-    period: 'mês',
-    billingNotice: '',
+    billingNotice: 'Cobrado mensalmente',
     features: [
       'Acesso a todas as funcionalidades',
       'Dashboard analítico completo',
@@ -54,33 +53,34 @@ const plans = [
       'Suporte via e-mail',
     ],
     cta: 'Assinar Agora',
+    link: 'https://pay.cakto.com.br/quciip4_611133'
   },
   {
     name: 'Plano Trimestral',
     price: 197.00,
-    period: 'trimestre',
-    billingNotice: 'Economia de 32% em relação ao plano mensal',
+    billingNotice: 'Pagamento único, acesso por 3 meses',
     features: [
       'Tudo do plano Mensal',
-      'Desconto de 32%',
+      'Economia de 32%',
       'Prioridade no suporte',
-      'Acesso a novas funcionalidades',
+      'Acesso antecipado a novas funcionalidades',
     ],
     cta: 'Assinar Agora',
     recommended: true,
+    link: 'https://pay.cakto.com.br/3e6ajog'
   },
   {
     name: 'Plano Anual',
     price: 797.00,
-    period: 'ano',
-    billingNotice: 'Economia de 31% - equivale a 2 meses grátis',
+    billingNotice: 'Pagamento único, acesso por 1 ano',
     features: [
       'Tudo do plano Trimestral',
-      'Desconto de 31%',
-      '2 meses grátis',
+      'Economia de 31% (pague 10, leve 12)',
+      'Suporte premium via WhatsApp',
       'Consultoria inicial de 30 min',
     ],
     cta: 'Assinar Agora',
+    link: 'https://pay.cakto.com.br/72o5dg4'
   },
 ];
 
@@ -188,7 +188,6 @@ export default function SalesPage() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-bold">R$</span>
                       <span className="text-5xl font-bold tracking-tighter">{plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      
                     </div>
                     {plan.billingNotice && (
                       <CardDescription className="text-xs">{plan.billingNotice}</CardDescription>
@@ -205,8 +204,8 @@ export default function SalesPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full" size="lg" variant={plan.recommended ? 'default' : 'outline'}>
-                      {plan.cta}
+                    <Button className="w-full" size="lg" variant={plan.recommended ? 'default' : 'outline'} asChild>
+                      <Link href={plan.link} target="_blank">{plan.cta}</Link>
                     </Button>
                   </CardFooter>
                 </Card>
