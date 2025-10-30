@@ -177,7 +177,7 @@ export default function SalesPage() {
             </div>
             <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
               {plans.map((plan) => (
-                <Card key={plan.name} className={`flex flex-col ${plan.recommended ? 'border-primary border-2 shadow-xl' : ''}`}>
+                <Card key={plan.name} className={`flex flex-col overflow-hidden ${plan.recommended ? 'border-primary border-2 shadow-xl' : ''}`}>
                   {plan.recommended && (
                     <div className="bg-primary px-4 py-1 text-center text-sm font-semibold text-primary-foreground">
                       MAIS POPULAR
@@ -188,7 +188,7 @@ export default function SalesPage() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-bold">R$</span>
                       <span className="text-5xl font-bold tracking-tighter">{plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      {plan.period === 'mês' && <span className="text-muted-foreground">/{plan.period}</span>}
+                      
                     </div>
                     {plan.billingNotice && (
                       <CardDescription className="text-xs">{plan.billingNotice}</CardDescription>
